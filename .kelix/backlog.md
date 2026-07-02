@@ -628,7 +628,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   Kalph name during early dogfood runs. Acceptance: `rg -i kalph docs/proof`
   returns zero matches except the provenance line; pytest -q passes.
 
-- [ ] KE17: concept.md audacity intro | priority: 76 | status: ready | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
+- [x] KE17: concept.md audacity intro | priority: 76 | status: done | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
   details: rewrite docs/concept.md opening: one audacity sentence (what one
   person can do overnight they couldn't before), then evidence link to
   docs/proof/final-report.md dogfood 12/12 stat. Remove plumbing-first lead.
