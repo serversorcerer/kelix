@@ -1,10 +1,10 @@
 # Kelix state
 
-- milestone: V
-- phase: V-PROOF
+- milestone: post-V
+- phase: DRIFT-FIX
 - current_task: selecting
 - last_task: KV18
-- last_verified_commit: 479cf8378e0206aa31159e001a11848f96fe049a
+- last_verified_commit: d6fdbab
 - done: 106
-- total: 106
+- total: 118
 - blockers:
