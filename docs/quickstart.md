@@ -123,6 +123,8 @@ Useful flags:
 - `--max-iterations N` — override the config cap for this run
 - `--role "text"` — extra role text injected into the prompt
 - `--path DIR` — run against a repo other than the current directory
+- `--force` — skip the run-time spec gate only (ready-task backlog lint);
+  git safety rails (worktree isolation, command denylist) are unchanged
 
 ## 7. Read the results
 

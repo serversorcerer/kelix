@@ -599,3 +599,47 @@ def test_spec_gate_allows_well_specified_ready_task(repo):
 
     assert result.status != "spec_gate"
     assert len(result.iterations) >= 1
+
+
+def test_spec_gate_force_bypass_reaches_adapter(repo):
+    (repo / ".kelix" / "backlog.md").write_text(
+        "# Backlog\n\n"
+        "- [ ] T1: vague task | priority: 50 | status: ready | by: owner\n"
+        "  details: improve everything\n"
+    )
+    write_mock_script(
+        repo / "mockdir",
+        "001.sh",
+        'echo "RATIONALE: T1 — forced past spec gate"\n',
+    )
+    cfg = _config(repo)
+    result = Runner(cfg).run(
+        max_iterations=1, log=lambda *_: None, skip_spec_gate=True
+    )
+
+    assert result.status != "spec_gate"
+    assert len(result.iterations) >= 1
+
+
+def test_run_force_help_documents_spec_gate_scope():
+    import os
+    import subprocess
+    import sys
+
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+    out = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "from kelix.cli import main; raise SystemExit(main(['run', '--help']))",
+        ],
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+    assert out.returncode == 0
+    help_text = out.stdout.lower()
+    assert "--force" in help_text
+    assert "spec gate" in help_text
+    assert "git" in help_text

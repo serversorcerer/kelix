@@ -701,7 +701,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   tests/test_loop.py: vague ready task → exit 1 before adapter called; good
   task → proceeds.
 
-- [ ] KE30: run --force bypass | priority: 63 | status: ready | by: owner | deps: KE29 | phase: P-GOLD | req: REQ-GD1
+- [x] KE30: run --force bypass | priority: 63 | status: done | by: owner | deps: KE29 | phase: P-GOLD | req: REQ-GD1
   details: add `--force` to kelix run argparse; skips spec gate only (document in
   --help and docs/quickstart.md); git safety unchanged. Test: vague backlog +
   --force reaches adapter. Acceptance: help text states spec-gate scope explicitly.

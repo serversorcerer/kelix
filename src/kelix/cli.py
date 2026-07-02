@@ -318,7 +318,10 @@ def cmd_run(args) -> int:
     try:
         cfg = load_config(Path(args.path))
         runner = Runner(cfg, role=args.role or "")
-        result = runner.run(max_iterations=args.max_iterations)
+        result = runner.run(
+            max_iterations=args.max_iterations,
+            skip_spec_gate=args.force,
+        )
     except (ConfigError, LoopError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
@@ -676,6 +679,14 @@ def main(argv: list[str] | None = None) -> int:
         "--pr",
         action="store_true",
         help="open a GitHub PR after a completed or max-iterations run",
+    )
+    p.add_argument(
+        "--force",
+        action="store_true",
+        help=(
+            "skip the run-time spec gate only (status: ready backlog lint); "
+            "git safety rails unchanged"
+        ),
     )
     p.set_defaults(func=cmd_run)
 
