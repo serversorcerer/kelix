@@ -23,17 +23,26 @@ auditable trail — running overnight, unattended.
 pipx install kalph        # or: pip install kalph
 
 cd your-repo              # a git repo
-kalph init               # creates .kalph/{backlog.md,memory,kalph.toml,...}
+kalph init               # creates GOAL.md and .kalph/{backlog.md,memory,kalph.toml,...}
 
-# 1. Tell it what "done" means — the verification gate:
+# 1. Describe what you want built:
+$EDITOR GOAL.md
+
+# 2. Draft a roadmap + proposed backlog tasks in one iteration:
+kalph plan --goal-file GOAL.md
+
+# 3. Review, lint, and promote tasks you want the loop to run:
+kalph lint
+$EDITOR .kalph/backlog.md   # change status: proposed -> ready
+
+# 4. Tell it what "done" means — the verification gate:
 $EDITOR .kalph/kalph.toml   # set [verify] commands = ["pytest -q", "ruff check ."]
 
-# 2. Write the work as backlog tasks (one per line):
-$EDITOR .kalph/backlog.md
-
-# 3. Run overnight, leaving reviewable PRs by morning:
+# 5. Run overnight, leaving reviewable PRs by morning:
 kalph run --max-iterations 25 --pr
 ```
+
+Already have a backlog? Skip steps 1–3 and edit `.kalph/backlog.md` directly.
 
 Each iteration: a fresh agent reads the backlog + git log, picks the one
 highest-priority task, implements it, and Kalph **re-runs your verify commands**

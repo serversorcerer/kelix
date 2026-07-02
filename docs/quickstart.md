@@ -24,6 +24,7 @@ kalph init
 
 This creates:
 
+- `GOAL.md` — describe your outcome, non-goals, and acceptance criteria
 - `.kalph/backlog.md` — the work queue (a template with one placeholder task)
 - `.kalph/memory/project.md` — durable project memory
 - `.kalph/kalph.toml` — configuration (every field optional, defaults are safe)
@@ -33,7 +34,25 @@ If you already have a Kiro spec, seed the backlog from it instead of writing
 tasks by hand: `kalph init --from-spec <name>` (see the
 [Kiro guide](kiro.md)).
 
-## 3. Define "done" — the verification gate
+## 3. Plan first — goal to backlog
+
+Edit `GOAL.md` with your outcome, non-goals, and testable acceptance bullets
+(the PRD skeleton from [writing-for-the-loop.md](writing-for-the-loop.md)).
+Then let one planning iteration draft a roadmap and proposed backlog tasks:
+
+```bash
+$EDITOR GOAL.md
+kalph plan --goal-file GOAL.md
+```
+
+Review `.kalph/roadmap.md` and the new tasks in `.kalph/backlog.md`. Run
+`kalph lint` to catch slop before you promote anything. Change task
+`status: proposed` to `status: ready` for work you want the loop to pick up.
+
+Already have a hand-written backlog? Skip planning and edit
+`.kalph/backlog.md` directly — the flat-backlog path still works.
+
+## 4. Define "done" — the verification gate
 
 Edit `.kalph/kalph.toml` and set the commands that must all exit 0 before any
 task counts as finished:
@@ -48,7 +67,7 @@ commands itself after every iteration; an agent claiming success does not
 matter if verification is red. No commands configured means no verification
 gate — fine for experimenting, not for unattended runs.
 
-## 4. Write backlog tasks
+## 5. Write backlog tasks (optional)
 
 Each task in `.kalph/backlog.md` is one line, in exactly this format:
 
@@ -80,7 +99,10 @@ candidates. Malformed lines are skipped, never fatal. The full rubric —
 priority bands, decomposition, blocked tasks — is in
 [prioritization.md](prioritization.md).
 
-## 5. Run
+If you used `kalph plan`, most tasks are already written — promote the ones
+you want and skip this section.
+
+## 6. Run
 
 ```bash
 kalph run --max-iterations 25 --pr
@@ -102,7 +124,7 @@ Useful flags:
 - `--role "text"` — extra role text injected into the prompt
 - `--path DIR` — run against a repo other than the current directory
 
-## 6. Read the results
+## 7. Read the results
 
 Every run writes an audit trail to `.kalph/runs/<run-id>/`:
 
@@ -117,7 +139,7 @@ Start with `retrospective.md`, then the diff on the run branch, then
 individual `iter-*.log` files for anything surprising. Every iteration logs a
 one-line `RATIONALE:` explaining the task it chose.
 
-## 7. Monitor and stop
+## 8. Monitor and stop
 
 ```bash
 kalph status

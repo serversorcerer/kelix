@@ -25,7 +25,7 @@ Every task below names its phase and the REQ it covers in `details:`.
 
 ### Phase P-SPINE (the state spine)
 
-- [ ] PC1: state module — read/write .kalph/STATE.md | priority: 95 | status: ready | by: owner
+- [x] PC1: state module — read/write .kalph/STATE.md | priority: 95 | status: done | by: owner
   rationale: [P-SPINE/REQ-S1] a fresh loop must orient in O(1) from one small file
   details: create src/kalph/state.py with a State dataclass (milestone: str,
   phase: str, current_task: str, last_task: str, last_verified_commit: str,
@@ -36,7 +36,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   tests/test_state.py: write -> load equality, partial file tolerance, empty
   blockers.
 
-- [ ] PC2: runner maintains STATE.md through the run | priority: 94 | status: ready | by: owner | deps: PC1
+- [x] PC2: runner maintains STATE.md through the run | priority: 94 | status: done | by: owner | deps: PC1
   rationale: [P-SPINE/REQ-S2] the runner owns the spine so it is never stale or hallucinated
   details: in src/kalph/loop.py, Runner.run() writes STATE.md at run start
   (current_task from the pre_iteration hook or "selecting"), after each
@@ -49,7 +49,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   after a mock run, STATE.md exists on the run branch, counts match, and a
   no-diff run does not create bogus progress.
 
-- [ ] PC3: STATE.md is the prompt's first data slot | priority: 93 | status: ready | by: owner | deps: PC2
+- [x] PC3: STATE.md is the prompt's first data slot | priority: 93 | status: done | by: owner | deps: PC2
   rationale: [P-SPINE/REQ-S3] orientation must be the first thing a fresh agent reads
   details: in src/kalph/prompt.py add a {{STATE}} slot rendered before the
   episode digest, budgeted (default 1200 chars, truncate tail), filled from
@@ -60,7 +60,7 @@ Every task below names its phase and the REQ it covers in `details:`.
 
 ### Phase P-INTENT (top-down intent)
 
-- [ ] PC4: roadmap parser | priority: 90 | status: ready | by: owner | deps: PC1
+- [x] PC4: roadmap parser | priority: 90 | status: done | by: owner | deps: PC1
   rationale: [P-INTENT/REQ-I1] milestones/phases/REQs must be machine-readable to gate on
   details: create src/kalph/roadmap.py parsing .kalph/roadmap.md: Milestone
   (id, title), Phase (id, title, outcome line), Req (id, text, phase). H2
@@ -70,7 +70,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   sections. tests/test_roadmap.py: parse the real .kalph/roadmap.md fixture
   copy plus edge cases (no reqs, multiple milestones).
 
-- [ ] PC5: backlog tasks carry phase and req fields | priority: 88 | status: ready | by: owner | deps: PC4
+- [x] PC5: backlog tasks carry phase and req fields | priority: 88 | status: done | by: owner | deps: PC4
   rationale: [P-INTENT/REQ-I3] tasks must link upward so coverage is computable
   details: extend TASK_LINE in src/kalph/backlog.py with optional trailing
   "| phase: <id>" and "| req: <REQ-ID>" fields (any order after by:, both
@@ -82,7 +82,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   existing owner/status/priority key). tests/test_backlog.py: round-trip,
   legacy lines, phase-preference selection.
 
-- [ ] PC6: per-phase CONTEXT.md decisions injected | priority: 86 | status: ready | by: owner | deps: PC3, PC4
+- [x] PC6: per-phase CONTEXT.md decisions injected | priority: 86 | status: done | by: owner | deps: PC3, PC4
   rationale: [P-INTENT/REQ-I2] decisions made once should not be re-guessed by every iteration (GSD Discuss)
   details: when STATE.md names an active phase and
   .kalph/phases/<phase-id>/CONTEXT.md exists, inject it as a budgeted
@@ -94,7 +94,7 @@ Every task below names its phase and the REQ it covers in `details:`.
 
 ### Phase P-ONRAMP (the owner's planning onramp)
 
-- [ ] PC14: kalph plan — goal to draft plan in one iteration | priority: 89 | status: ready | by: owner | deps: PC4
+- [x] PC14: kalph plan — goal to draft plan in one iteration | priority: 89 | status: done | by: owner | deps: PC4
   rationale: [P-ONRAMP/REQ-O1] the most important thing a user needs is a plan; give them a command, not just a doc
   details: add cmd_plan to src/kalph/cli.py and src/kalph/plan.py. Input: a
   goal string (`kalph plan "build X"`) or --goal-file. Runs exactly one
@@ -108,7 +108,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   ready — review .kalph/roadmap.md and promote tasks to ready". Tests with
   the mock adapter: draft written, all tasks proposed, nothing else changed.
 
-- [ ] PC14b: planning interviews the owner before drafting | priority: 88 | status: ready | by: owner | deps: PC14
+- [x] PC14b: planning interviews the owner before drafting | priority: 88 | status: done | by: owner | deps: PC14
   rationale: [P-ONRAMP/REQ-O1b] a planner that guesses produces plausible-but-wrong plans; ask, then draft (D16 directive 1)
   details: extend plan.py with a question step. The planning prompt's first
   phase instructs the agent to emit QUESTIONS as a fenced block: each item =
@@ -123,7 +123,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   adapter scripts: TTY path via monkeypatched isatty+input, file path
   round-trip (unanswered -> exit with file; answered -> draft produced).
 
-- [ ] PC15: plan validation + kalph lint | priority: 87 | status: ready | by: owner | deps: PC4
+- [x] PC15: plan validation + kalph lint | priority: 87 | status: done | by: owner | deps: PC4
   rationale: [P-ONRAMP/REQ-O2+O3] a draft plan must be machine-checked against the input contract; slop is rejected with specifics
   details: add src/kalph/lint.py with lint_backlog(tasks) -> list[Finding]
   (finding: task_id, rule, message). Rules: missing details, details with no
@@ -135,7 +135,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   CLI: `kalph lint` prints findings, exit 1 if any (0 clean). Tests: each
   rule fires on a bad fixture and stays quiet on this repo's real backlog.
 
-- [ ] PC16: init leads with the planning path | priority: 83 | status: ready | by: owner | deps: PC14
+- [x] PC16: init leads with the planning path | priority: 83 | status: done | by: owner | deps: PC14
   rationale: [P-ONRAMP/REQ-O4] the first thing init should teach is how to get a plan
   details: cmd_init writes GOAL.md template (goal, non-goals, acceptance
   bullets — the PRD skeleton from docs/writing-for-the-loop.md) when absent;

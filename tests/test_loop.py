@@ -9,6 +9,7 @@ from conftest import write_mock_script
 
 from kalph.config import load_config
 from kalph.loop import Runner
+from kalph.state import load_state
 
 
 def _config(repo, extra="", mock_dir="mockdir", isolation="none"):
@@ -197,3 +198,59 @@ def test_episodes_recorded_and_digested(repo):
 
     digest = episode_digest(cfg)
     assert "T1" in digest
+
+
+def test_state_md_written_after_run_with_matching_counts(repo):
+    write_mock_script(repo / "mockdir", "001.sh", COMMIT_TASK)
+    cfg = _config(repo)
+    result = Runner(cfg).run(log=lambda *_: None)
+    state = load_state(cfg.kalph_dir)
+    assert state is not None
+    assert state.last_task == "T1"
+    assert state.current_task == "selecting"
+    assert state.done == 0
+    assert state.total == 1
+    tracked = _git_out(repo, "ls-tree", "-r", "--name-only", "HEAD")
+    assert ".kalph/STATE.md" in tracked
+    assert result.status == "completed"
+
+
+def test_state_md_on_worktree_branch(repo):
+    write_mock_script(repo / "mockdir", "001.sh", COMMIT_TASK)
+    cfg = _config(repo, isolation="worktree")
+    result = Runner(cfg).run(log=lambda *_: None)
+    branch_files = _git_out(repo, "ls-tree", "-r", "--name-only", result.branch)
+    assert ".kalph/STATE.md" in branch_files
+
+
+def test_state_md_no_bogus_progress_on_no_diff(repo):
+    for i in (1, 2, 3):
+        write_mock_script(repo / "mockdir", f"{i:03d}.sh", 'echo "did nothing"\n')
+    cfg = _config(repo, extra="[loop]\ncircuit_breaker_threshold = 3\n")
+    Runner(cfg).run(log=lambda *_: None)
+    state = load_state(cfg.kalph_dir)
+    assert state is not None
+    assert state.done == 0
+    assert state.total == 1
+    assert state.last_task == ""
+    assert state.last_verified_commit == ""
+
+
+def test_state_md_records_verified_commit(repo):
+    write_mock_script(
+        repo / "mockdir",
+        "001.sh",
+        COMMIT_TASK + 'echo "KALPH COMPLETE"\n',
+    )
+    cfg = _config(repo, extra='[verify]\ncommands = ["true"]\n')
+    Runner(cfg).run(log=lambda *_: None)
+    state = load_state(cfg.kalph_dir)
+    assert state is not None
+    task_sha = None
+    for line in _git_out(repo, "log", "--format=%H %s").strip().splitlines():
+        sha, subject = line.split(" ", 1)
+        if subject == "T1: do work":
+            task_sha = sha
+            break
+    assert task_sha is not None
+    assert state.last_verified_commit == task_sha

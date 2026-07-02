@@ -48,6 +48,31 @@ commands = []
 isolation = "worktree"    # worktree | branch | none
 """
 
+PHASES_README_TEMPLATE = """\
+# Phase decision files
+
+Each phase may have a `CONTEXT.md` in `.kalph/phases/<phase-id>/CONTEXT.md`
+holding owner decisions made during planning (the GSD Discuss artifact). When
+STATE.md names an active phase and that file exists, its contents are injected
+into the iteration prompt as read-only data — not instructions.
+"""
+
+GOAL_TEMPLATE = """\
+# Project goal
+
+Describe what should exist when this work ships, and for whom.
+
+## Non-goals
+
+What the loop must NOT build, even if tempting.
+
+## Acceptance
+
+- Each bullet is testable — it becomes verify evidence or a backlog task's
+  acceptance signal.
+- (add acceptance criteria here)
+"""
+
 
 def cmd_init(args) -> int:
     root = Path(args.path).resolve()
@@ -65,15 +90,84 @@ def cmd_init(args) -> int:
             created.append(str(path.relative_to(root)))
     (kalph / "skills").mkdir(exist_ok=True)
     (kalph / "prompts").mkdir(exist_ok=True)
+    phases_readme = kalph / "phases" / "README.md"
+    if not phases_readme.exists():
+        phases_readme.parent.mkdir(parents=True, exist_ok=True)
+        phases_readme.write_text(PHASES_README_TEMPLATE, encoding="utf-8")
+        created.append(str(phases_readme.relative_to(root)))
+    goal_path = root / "GOAL.md"
+    if not goal_path.exists():
+        goal_path.write_text(GOAL_TEMPLATE, encoding="utf-8")
+        created.append("GOAL.md")
     if args.from_spec:
         from .kiro import import_spec
 
         count = import_spec(root, args.from_spec)
         print(f"imported {count} tasks from .kiro/specs/{args.from_spec}/tasks.md")
     print("initialized: " + (", ".join(created) if created else "(already initialized)"))
-    print("next: edit .kalph/backlog.md, set [verify] commands in .kalph/kalph.toml, "
-          "then `kalph run`")
+    print(
+        "next: 1) describe your goal in GOAL.md  "
+        "2) kalph plan --goal-file GOAL.md  "
+        "3) review + promote tasks  "
+        "4) kalph run"
+    )
     return 0
+
+
+def cmd_lint(args) -> int:
+    from .lint import format_finding, lint_repo
+
+    root = Path(args.path).resolve()
+    findings = lint_repo(root)
+    if not findings:
+        print("lint: clean")
+        return 0
+    for finding in findings:
+        print(f"lint: {format_finding(finding)}", file=sys.stderr)
+    return 1
+
+
+def cmd_plan(args) -> int:
+    from .loop import LoopError
+    from .plan import PlanRunner
+
+    root = Path(args.path).resolve()
+    if args.goal_file:
+        goal_path = Path(args.goal_file)
+        if not goal_path.is_file():
+            print(f"error: goal file not found: {goal_path}", file=sys.stderr)
+            return 2
+        goal = goal_path.read_text(encoding="utf-8")
+    else:
+        goal = args.goal or ""
+
+    try:
+        cfg = load_config(root)
+        result = PlanRunner(cfg).run(goal=goal)
+    except (ConfigError, LoopError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
+    if result.status == "completed":
+        print(
+            "draft plan ready — review .kalph/roadmap.md and promote tasks to ready"
+        )
+        return 0
+
+    if result.status == "awaiting_answers":
+        if result.questions_path:
+            print(
+                f"planning questions written — answer them in {result.questions_path}, "
+                "then re-run kalph plan with the same goal"
+            )
+        return 0
+
+    if result.findings:
+        for line in result.findings:
+            print(f"lint: {line}", file=sys.stderr)  # pre-formatted in plan.py
+    if result.iteration and result.iteration.failure:
+        print(f"error: {result.iteration.failure}", file=sys.stderr)
+    return 1
 
 
 def cmd_run(args) -> int:
@@ -157,6 +251,20 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--path", default=".")
     p.add_argument("--from-spec", default="", help="seed backlog from .kiro/specs/<name>/tasks.md")
     p.set_defaults(func=cmd_init)
+
+    p = sub.add_parser("lint", help="check backlog tasks against the input contract")
+    p.add_argument("--path", default=".")
+    p.set_defaults(func=cmd_lint)
+
+    p = sub.add_parser("plan", help="draft roadmap and backlog from a goal")
+    p.add_argument("--path", default=".")
+    p.add_argument("goal", nargs="?", default="", help="goal text")
+    p.add_argument(
+        "--goal-file",
+        default="",
+        help="read goal from a file (e.g. GOAL.md)",
+    )
+    p.set_defaults(func=cmd_plan)
 
     p = sub.add_parser("run", help="run the loop")
     p.add_argument("--path", default=".")
