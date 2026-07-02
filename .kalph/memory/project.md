@@ -26,3 +26,6 @@ Durable facts about this repo for future iterations.
 - Decisions already made are in DECISIONS.md; do not re-litigate them.
 - Prioritization rubric for backlog authoring and selection lives in
   `docs/prioritization.md` (owner-first, priority bands, decomposition/blocked rules).
+
+## Run 20260702-002215 (completed)
+4 iterations, 4 verified. Clean run.
