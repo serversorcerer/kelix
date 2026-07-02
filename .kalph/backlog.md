@@ -108,6 +108,21 @@ Every task below names its phase and the REQ it covers in `details:`.
   ready — review .kalph/roadmap.md and promote tasks to ready". Tests with
   the mock adapter: draft written, all tasks proposed, nothing else changed.
 
+- [ ] PC14b: planning interviews the owner before drafting | priority: 88 | status: ready | by: owner | deps: PC14
+  rationale: [P-ONRAMP/REQ-O1b] a planner that guesses produces plausible-but-wrong plans; ask, then draft (D16 directive 1)
+  details: extend plan.py with a question step. The planning prompt's first
+  phase instructs the agent to emit QUESTIONS as a fenced block: each item =
+  decision, 2-4 options, one-line recommendation. With sys.stdin.isatty(),
+  cmd_plan presents each question in the terminal (numbered options, default
+  = recommendation on empty input) and re-invokes the planning iteration
+  with answers appended to the goal. Without a TTY: write
+  .kalph/phases/<milestone-slug>/QUESTIONS.md (questions + "answer:" lines),
+  print how to resume, exit 0; on re-run, if QUESTIONS.md has answers, skip
+  the interview and draft. Answers are also written to that phase dir's
+  CONTEXT.md ("## Decisions from planning interview"). Tests with mock
+  adapter scripts: TTY path via monkeypatched isatty+input, file path
+  round-trip (unanswered -> exit with file; answered -> draft produced).
+
 - [ ] PC15: plan validation + kalph lint | priority: 87 | status: ready | by: owner | deps: PC4
   rationale: [P-ONRAMP/REQ-O2+O3] a draft plan must be machine-checked against the input contract; slop is rejected with specifics
   details: add src/kalph/lint.py with lint_backlog(tasks) -> list[Finding]
@@ -174,6 +189,41 @@ Every task below names its phase and the REQ it covers in `details:`.
   tests/test_fleet.py: agent asking while wave 0 unfinished never receives
   a wave-1 task; status shows waves.
 
+### Phase P-CONTEXT (the context compiler — 50% of the value, D16)
+
+- [ ] PC20: relevance scorer for memory and episodes | priority: 81 | status: ready | by: owner
+  rationale: [P-CONTEXT/REQ-C2] a fresh agent should get the context THIS task needs, not whatever happened most recently
+  details: add src/kalph/context.py with score(text, query) -> float using
+  stdlib only: lowercase token overlap weighted by inverse frequency across
+  the candidate set (no embeddings, no network). select(candidates, query,
+  budget_chars) returns highest-scoring items until budget, ties broken by
+  recency. Wire memory.episode_digest and skills_digest to accept an
+  optional query (active task title+details) and use select() when given;
+  behavior without a query is unchanged. tests/test_context.py: relevant-
+  but-old beats recent-but-noise; empty query falls back to recency.
+
+- [ ] PC21: 50% context budget split + compiler in the prompt | priority: 79 | status: ready | by: owner | deps: PC20, PC3
+  rationale: [P-CONTEXT/REQ-C1] context share is a policy, not an accident; default half the prompt
+  details: add [memory] context_share (float, default 0.5) to config.py.
+  prompt.assemble_prompt computes the char budget for the data slots
+  (STATE, phase context, episodes, project memory, skills, mailbox) as
+  context_share * total_budget and allocates across slots by fixed weights
+  (state and phase decisions first). The active task from the pre_iteration
+  hook (or select_next) is the relevance query passed to PC20's selector.
+  Tests: share respected within tolerance, state slot never starved,
+  query reaches the selector.
+
+- [ ] PC22: per-iteration context manifest | priority: 77 | status: ready | by: owner | deps: PC21
+  rationale: [P-CONTEXT/REQ-C3+C4] context quality must be as auditable as decisions; prove relevance beats recency
+  details: assemble_prompt returns (prompt, manifest) where manifest lists
+  each injected item: slot, source path, chars, score. Runner writes
+  .kalph/runs/<id>/context-<n>.json (runner bookkeeping, excluded from
+  checkpoints). Add the REQ-C4 regression: fixture with an old relevant
+  gotcha buried under recent noise episodes; assert the compiled prompt
+  contains the gotcha and the manifest records its score. Update
+  docs/memory-and-skills.md with a "Context compiler" section (skills stay
+  frozen otherwise, D16).
+
 ### Phase P-HARDEN (lessons from the v0.1 proof runs)
 
 - [ ] PC17: rationale fallback from commit subject | priority: 76 | status: ready | by: owner
@@ -226,3 +276,12 @@ Every task below names its phase and the REQ it covers in `details:`.
   (run id, transcript path) in DECISIONS.md and check off REQ-P3 coverage.
   If no code tasks remain, seed one small owner task (doc polish) so the
   proof run is real.
+
+- [ ] PC23: plan milestone v0.3 with kalph plan itself | priority: 58 | status: ready | by: owner | deps: PC13, PC14b, PC15
+  rationale: [P-PROOF] the onramp's first real use: the self-tuning-loop milestone is decomposed by the interview flow, not by hand
+  details: run `kalph plan --goal-file .kalph/roadmap.md` scoped to the
+  "Milestone v0.3" section: the interview questions go to the owner, the
+  draft phases/REQs/tasks for T-METRICS/T-DIAGNOSE/T-PROPOSE land as
+  proposed tasks passing kalph lint. Evidence in DECISIONS.md: questions
+  asked, answers, lint-clean draft. Owner promotes tasks to ready to open
+  the milestone. This closes v0.2 through the phase gate.

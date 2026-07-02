@@ -18,6 +18,12 @@ Non-goals for v0.2: no new agent types, no changes to the Ralph invariants,
 no mandatory ceremony — a repo with no roadmap must work exactly as today
 (flat backlog is the quick path).
 
+Owner directives in force (D16): MCP and skills are FROZEN — keep working,
+keep tested, zero new investment. Context quality carries 50% of the value:
+the prompt's context half is curated by relevance, not recency, and is
+auditable per iteration. Planning interviews the owner instead of guessing.
+Audacity is the point — v0.3 below is the boundary push, not more plumbing.
+
 ### Phase P-SPINE — the state spine
 
 Outcome: every iteration starts by reading one small runner-maintained file
@@ -61,6 +67,13 @@ exactly (12/12 verified on precise tasks; slop would have produced slop).
   writing-for-the-loop standard, all marked `status: proposed`. It never
   implements anything; the owner promotes tasks to `ready` by editing —
   the loop cannot start work the owner has not reviewed.
+- REQ-O1b: planning interviews the owner before drafting (D16 directive 1).
+  The planning iteration first emits structured questions (decision point,
+  2-4 options, its recommendation). With a TTY, `kalph plan` asks them live
+  and feeds answers back; without one, it writes
+  `.kalph/phases/<id>/QUESTIONS.md` and exits; the owner answers by editing
+  and re-runs `kalph plan` to resume. Answers land in the phase CONTEXT.md
+  — decisions captured once, then injected every iteration.
 - REQ-O2: the draft is machine-validated before it is accepted: roadmap
   parses, every task line parses, every task has `details:` with a
   testable acceptance, deps are acyclic and reference real ids. A draft
@@ -99,6 +112,30 @@ collide on overlapping concerns.
   incomplete wave; claims across waves are refused.
 - REQ-W3: wave assignment is visible in `kalph status`.
 
+### Phase P-CONTEXT — the context compiler (50% of the value)
+
+Outcome: the prompt's context half is engineered, not accumulated. Today the
+loop injects recency-ordered digests (last N episodes, first N chars of
+memory) — cheap but dumb. The compiler chooses what a fresh agent needs for
+THIS task and proves it chose well. MCP/skills stay frozen (D16); the effort
+goes here instead.
+
+- REQ-C1: a context budget split is configurable and defaults to 50% of
+  prompt chars for curated context (state, phase decisions, task-relevant
+  memory, task-relevant code excerpts), 50% for the static contract.
+- REQ-C2: relevance beats recency: memory entries and episode records are
+  selected by lexical overlap with the active task's title/details (stdlib
+  scoring, no embeddings, no network), not by timestamp; ties break to
+  recency. Skills selection uses the same scorer (no new skill features —
+  selection only).
+- REQ-C3: every iteration writes a context manifest
+  (`.kalph/runs/<id>/context-<n>.json`): what was injected, from where, how
+  many chars, and why (score). Context quality becomes auditable the same
+  way decisions already are.
+- REQ-C4: a context regression test proves the compiler beats recency: a
+  fixture repo where the relevant gotcha is old and the recent episodes are
+  noise; the compiled prompt must contain the gotcha.
+
 ### Phase P-HARDEN — lessons from the v0.1 proof runs
 
 Outcome: the three weaknesses the dogfood/fleet runs exposed are fixed in
@@ -131,3 +168,32 @@ Outcome: the planning core is documented and proven by driving its own build.
 - REQ-P3: at least the last phase of v0.2 is built by a Kalph run that
   orients via STATE.md and closes through the phase gate (evidence in
   transcripts + DECISIONS.md).
+
+## Milestone v0.3 — The Self-Tuning Loop (the audacity milestone)
+
+Goal: Kalph doesn't just execute the loop — it improves the loop. Anyone can
+build an app; the boundary worth pushing is a system that measurably gets
+better at building because it studies its own iterations. Everything stays
+inside the safety model: Kalph proposes changes to itself as reviewable
+diffs; it NEVER self-applies them.
+
+Sketch (decomposed via `kalph plan` interviewing the owner once P-ONRAMP
+ships — the onramp's first real use is planning the milestone after it):
+
+- Phase T-METRICS: an outcome ledger per iteration — verified rate, retry
+  count, tokens/duration, circuit-breaker causes, lint findings on
+  agent-written backlog edits — aggregated across runs into
+  `.kalph/memory/loop-metrics.json` (runner-owned, human-readable).
+- Phase T-DIAGNOSE: a periodic self-review iteration reads the ledger and
+  transcripts of failed iterations and writes a diagnosis: which prompt
+  sections, policies, or budgets correlate with failure.
+- Phase T-PROPOSE: Kalph opens a PR against its own prompt template,
+  denylist, budgets, or selection weights, with the metric evidence in the
+  PR body and a predicted improvement. Owner merges or closes — the same
+  gate as any code change. A merged proposal's prediction is checked
+  against the next runs' ledger and the result is recorded (the loop grades
+  its own homework).
+- Staged next: autonomous roadmapping (v0.4 — Kalph drafts the next
+  milestone from repo observation; owner edits instead of authors), then
+  self-reviewing fleet chains (v0.5 — review/fix/re-verify cycles between
+  agents until merge-ready, owner merges).

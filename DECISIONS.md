@@ -94,3 +94,16 @@ the bottom. Format: `D<N> (<phase>): decision — rationale`.
   flat-backlog behavior (the "quick path"). Owner directive recorded: the
   planning layer is a core component, organized top-down, "so the stateless
   loops know how to drive the cars."
+- D16 (v0.2/v0.3 planning): Four owner directives reshape the plan.
+  (1) Planning must interview the owner, not guess — `kalph plan` gains a
+  question step (hybrid: live terminal Q&A when a TTY exists, committed
+  QUESTIONS.md otherwise; owner was offered the choice and skipped, so the
+  recommended hybrid stands). (2) MCP/skills are FROZEN: they keep working
+  and stay tested, zero new investment. (3) Context is 50% of the value:
+  new P-CONTEXT phase — a context compiler that fills half the prompt
+  budget with task-relevant material chosen by relevance, not recency, and
+  logs a context manifest per iteration so context quality is auditable.
+  (4) Audacity is the point: milestone v0.3 is the self-tuning loop —
+  Kalph measures its own iteration outcomes and proposes changes to its
+  own prompt/policies as reviewable PRs, never self-applied; staged next:
+  autonomous roadmapping (v0.4), self-reviewing fleet (v0.5).

@@ -50,6 +50,14 @@ Durable facts about this repo for future iterations.
   `docs/writing-for-the-loop.md`; when writing or revising tasks/docs,
   follow it — concrete nouns, stated acceptance, one iteration per task, no
   unfalsifiable adjectives.
+- OWNER DIRECTIVES (D16, binding on all iterations): (1) planning asks the
+  owner structured questions before drafting — never guess a decision the
+  owner would want to make; (2) MCP and skills modules are FROZEN — keep
+  them green, add nothing; (3) context quality carries half the value —
+  when trading effort, prefer improving what gets injected into prompts
+  over adding features; (4) audacity: prefer the task that pushes a
+  boundary (self-tuning, self-planning) over routine plumbing when both
+  are eligible — anyone can build an app; the point is a loop that thinks.
 
 ## Run 20260702-002215 (completed)
 4 iterations, 4 verified. Clean run.
