@@ -614,7 +614,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   temp dir without ConfigError. Wire into CI (pytest). Acceptance: test covers
   all five guide files.
 
-- [ ] KE15: index agents section links | priority: 78 | status: ready | by: owner | deps: KE8,KE9,KE10,KE11 | phase: P-AGENT | req: REQ-A2
+- [x] KE15: index agents section links | priority: 78 | status: done | by: owner | deps: KE8,KE9,KE10,KE11 | phase: P-AGENT | req: REQ-A2
   details: update docs/index.md Guides section with docs/agents/{cursor,claude,
   codex,gemini}.md links; kiro.md remains "deepest integration." Acceptance:
   all four agent guide paths linked from index.
