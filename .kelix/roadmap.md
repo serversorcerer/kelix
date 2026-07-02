@@ -295,3 +295,89 @@ always bypass with `--force` (spec gate only, never git safety).
   per phase; rubric reuses docs/writing-for-the-loop rules.
 - REQ-GD3: GOAL.md template and lint gate messages carry the canon tagline once:
   "Gold in, diamonds out." (good/slop demoted to body examples in writing-for-the-loop).
+
+## Milestone V — The value cut (ship Kelix)
+
+Goal: one honest pass before release — keep what demonstrably creates value,
+sharpen it, scrap what doesn't. The measure of every decision is the same
+question the user will ask: "what did the agent give me that I couldn't get
+without it?" The value sentence to protect: **you write a well-specified goal,
+walk away, and come back to verified commits.** Sequencing: complete v0.2
+(PC7–PC23), then v0.3, then v0.4, then this milestone. Owner decisions for
+this milestone live in `.kelix/phases/V-CUT/CONTEXT.md`.
+
+Non-goals: no new features; do not weaken the verification gate, security
+rails, or worktree isolation; no rewrites for elegance; no compat shims,
+deprecation warnings, or feature flags for scrapped code — git history is the
+attic.
+
+### Phase V-LEDGER — The value ledger (evidence before opinions)
+
+Outcome: every feature/module is judged from receipts, not sentiment; the owner
+can veto any row by editing the ledger before execution phases run.
+
+- REQ-VL1: `docs/value-ledger.md` exists with one row per feature/module
+  (loop, verify, plan+interview, lint, state/roadmap/backlog, memory, skills,
+  fleet, claims, mcp_server, sync/, pr, kiro, security, adapters, art).
+  Columns: lines of code, receipt (proof artifact / test / real run path, or
+  "none"), verdict (SHARPEN | KEEP | SCRAP).
+- REQ-VL2: the decision rule is applied without sentiment: SHARPEN = receipt
+  AND on the critical path of the value sentence; KEEP = receipt but off the
+  critical path (freeze — no new code/docs); SCRAP = no receipt.
+- REQ-VL3: every SCRAP verdict names the backlog task id that will delete it;
+  known owner SCRAPs (sync/, pr.py) are documented as SCRAP pending KV2/KV3.
+
+### Phase V-SHARPEN — Double down on what's working
+
+Outcome: the verification gate, plan interview, circuit breaker, lint gate,
+and fleet mode produce receipt-grade user-facing output — the user sees what
+was verified, decided, or blocked and knows the next move in one read.
+
+- REQ-VS1: run-complete message names each verify command, its exit status,
+  and the commits it blessed — not bare "done."
+- REQ-VS2: plan interview emits at most 7 questions; each is a decision
+  (2–4 options + recommendation), never open-ended; every answer lands in
+  the phase CONTEXT.md.
+- REQ-VS3: when the circuit breaker fires, the message names the failing
+  condition, the task id, and the concrete fix (what to change in backlog or
+  repo).
+- REQ-VS4: when lint or the run spec-gate fires, each finding names task id,
+  rule, file/line where applicable, and a one-line fix.
+- REQ-VS5: fleet run-complete and retrospective messaging match REQ-VS1
+  receipt style (per-agent verified commits, claim outcomes).
+
+### Phase V-SIMPLE — Cut the surface, not the power
+
+Outcome: a new user reaches their first verified commit via init → plan → run
+only; secondary ops (lint, status, stop) stay documented but out of quickstart;
+config and docs fit on one screen; scrapped features leave no dangling CLI,
+config, or doc pages.
+
+- REQ-VM1: CLI subcommands are audited against the ledger; scrapped features
+  (`kelix sync`, `--pr`, mcp if SCRAP) are removed; happy path is init, plan,
+  run; lint, status, stop remain as documented secondary ops.
+- REQ-VM2: `kelix.toml` shipped template is ≤ 25 lines with comments; keys
+  nobody sets in proof runs, docs, or test fixtures are removed or defaulted
+  silently.
+- REQ-VM3: `docs/index.md` routes by user intent ("I want to ship X
+  unattended") in five links or fewer; every remaining doc page maps to a
+  SHARPEN or KEEP ledger row.
+- REQ-VM4: `docs/quickstart.md` documents init → plan → run → verified commits
+  with a measured step count and no side quests (no fleet/pr/sync in the
+  happy path).
+
+### Phase V-PROOF — The value demo is the release gate
+
+Outcome: one cold scripted run on a minimal fresh sample repo proves the value
+sentence end-to-end; README leads with the real transcript, not a synthetic
+example.
+
+- REQ-VP1: a new minimal sample repo (stdlib toy project, 3–5 tasks, no
+  fleet/pr/sync) lives under `samples/value-demo/` with its own GOAL and
+  reproducible run script.
+- REQ-VP2: `docs/proof/value-demo.md` captures the full transcript (goal in,
+  interview, promote, run, verified commits out) with wall-clock time and
+  iteration count; commands in the doc reproduce the run.
+- REQ-VP3: README first screen contains the value sentence and a link to
+  `docs/proof/value-demo.md`; `pytest -q`, `ruff check src tests`, and
+  `kelix lint` pass on this repo after the cut.
