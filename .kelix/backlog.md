@@ -556,7 +556,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   module docstring names agent-agnostic use; `pytest tests/test_mcp_server.py -q`
   passes unchanged.
 
-- [ ] KE6: P-REPOS acceptance gate | priority: 87 | status: ready | by: owner | deps: KE1,KE2,KE3,KE4,KE5 | phase: P-REPOS | req: REQ-R3
+- [x] KE6: P-REPOS acceptance gate | priority: 87 | status: done | by: owner | deps: KE1,KE2,KE3,KE4,KE5 | phase: P-REPOS | req: REQ-R3
   details: add tests/test_reposition.py (or extend test_claims.py): assert
   `rg -i kiro README.md | head -1` line > 20; run full `pytest -q`; run
   docs/kiro.md example TOML blocks through load_config (smoke); no edits to
