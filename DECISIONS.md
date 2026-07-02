@@ -224,3 +224,10 @@ the bottom. Format: `D<N> (<phase>): decision — rationale`.
   20260702-134659` → `loop-metrics.json` `proposal_outcomes[]` entry with
   prediction preserved, `merged_at_run_id` `20260702-133736`, grade
   `inconclusive` (no post-merge runs yet).
+- **ST19e post-merge run:** `20260702-135224` — mock adapter
+  (`.kelix/st19e-mock/`, `distill_skills=false`), post-merge tree includes
+  ST19c policy (`.kelix/prompts/iteration.md` from `a6fe858`), `--max-iterations 3`,
+  3 verified ledger rows with `run_id` distinct from ST19a; transcripts:
+  `.kelix/runs/20260702-135224/`. `kelix metrics grade-proposal --proposal-id
+  20260702-134659` → `inconclusive` (1 post-merge run, need ≥3 for
+  improved/regressed).

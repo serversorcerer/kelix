@@ -486,7 +486,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   reason in DECISIONS.md pending section. Acceptance: `tests/test_metrics.py
   -q` pass.
 
-- [ ] ST19e: self-tuning proof — post-merge metrics runs | priority: 40 | status: ready | by: owner | deps: ST19d | phase: T-PROPOSE | req: REQ-TP3
+- [x] ST19e: self-tuning proof — post-merge metrics runs | priority: 40 | status: done | by: owner | deps: ST19d | phase: T-PROPOSE | req: REQ-TP3
   rationale: [ST19] ship gate step 5 — ledger rows after policy change
   details: run `kelix run --max-iterations 3` on the post-merge tree; assert
   ≥3 new iteration rows land in `loop-metrics.json` with run ids distinct from
