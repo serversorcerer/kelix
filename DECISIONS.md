@@ -82,3 +82,15 @@ the bottom. Format: `D<N> (<phase>): decision — rationale`.
   Fix: checkpoint() excludes runner-owned paths via pathspec and commits
   only agent work; regression test added. Kept `.kalph/*` gitignore
   defaults as a second layer, not the only layer.
+- D15 (v0.2 planning): Adopted four ideas from GSD Core (open-gsd/gsd-core;
+  analysis in docs/research/gsd-lessons.md) as milestone v0.2 "Planning
+  Core": a runner-maintained STATE.md navigation spine, a top-down
+  roadmap → phase → task hierarchy with REQ-ID coverage gating, per-phase
+  CONTEXT.md decision files, and dependency waves for fleet parallelism.
+  Rejected GSD's long-lived orchestrator session and runtime lifecycle
+  hooks as violations of the Ralph invariants — Kalph's runner holds zero
+  model context, so headroom management is unnecessary by construction.
+  The hierarchy is strictly optional: repos without a roadmap keep today's
+  flat-backlog behavior (the "quick path"). Owner directive recorded: the
+  planning layer is a core component, organized top-down, "so the stateless
+  loops know how to drive the cars."

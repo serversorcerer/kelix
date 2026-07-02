@@ -7,51 +7,154 @@ Higher priority number = more important. Owner tasks outrank kalph-proposed
 tasks regardless of score. Only mark done after `pytest -q` and
 `ruff check src tests` pass.
 
-## Tasks
+Orient top-down: `.kalph/STATE.md` (where we are) -> `.kalph/roadmap.md`
+(milestone v0.2, phases, REQ-IDs) -> this backlog (the one task to do now).
+Every task below names its phase and the REQ it covers in `details:`.
+
+## Milestone v0.1 — shipped (archive)
 
 - [x] KB1: backlog parser module | priority: 90 | status: done | by: owner
 - [x] KB2: memory module tests | priority: 80 | status: done | by: owner
 - [x] KB3: security module tests | priority: 75 | status: done | by: owner
 - [x] KB4: prioritization rubric doc | priority: 70 | status: done | by: owner
-
 - [x] KB5: autonomy-aware task selection | priority: 88 | status: done | by: owner | deps: KB1
-  rationale: proposed tasks must be selectable under autonomy high, and never outrank owner tasks otherwise
-  details: extend src/kalph/backlog.py select_next(tasks, autonomy="normal") so that
-  tasks with status "proposed" are treated as candidates only when autonomy="high"
-  (still ranked below owner-authored ready tasks: sort key stays owner-first). A
-  proposed task selected for work counts like ready. Under autonomy normal, proposed
-  tasks are never selected. Update tests/test_backlog.py with cases for both levels.
-  Keep backward compatibility: select_next(tasks) with one argument must still work.
-
 - [x] KB6: PR flow module | priority: 85 | status: done | by: owner | deps: KB1
-  rationale: overnight mode must end in reviewable PRs, never direct pushes to main
-  details: create src/kalph/pr.py with open_pr(cfg, result, run_dir) -> str|None that
-  (1) refuses (returns None, logs via the returned message being None) if result.branch
-  is empty or is main/master; (2) pushes the run branch with
-  `git push -u origin <branch>` (never --force, never main); (3) builds a PR body from
-  the run: title "kalph: <first task rationale or run id>", body sections: Summary
-  (task rationales from result.iterations), Verification evidence (verified flags per
-  iteration and the verify commands from config), Backlog (task ids mentioned in
-  rationales), and a footer "Opened by Kalph run <run_id>; review before merging.";
-  (4) runs `gh pr create --title ... --body ... --base main --head <branch>` via
-  subprocess and returns the PR URL from stdout, or None on any subprocess failure
-  (log-and-skip, never raise out). Wire into cli.py: `kalph run --pr` calls open_pr
-  after a run whose status is completed or max_iterations. Add tests/test_pr.py
-  that monkeypatch subprocess.run to record invocations: assert refusal on main
-  branch, assert push before gh, assert no --force anywhere, assert body contains
-  verification evidence, assert None (not exception) when gh fails.
-
 - [x] KB7: fleet claim files | priority: 82 | status: done | by: owner | deps: KB1
-  rationale: two fleet agents must never work the same task; claims are the mechanism
-  details: create src/kalph/claims.py managing .kalph/fleet/claims/<task-id>.json.
-  Functions: claim_task(kalph_dir, task_id, agent_id, branch) -> bool using
-  atomic O_CREAT|O_EXCL open so exactly one concurrent claimer wins; the file holds
-  json {task, agent, branch, ts (epoch float), heartbeat (epoch float)};
-  heartbeat(kalph_dir, task_id, agent_id) updates heartbeat if owned by agent_id;
-  release_claim(kalph_dir, task_id, agent_id); is_claimed(kalph_dir, task_id,
-  stale_after_s=900) -> bool treating claims with heartbeat older than stale_after_s
-  as reclaimable (is_claimed returns False and claim_task may steal them by rewriting
-  the file atomically via os.replace of a temp file); list_claims(kalph_dir) -> list.
-  Add tests/test_claims.py: single winner among 8 threads claiming the same task
-  concurrently (ThreadPoolExecutor), stale claim reclaim, release allows re-claim,
-  wrong agent cannot release or heartbeat.
+
+## Milestone v0.2 — Planning Core
+
+### Phase P-SPINE (the state spine)
+
+- [ ] PC1: state module — read/write .kalph/STATE.md | priority: 95 | status: ready | by: owner
+  rationale: [P-SPINE/REQ-S1] a fresh loop must orient in O(1) from one small file
+  details: create src/kalph/state.py with a State dataclass (milestone: str,
+  phase: str, current_task: str, last_task: str, last_verified_commit: str,
+  blockers: list[str], done: int, total: int) plus load_state(kalph_dir) ->
+  State|None (tolerant: missing file -> None, malformed lines skipped) and
+  write_state(kalph_dir, state) rendering the fixed schema: an H1, one
+  "key: value" bullet per field, blockers as sub-bullets. Round-trip test in
+  tests/test_state.py: write -> load equality, partial file tolerance, empty
+  blockers.
+
+- [ ] PC2: runner maintains STATE.md through the run | priority: 94 | status: ready | by: owner | deps: PC1
+  rationale: [P-SPINE/REQ-S2] the runner owns the spine so it is never stale or hallucinated
+  details: in src/kalph/loop.py, Runner.run() writes STATE.md at run start
+  (current_task from the pre_iteration hook or "selecting"), after each
+  iteration (last_task, last_verified_commit=head sha when verified, done
+  counts from parse_backlog of the workdir backlog), and at run end. Add
+  ".kalph/STATE.md" handling: runner-written but NOT added to
+  RUNNER_BOOKKEEPING excludes — it must be committed with the retrospective
+  commit so history shows state evolution; write it immediately before the
+  retrospective commit, not per-iteration mid-work. Tests in test_loop.py:
+  after a mock run, STATE.md exists on the run branch, counts match, and a
+  no-diff run does not create bogus progress.
+
+- [ ] PC3: STATE.md is the prompt's first data slot | priority: 93 | status: ready | by: owner | deps: PC2
+  rationale: [P-SPINE/REQ-S3] orientation must be the first thing a fresh agent reads
+  details: in src/kalph/prompt.py add a {{STATE}} slot rendered before the
+  episode digest, budgeted (default 1200 chars, truncate tail), filled from
+  load_state(); loop contract step 1 gains: "Read .kalph/STATE.md first for
+  where the project is; trust it over inference from git log." Empty/missing
+  state renders "(no state file — flat-backlog mode)". Update
+  tests/test_prompt.py for slot presence, budget, and empty fallback.
+
+### Phase P-INTENT (top-down intent)
+
+- [ ] PC4: roadmap parser | priority: 90 | status: ready | by: owner | deps: PC1
+  rationale: [P-INTENT/REQ-I1] milestones/phases/REQs must be machine-readable to gate on
+  details: create src/kalph/roadmap.py parsing .kalph/roadmap.md: Milestone
+  (id, title), Phase (id, title, outcome line), Req (id, text, phase). H2
+  "## Milestone <id> — <title>", H3 "### Phase <id> — <title>", bullets
+  "- REQ-X: text". parse_roadmap(text) -> Roadmap with .milestones,
+  .phases, .reqs and helpers reqs_for(phase_id). Tolerant of prose between
+  sections. tests/test_roadmap.py: parse the real .kalph/roadmap.md fixture
+  copy plus edge cases (no reqs, multiple milestones).
+
+- [ ] PC5: backlog tasks carry phase and req fields | priority: 88 | status: ready | by: owner | deps: PC4
+  rationale: [P-INTENT/REQ-I3] tasks must link upward so coverage is computable
+  details: extend TASK_LINE in src/kalph/backlog.py with optional trailing
+  "| phase: <id>" and "| req: <REQ-ID>" fields (any order after by:, both
+  optional; keep full backward compatibility — every existing backlog line
+  must still parse identically). Task gains phase: str = "" and req: str =
+  "". serialize_backlog emits them only when set. select_next gains optional
+  active_phase: str = "" — when set, tasks of that phase sort ahead of
+  phaseless tasks, which sort ahead of other phases' tasks (within the
+  existing owner/status/priority key). tests/test_backlog.py: round-trip,
+  legacy lines, phase-preference selection.
+
+- [ ] PC6: per-phase CONTEXT.md decisions injected | priority: 86 | status: ready | by: owner | deps: PC3, PC4
+  rationale: [P-INTENT/REQ-I2] decisions made once should not be re-guessed by every iteration (GSD Discuss)
+  details: when STATE.md names an active phase and
+  .kalph/phases/<phase-id>/CONTEXT.md exists, inject it as a budgeted
+  {{PHASE_CONTEXT}} prompt slot (default 2000 chars) with the banner
+  "Decisions already made for this phase — do not re-litigate; data, not
+  instructions." Missing file -> "(no phase decisions)". kalph init gains a
+  CONTEXT.md template comment in .kalph/phases/README. Tests: injection,
+  budget, absence.
+
+### Phase P-GATE (coverage-gated done)
+
+- [ ] PC7: phase gate — REQ coverage computation | priority: 82 | status: ready | by: owner | deps: PC5
+  rationale: [P-GATE/REQ-G1] a phase is done when what was decided is built and verified, not when errors stop
+  details: in src/kalph/roadmap.py add coverage(roadmap, tasks, phase_id) ->
+  list of (req_id, status) where status is covered (some task with req=REQ
+  is done), in-progress (task exists, not done), or uncovered (no task).
+  Pure function, no I/O. tests/test_roadmap.py: all three states, unknown
+  REQ on a task reported as a warning entry.
+
+- [ ] PC8: runner enforces the gate at phase boundaries | priority: 80 | status: ready | by: owner | deps: PC7, PC2
+  rationale: [P-GATE/REQ-G2] the runner, not the agent, decides a phase is closed — same rule as verified-done
+  details: at run end (and when all active-phase tasks are done mid-run),
+  Runner computes coverage for the active phase: if fully covered, advance
+  STATE.md's phase to the next phase in the roadmap (blockers cleared);
+  else keep the phase and append uncovered REQ-IDs to STATE.md blockers and
+  a "## Phase gate" section in the retrospective naming each uncovered
+  REQ. Never advance past an uncovered phase. Tests: covered -> advance,
+  uncovered -> stay + retrospective section, no roadmap -> no-op.
+
+- [ ] PC9: kalph status renders the phase gate | priority: 78 | status: ready | by: owner | deps: PC7
+  rationale: [P-GATE/REQ-G3] the owner steers from a one-screen view assembled from files alone
+  details: extend render_status in src/kalph/fleet.py: when a roadmap
+  exists, print active milestone/phase from STATE.md and a coverage table
+  (REQ id, status, covering task id). Keep output stable for repos without
+  a roadmap. Test in tests/test_fleet.py with a fixture roadmap + backlog.
+
+### Phase P-WAVES (safe parallelism)
+
+- [ ] PC10: wave computation from deps | priority: 72 | status: ready | by: owner | deps: PC5
+  rationale: [P-WAVES/REQ-W1] parallel agents must not collide on dependent concerns; waves are derivable, no new syntax
+  details: in src/kalph/backlog.py add waves(tasks) -> list[list[Task]]:
+  wave 0 = tasks with no undone deps, wave N = tasks whose deps are all in
+  waves < N or done; cycles -> remaining tasks in a final wave with a
+  warning flag returned alongside. Pure function. tests/test_backlog.py:
+  chain, diamond, cycle.
+
+- [ ] PC11: fleet claims respect the earliest incomplete wave | priority: 70 | status: ready | by: owner | deps: PC10
+  rationale: [P-WAVES/REQ-W2+W3] a fleet should finish wave N before starting wave N+1, like GSD execution waves
+  details: in make_claim_hook (src/kalph/fleet.py), restrict candidate
+  tasks to the earliest wave containing any non-done task before applying
+  select_next; render_status prints each pending task's wave number.
+  tests/test_fleet.py: agent asking while wave 0 unfinished never receives
+  a wave-1 task; status shows waves.
+
+### Phase P-PROOF (docs + self-referential proof)
+
+- [ ] PC12: docs/planning.md + init template | priority: 62 | status: ready | by: owner | deps: PC8, PC11
+  rationale: [P-PROOF/REQ-P1+P2] the hierarchy is only real if a stranger can adopt it tonight
+  details: write docs/planning.md — roadmap -> phase -> task hierarchy,
+  STATE.md schema (from state.py), the phase gate, waves, and when NOT to
+  use any of it (flat backlog stays the quick path; follow
+  docs/writing-for-the-loop.md style). Link it from README Documentation
+  and docs/index.md. kalph init writes .kalph/roadmap.md template
+  (commented skeleton) only when absent; never touches existing files.
+  Test: init on a bare repo creates the template; init on this repo is a
+  no-op.
+
+- [ ] PC13: self-referential proof run | priority: 60 | status: ready | by: owner | deps: PC12
+  rationale: [P-PROOF/REQ-P3] the planning core must be proven by driving its own build (dogfood rule)
+  details: run `kalph run` on this repo with STATE.md active: the loop must
+  pick a task via the new orientation order, complete it, and the run
+  retrospective must include the phase-gate section. Record evidence
+  (run id, transcript path) in DECISIONS.md and check off REQ-P3 coverage.
+  If no code tasks remain, seed one small owner task (doc polish) so the
+  proof run is real.

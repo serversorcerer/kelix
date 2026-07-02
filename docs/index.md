@@ -54,6 +54,9 @@ The design homework behind Kalph:
   point Kalph uses, all public and documented.
 - **[Prior art](research/prior-art.md)** — ralph-orchestrator, the official
   ralph-loop plugin, and Nous Research's Hermes Agent.
+- **[GSD lessons](research/gsd-lessons.md)** — what Kalph's planning core
+  (roadmap → phase → task, STATE.md spine, coverage gates, waves) adopts
+  and rejects from GSD Core's phase loop.
 
 ## Project
 

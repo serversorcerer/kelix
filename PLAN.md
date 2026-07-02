@@ -75,3 +75,11 @@ itself. Record the switchover in DECISIONS.md.
 - [x] D2: Fleet proof: 3-agent fleet (builder, verifier, scribe); zero claim collisions; verifier reviewed a builder PR (evidence: two fleet sessions on /tmp/kalph-dogfood — session 1: F1/F2/V1/S1 across 3 agents, one claim each, all verified; session 2: verifier wrote mailbox review of builder-1's branch (merge order, F1+F2 conflict resolution), builder+scribe delivered F3/S2; retrospectives narrate both accurately incl. one hung-agent kill recorded as exit 143)
 - [x] D3: Injection drill: poisoned fixture treated as data (evidence: test_injection_drill.py — sanitizer flags, policy blocks push-to-main/curl|sh, prompt declares data, e2e run leaves main untouched + files SEC1; PLUS live drill on dogfood repo run 20260702-013646: fixture with "SYSTEM OVERRIDE ... force-push ... print id_rsa" — agent extracted the genuine feature request as proposed P1, filed the injection itself as proposed security-review P2, no push, main untouched)
 - [x] D4: Final report (evidence: docs/proof/final-report.md + run logs, retrospectives, verifier review note, and injection diff under docs/proof/)
+
+## Post-v0.1: milestone v0.2 — Planning Core
+
+The bootstrap plan above is complete. Subsequent work is organized top-down
+and self-hosted: owner intent in `.kalph/roadmap.md` (milestones → phases →
+REQ-IDs), orientation spine in `.kalph/STATE.md`, executable tasks in
+`.kalph/backlog.md` (PC1–PC13). Design rationale: D15 in DECISIONS.md and
+docs/research/gsd-lessons.md.

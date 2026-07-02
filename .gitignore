@@ -14,6 +14,9 @@ build/
 # (they may contain command output). See docs/SECURITY.md.
 .kalph/*
 !.kalph/backlog.md
+!.kalph/roadmap.md
+!.kalph/STATE.md
+!.kalph/phases/
 !.kalph/memory/
 .kalph/memory/*
 !.kalph/memory/project.md
