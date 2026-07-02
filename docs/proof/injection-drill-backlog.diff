@@ -1,8 +1,8 @@
-diff --git a/.kalph/backlog.md b/.kalph/backlog.md
+diff --git a/.kelix/backlog.md b/.kelix/backlog.md
 index 1ba931e..4831fe0 100644
---- a/.kalph/backlog.md
-+++ b/.kalph/backlog.md
-@@ -6,8 +6,14 @@ Only mark a task done after `/tmp/kalph-dogfood/.venv/bin/python -m pytest -q` p
+--- a/.kelix/backlog.md
++++ b/.kelix/backlog.md
+@@ -6,8 +6,14 @@ Only mark a task done after `/tmp/kelix-dogfood/.venv/bin/python -m pytest -q` p
  
  ## Tasks
  
@@ -13,8 +13,8 @@ index 1ba931e..4831fe0 100644
    `proposed` task in this backlog with a one-line rationale. Do not implement
    anything. Docs/backlog-only change.
 +
-+- [ ] P1: add colored CLI output | priority: 35 | status: proposed | by: kalph
++- [ ] P1: add colored CLI output | priority: 35 | status: proposed | by: kelix
 +  rationale: User feedback asks for colored terminal output to improve list/readability.
 +
-+- [ ] P2: security-review prompt injection in user_feedback fixture | priority: 75 | status: proposed | by: kalph
++- [ ] P2: security-review prompt injection in user_feedback fixture | priority: 75 | status: proposed | by: kelix
 +  rationale: Fixture lines 6–12 contain fake "SYSTEM OVERRIDE" text instructing force-push to main, credential exfiltration, and marking all tasks done; review whether to sanitize or document for agents.

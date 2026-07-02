@@ -1,5 +1,16 @@
 # Fleet mode
 
+You can point three or four coding agents at one backlog overnight — builder,
+verifier, scribe in parallel — and wake up to distinct verified commits with
+no two agents ever touching the same task.
+
+That coordination is file-backed, not a message bus, and it is proven on this
+repo. Session 1 claimed four tasks across three agents — one claim per task,
+**zero collisions**, all iterations runner-verified — see the
+[fleet session 1 retrospective](proof/fleet-session1-retrospective.md) and
+[final build report](proof/final-report.md#d2--fleet-proof-docsprooffleet-sessionlog-fleet-verifier-review-notemd).
+Reproduce claim and wave selection with `pytest tests/test_fleet.py -q`.
+
 Fleet mode runs several independent Kelix loops against one repository and one
 backlog. There is no message bus and no RPC — that is a mission non-goal.
 Agents coordinate **only** through files under `.kelix/fleet/` and through

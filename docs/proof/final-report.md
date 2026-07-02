@@ -1,19 +1,21 @@
-# Kalph — final build report
+# Kelix — final build report
+
+> *Provenance:* Early dogfood runs documented here used the former project name **Kalph** before the Kelix rename.
 
 Date: 2026-07-02. This report closes Phase 8 (D4) of `PLAN.md`. Everything
 referenced here is committed in this repository or copied into `docs/proof/`.
 
 ## Repo and quickstart
 
-- Repo: this repository (`kalph`, Apache-2.0, Python 3.11+ stdlib-only core).
+- Repo: this repository (`kelix`, Apache-2.0, Python 3.11+ stdlib-only core).
 - Quickstart (README, 60-second version):
 
   ```bash
   pip install -e .          # or pipx once published
-  cd your-repo && kalph init
-  $EDITOR .kalph/kalph.toml # set [verify] commands — your definition of done
-  $EDITOR .kalph/backlog.md # write the work as tasks
-  kalph run --max-iterations 25 --pr
+  cd your-repo && kelix init
+  $EDITOR .kelix/kelix.toml # set [verify] commands — your definition of done
+  $EDITOR .kelix/backlog.md # write the work as tasks
+  kelix run --max-iterations 25 --pr
   ```
 
 - Verification gate for this repo: `pytest -q` (74 tests) and
@@ -26,7 +28,7 @@ static prompt, fresh agent process per iteration, deterministic stop,
 externalized state. Deliberate deviations, all additive:
 
 1. **Sentinel is necessary but not sufficient.** Ralph stops on the sentinel;
-   Kalph honors `KALPH COMPLETE` only after the runner independently re-runs
+   Kelix honors `KELIX COMPLETE` only after the runner independently re-runs
    the configured verify commands (D4). A lying sentinel is ignored.
 2. **The prompt has budgeted data slots.** The template is static, but
    episode digest / project memory / skills / mailbox are injected as
@@ -54,7 +56,7 @@ evidence · D13 hung verifier agent killed by hand (bootstrap intervention).
 
 Sample project: `tasklite` (stdlib task-tracker library), 12 owner tasks
 spanning package skeleton, dataclass model, store, persistence, CLI, search,
-due dates, stats, README. One unattended `kalph run --max-iterations 25`
+due dates, stats, README. One unattended `kelix run --max-iterations 25`
 with `cursor-agent` as the backend:
 
 - **12/12 tasks verified-done in 12 iterations, zero failures**; the loop
@@ -108,17 +110,17 @@ Two layers of proof:
   loop contract: one task per cycle, state on disk, commit per task — see
   the one-task-per-commit git history from Phase 0 through C8).
 - After the parity demo (C8), the switchover recorded in D8: tasks KB1–KB7
-  were executed by `kalph run` against this repo itself, in two runs
-  (`.kalph/runs/20260702-002215`: backlog parser, memory tests, security
-  tests, prioritization doc; `.kalph/runs/20260702-003053`: autonomy-aware
-  selection, PR flow, fleet claims), each on its own `kalph/run-*` branch,
+  were executed by `kelix run` against this repo itself, in two runs
+  (`.kelix/runs/20260702-002215`: backlog parser, memory tests, security
+  tests, prioritization doc; `.kelix/runs/20260702-003053`: autonomy-aware
+  selection, PR flow, fleet claims), each on its own `kelix/run-*` branch,
   merged after review.
-- Bootstrap interventions, recorded honestly: D10 (rewrote Kalph's racy
+- Bootstrap interventions, recorded honestly: D10 (rewrote Kelix's racy
   claim code by hand after its own stress test exposed a TOCTOU ~5% of
   runs) and D13 (killed a hung agent process during the fleet proof).
   Phases 4–7 scaffolding and docs were largely bootstrap-session work with
   subagent parallelism; Phase 8's dogfood/fleet/drill work was executed
-  entirely by Kalph loops.
+  entirely by Kelix loops.
 
 ## Unverified / deferred — stated plainly
 

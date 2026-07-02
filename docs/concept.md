@@ -1,7 +1,16 @@
 # Concept: what Kelix is and why
 
-Kelix is the [Ralph loop](https://ghuntley.com/ralph/), rebuilt for
-[Kiro](https://kiro.dev). Ralph in its purest form is:
+One person can leave a well-specified backlog running overnight and return to
+a dozen features — each verified by the repo's own test and lint gates, not
+agent promises — without babysitting every iteration.
+
+That is not hypothetical. The dogfood proof shipped a full stdlib task-tracker
+library unattended:
+**[12/12 tasks verified-done in 12 iterations, zero failures](proof/final-report.md#d1--dogfood-run-docsproofdogfood-runlog-dogfood-retrospectivemd)**
+(see the [final build report](proof/final-report.md)).
+
+Kelix is the [Ralph loop](https://ghuntley.com/ralph/) extended for any
+headless coding agent. Ralph in its purest form is:
 
 ```bash
 while :; do cat PROMPT.md | agent ; done
@@ -11,8 +20,8 @@ A coding agent, run in a loop against a static prompt. Every iteration is a
 fresh, stateless process; all state lives in files and git history; the loop
 wins through repetition, not cleverness. Kelix keeps that core intact and adds
 what plain Ralph lacks: persistent memory, self-improvement from loop outcomes,
-legible prioritization, first-class Kiro integration, and a file-coordinated
-fleet mode.
+legible prioritization, named adapter presets, and a file-coordinated fleet
+mode.
 
 ## The four invariants
 

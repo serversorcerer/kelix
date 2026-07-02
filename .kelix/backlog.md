@@ -602,56 +602,56 @@ All tasks below are `status: proposed` until the owner promotes them.
   CONFIG_TEMPLATE output. Tests: monkeypatch isatty for both paths in
   tests/test_config.py or new test_init_agent.py.
 
-- [ ] KE13: claude preset integration test | priority: 80 | status: ready | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A4
+- [x] KE13: claude preset integration test | priority: 80 | status: done | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A4
   details: tests/test_adapters.py: repo with adapter=claude and a stub script
   on PATH (via cmd override or sh -c) completes one mock-style iteration via
   kelix run --max-iterations 1 (mock backlog + verify echo). Proves preset
   resolves and subprocess runs. Acceptance: test passes in CI without real CLI.
 
-- [ ] KE14: agent guide TOML CI check | priority: 79 | status: ready | by: owner | deps: KE8,KE9,KE10,KE11 | phase: P-AGENT | req: REQ-A4
+- [x] KE14: agent guide TOML CI check | priority: 79 | status: done | by: owner | deps: KE8,KE9,KE10,KE11 | phase: P-AGENT | req: REQ-A4
   details: add tests/test_agent_guides.py: extract fenced `[agent]` TOML from
   docs/agents/*.md and docs/kiro.md; each must parse via load_config into a
   temp dir without ConfigError. Wire into CI (pytest). Acceptance: test covers
   all five guide files.
 
-- [ ] KE15: index agents section links | priority: 78 | status: ready | by: owner | deps: KE8,KE9,KE10,KE11 | phase: P-AGENT | req: REQ-A2
+- [x] KE15: index agents section links | priority: 78 | status: done | by: owner | deps: KE8,KE9,KE10,KE11 | phase: P-AGENT | req: REQ-A2
   details: update docs/index.md Guides section with docs/agents/{cursor,claude,
   codex,gemini}.md links; kiro.md remains "deepest integration." Acceptance:
   all four agent guide paths linked from index.
 
 ### Phase P-AUDIT — Audacity audit
 
-- [ ] KE16: proof docs Kalph rename | priority: 77 | status: ready | by: owner | phase: P-AUDIT | req: REQ-U1
+- [x] KE16: proof docs Kalph rename | priority: 77 | status: done | by: owner | phase: P-AUDIT | req: REQ-U1
   details: rename Kalph→Kelix throughout docs/proof/* (final-report.md,
   dogfood-retrospective.md, fleet-*.md, injection-drill-backlog.diff prose).
   Add one-line provenance at top of docs/proof/final-report.md: notes former
   Kalph name during early dogfood runs. Acceptance: `rg -i kalph docs/proof`
   returns zero matches except the provenance line; pytest -q passes.
 
-- [ ] KE17: concept.md audacity intro | priority: 76 | status: ready | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
+- [x] KE17: concept.md audacity intro | priority: 76 | status: done | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
   details: rewrite docs/concept.md opening: one audacity sentence (what one
   person can do overnight they couldn't before), then evidence link to
   docs/proof/final-report.md dogfood 12/12 stat. Remove plumbing-first lead.
   Acceptance: first paragraph contains capability claim; second paragraph or
   bullet links proof artifact.
 
-- [ ] KE18: memory-and-skills audacity intro | priority: 75 | status: ready | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
+- [x] KE18: memory-and-skills audacity intro | priority: 75 | status: done | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
   details: same pattern for docs/memory-and-skills.md; proof link to dogfood
   retrospective or tests/test_memory.py reproducible command in doc.
 
-- [ ] KE19: prioritization audacity intro | priority: 74 | status: ready | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
+- [x] KE19: prioritization audacity intro | priority: 74 | status: done | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
   details: same pattern for docs/prioritization.md; proof link to backlog
   selection tests or proof run evidence.
 
-- [ ] KE20: planning doc audacity intro | priority: 73 | status: ready | by: owner | deps: KE16,PC12 | phase: P-AUDIT | req: REQ-U2
+- [x] KE20: planning doc audacity intro | priority: 73 | status: done | by: owner | deps: KE16,PC12 | phase: P-AUDIT | req: REQ-U2
   details: same pattern for docs/planning.md (requires PC12 shipped); proof
   link to kelix plan/lint tests. If PC12 not done when task runs, seed minimal
   planning.md stub is out of scope — task blocked until PC12 done.
 
-- [ ] KE21: fleet audacity intro | priority: 72 | status: ready | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
+- [x] KE21: fleet audacity intro | priority: 72 | status: done | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
   details: same pattern for docs/fleet.md; proof link to docs/proof/fleet-session1-retrospective.md.
 
-- [ ] KE22: SECURITY audacity intro | priority: 71 | status: ready | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
+- [x] KE22: SECURITY audacity intro | priority: 71 | status: done | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
   details: same pattern for docs/SECURITY.md; proof link to
   tests/test_injection_drill.py or docs/proof/injection-drill-backlog.diff.
 

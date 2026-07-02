@@ -24,10 +24,10 @@ loop stays the same.
 
 - **[Kiro guide](kiro.md)** — deepest integration: headless adapter, spec→backlog
   import, the `.kiro/` steering/agent/hooks package, and MCP server registration.
-- **[Cursor guide](agents/cursor.md)** — *coming soon*
-- **[Claude Code guide](agents/claude.md)** — *coming soon*
-- **[Codex CLI guide](agents/codex.md)** — *coming soon*
-- **[Gemini CLI guide](agents/gemini.md)** — *coming soon*
+- **[Cursor guide](agents/cursor.md)** — Kelix-verified headless Cursor CLI wiring.
+- **[Claude Code guide](agents/claude.md)** — upstream-sourced Claude Code CLI setup.
+- **[Codex CLI guide](agents/codex.md)** — upstream-sourced OpenAI Codex CLI setup.
+- **[Gemini CLI guide](agents/gemini.md)** — upstream-sourced Gemini CLI setup.
 
 ## Guides
 
@@ -42,8 +42,16 @@ loop stays the same.
 - **[Writing for the loop](writing-for-the-loop.md)** — the input contract:
   how to write backlog tasks and PRDs a fresh agent gets right the first
   time. Good input in, good output out.
-- **[Kiro guide](kiro.md)** — the headless adapter, spec→backlog import, the
-  `.kiro/` steering/agent/hooks package, and registering the MCP server.
+- **[Kiro guide](kiro.md)** — deepest integration: headless adapter, spec→backlog
+  import, the `.kiro/` steering/agent/hooks package, and MCP server registration.
+- **[Cursor guide](agents/cursor.md)** — Kelix-verified Cursor CLI adapter,
+  install, auth, and loop wiring.
+- **[Claude Code guide](agents/claude.md)** — Claude Code CLI adapter and loop
+  wiring (upstream-sourced; community corrections welcome).
+- **[Codex CLI guide](agents/codex.md)** — OpenAI Codex CLI adapter and loop
+  wiring (upstream-sourced; community corrections welcome).
+- **[Gemini CLI guide](agents/gemini.md)** — Gemini CLI adapter and loop wiring
+  (upstream-sourced; community corrections welcome).
 - **[Memory & skills](memory-and-skills.md)** — the three memory layers,
   budgeted digest injection, retrospectives, and skill acquisition during the
   loop.

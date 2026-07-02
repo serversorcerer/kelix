@@ -1,6 +1,6 @@
 # Fleet branch review — session 2 (R1)
 
-**Reviewer:** verifier (`kalph/run-20260702-011559-verifier-1`)  
+**Reviewer:** verifier (`kelix/run-20260702-011559-verifier-1`)  
 **Reviewed:** `git log main..<branch> -p` on the three fleet branches below.  
 **Method:** diff review + `git merge-tree` conflict simulation + pytest in each worktree.  
 **No merges/rebases performed** (per task scope).
@@ -9,15 +9,15 @@
 
 | Branch | Commits (main..HEAD) | Library changes | Tests | pytest |
 |--------|----------------------|-----------------|-------|--------|
-| `kalph/run-20260702-011124-builder-1` | F1, S1, retrospective | priority field, `by_priority()`, JSON | +4 tests | 32 passed |
-| `kalph/run-20260702-011125-verifier-1` | F2, retrospective | tags field, `with_tag()`, JSON | +7 tests | 35 passed |
-| `kalph/run-20260702-011127-scribe-1` | V1, retrospective | CLI error handling only | +5 tests (new file) | 33 passed |
+| `kelix/run-20260702-011124-builder-1` | F1, S1, retrospective | priority field, `by_priority()`, JSON | +4 tests | 32 passed |
+| `kelix/run-20260702-011125-verifier-1` | F2, retrospective | tags field, `with_tag()`, JSON | +7 tests | 35 passed |
+| `kelix/run-20260702-011127-scribe-1` | V1, retrospective | CLI error handling only | +5 tests (new file) | 33 passed |
 
 All three branches pass pytest in their isolated worktrees.
 
 ---
 
-## builder-1 (`kalph/run-20260702-011124-builder-1`)
+## builder-1 (`kelix/run-20260702-011124-builder-1`)
 
 ### What changed
 
@@ -32,7 +32,7 @@ All three branches pass pytest in their isolated worktrees.
 - New `CHANGELOG.md` (Keep a Changelog format, documents 0.1.0 including priority)
 - README Development section (venv pytest command)
 
-Also updates `.kalph/backlog.md`, `.kalph/memory/project.md`, `.kalph/fleet.toml` (fleet metadata).
+Also updates `.kelix/backlog.md`, `.kelix/memory/project.md`, `.kelix/fleet.toml` (fleet metadata).
 
 ### Test coverage (F1)
 
@@ -52,7 +52,7 @@ Adequate for the feature scope:
 
 ---
 
-## verifier-1 (`kalph/run-20260702-011125-verifier-1`)
+## verifier-1 (`kelix/run-20260702-011125-verifier-1`)
 
 ### What changed
 
@@ -75,7 +75,7 @@ No issues found in test design.
 
 ---
 
-## scribe-1 (`kalph/run-20260702-011127-scribe-1`)
+## scribe-1 (`kelix/run-20260702-011127-scribe-1`)
 
 ### What changed
 
@@ -110,8 +110,8 @@ Both touch the same files with overlapping hunks:
 | `tests/test_models.py` | Both append a default-value test at EOF |
 | `tests/test_persistence.py` | Both append round-trip tests at EOF |
 | `tests/test_store.py` | Both append store tests at EOF |
-| `.kalph/backlog.md` | Task status lines differ |
-| `.kalph/memory/project.md` | Priority vs Tags sections + run retrospective headers |
+| `.kelix/backlog.md` | Task status lines differ |
+| `.kelix/memory/project.md` | Priority vs Tags sections + run retrospective headers |
 
 **Resolution guidance:** keep **both** fields everywhere:
 
@@ -136,24 +136,24 @@ Persistence save/load must include both `"priority"` and `"tags"`. Test files: k
 
 ### builder-1 + scribe-1 — **light conflicts**
 
-- `.kalph/backlog.md` — V1 marked done vs builder backlog state
-- `.kalph/memory/project.md` — CLI notes + run retrospective sections
+- `.kelix/backlog.md` — V1 marked done vs builder backlog state
+- `.kelix/memory/project.md` — CLI notes + run retrospective sections
 - **No conflicts** in `tasklite/models.py`, `store.py`, `persistence.py`, or store/model tests
 - `tasklite/cli.py` and `tests/test_cli_edge.py` merge cleanly (added only on scribe)
 
 ### verifier-1 + scribe-1 — **light conflicts**
 
-Same as builder + scribe: only `.kalph/backlog.md` and `.kalph/memory/project.md`.
+Same as builder + scribe: only `.kelix/backlog.md` and `.kelix/memory/project.md`.
 
 ---
 
 ## Recommended merge order
 
-1. **`kalph/run-20260702-011127-scribe-1` (V1)** first — orthogonal CLI work; merges into main (or integration branch) with only kalph-metadata conflicts. Brings error handling before feature merges land CLI-facing behavior.
+1. **`kelix/run-20260702-011127-scribe-1` (V1)** first — orthogonal CLI work; merges into main (or integration branch) with only kelix-metadata conflicts. Brings error handling before feature merges land CLI-facing behavior.
 
-2. **`kalph/run-20260702-011124-builder-1` (F1 + S1)** second — establishes `priority` and ships CHANGELOG/README. Conflicts with scribe are metadata-only.
+2. **`kelix/run-20260702-011124-builder-1` (F1 + S1)** second — establishes `priority` and ships CHANGELOG/README. Conflicts with scribe are metadata-only.
 
-3. **`kalph/run-20260702-011125-verifier-1` (F2)** last — **rebase onto post-F1 tip** (do not force-push). Resolve the eight-file conflict set by combining priority + tags as above. Run full pytest after resolution; expect ~39 library tests once combined (32 + 7 − overlap base).
+3. **`kelix/run-20260702-011125-verifier-1` (F2)** last — **rebase onto post-F1 tip** (do not force-push). Resolve the eight-file conflict set by combining priority + tags as above. Run full pytest after resolution; expect ~39 library tests once combined (32 + 7 − overlap base).
 
 Do **not** merge F1 and F2 in parallel without rebasing — both edit the same `add()` signature and Task fields.
 
@@ -161,7 +161,7 @@ Do **not** merge F1 and F2 in parallel without rebasing — both edit the same `
 
 ## Additional fleet context
 
-- Newer worktrees exist (`kalph/run-20260702-011600-builder-1` has F3 `Store.clear_done()`; `kalph/run-20260702-011601-scribe-1` exists) — out of scope for this R1 review but F3 should rebase after F1+F2 integration.
+- Newer worktrees exist (`kelix/run-20260702-011600-builder-1` has F3 `Store.clear_done()`; `kelix/run-20260702-011601-scribe-1` exists) — out of scope for this R1 review but F3 should rebase after F1+F2 integration.
 - `gh pr list` unavailable in this environment; review based on local branches only.
 - Episode digest confirms F1, F2, V1, S1 were independently verified in their runs.
 

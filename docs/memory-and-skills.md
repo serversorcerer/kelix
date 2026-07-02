@@ -1,9 +1,21 @@
 # Memory and skills
 
+Twelve stateless agents can ship a full stdlib library overnight without
+repeating each other's dead ends — because Kelix writes every iteration's
+lessons to human-readable files and injects them into the next fresh process
+before it touches code.
+
+That cross-run continuity is proven, not promised. After the dogfood run,
+project memory correctly captured persistence JSON, CLI contracts, and
+due-date semantics with no human rewrite — see the
+[dogfood retrospective](proof/dogfood-retrospective.md) (12/12 verified,
+[final build report](proof/final-report.md#d1--dogfood-run-docsproofdogfood-runlog-dogfood-retrospectivemd)).
+Reproduce the injection layer with `pytest tests/test_memory.py -q`.
+
 A fresh agent process per iteration means nothing survives in the model's
 head. Kelix's answer is not to weaken that invariant but to externalize
-memory: everything worth remembering is a human-readable file, written before
-the process exits, and injected into future iterations as budgeted data.
+memory: everything worth remembering is a file, written before the process
+exits, and injected into future iterations as budgeted data.
 
 ## The three layers
 
