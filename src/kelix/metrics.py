@@ -69,6 +69,13 @@ class ProposalOutcome:
 
 
 @dataclass
+class SkillEfficacyEntry:
+    with_rate: float = 0.0
+    without_rate: float = 0.0
+    matched_tasks: int = 0
+
+
+@dataclass
 class _WindowStats:
     verified_rate: float = 0.0
     mean_retry_count: float = 0.0
@@ -87,6 +94,7 @@ class LoopMetrics:
     iterations: list[IterationLedgerRow] = field(default_factory=list)
     fleet_summaries: list[FleetSummaryRow] = field(default_factory=list)
     proposal_outcomes: list[ProposalOutcome] = field(default_factory=list)
+    skill_efficacy: dict[str, SkillEfficacyEntry] = field(default_factory=dict)
 
 
 def _iteration_row_from_dict(data: dict[str, Any]) -> IterationLedgerRow:
@@ -140,6 +148,14 @@ def _proposal_outcome_from_dict(data: dict[str, Any]) -> ProposalOutcome:
     )
 
 
+def _skill_efficacy_entry_from_dict(data: dict[str, Any]) -> SkillEfficacyEntry:
+    return SkillEfficacyEntry(
+        with_rate=float(data.get("with_rate") or 0.0),
+        without_rate=float(data.get("without_rate") or 0.0),
+        matched_tasks=int(data.get("matched_tasks") or 0),
+    )
+
+
 def _metrics_from_dict(data: dict[str, Any]) -> LoopMetrics:
     iterations_raw = data.get("iterations") or []
     if not isinstance(iterations_raw, list):
@@ -166,6 +182,12 @@ def _metrics_from_dict(data: dict[str, Any]) -> LoopMetrics:
         for item in proposal_raw
         if isinstance(item, dict)
     ]
+    efficacy_raw = data.get("skill_efficacy") or {}
+    skill_efficacy: dict[str, SkillEfficacyEntry] = {}
+    if isinstance(efficacy_raw, dict):
+        for name, entry in efficacy_raw.items():
+            if isinstance(name, str) and isinstance(entry, dict):
+                skill_efficacy[name] = _skill_efficacy_entry_from_dict(entry)
     schema_version = data.get("schema_version", SCHEMA_VERSION)
     try:
         schema_version = int(schema_version)
@@ -177,6 +199,7 @@ def _metrics_from_dict(data: dict[str, Any]) -> LoopMetrics:
         iterations=iterations,
         fleet_summaries=fleet_summaries,
         proposal_outcomes=proposal_outcomes,
+        skill_efficacy=skill_efficacy,
     )
 
 
@@ -221,6 +244,41 @@ def metrics_path(cfg: Config) -> Path:
     return cfg.kelix_dir / METRICS_FILE
 
 
+def _verified_rate(rows: list[IterationLedgerRow]) -> float:
+    scored = [row for row in rows if row.verified is not None]
+    if not scored:
+        return 0.0
+    return sum(1 for row in scored if row.verified) / len(scored)
+
+
+def compute_skill_efficacy(
+    iterations: list[IterationLedgerRow],
+) -> dict[str, SkillEfficacyEntry]:
+    """Compute per-skill verified rates with vs without injection."""
+    skill_names: set[str] = set()
+    for row in iterations:
+        skill_names.update(row.skills_injected)
+
+    efficacy: dict[str, SkillEfficacyEntry] = {}
+    for skill in sorted(skill_names):
+        with_rows: list[IterationLedgerRow] = []
+        without_rows: list[IterationLedgerRow] = []
+        for row in iterations:
+            if not row.task_id:
+                continue
+            if skill in row.skills_injected:
+                with_rows.append(row)
+            else:
+                without_rows.append(row)
+        scored = [row for row in with_rows + without_rows if row.verified is not None]
+        efficacy[skill] = SkillEfficacyEntry(
+            with_rate=_verified_rate(with_rows),
+            without_rate=_verified_rate(without_rows),
+            matched_tasks=len(scored),
+        )
+    return efficacy
+
+
 def append_run_metrics(
     cfg: Config,
     rows: list[IterationLedgerRow],
@@ -233,6 +291,7 @@ def append_run_metrics(
     metrics.iterations.extend(rows)
     if fleet_summary is not None:
         metrics.fleet_summaries.append(fleet_summary)
+    metrics.skill_efficacy = compute_skill_efficacy(metrics.iterations)
     save_metrics(path, metrics)
     return path
 

@@ -6,7 +6,9 @@ from kelix.metrics import (
     IterationLedgerRow,
     LoopMetrics,
     ProposalOutcome,
+    SkillEfficacyEntry,
     append_run_metrics,
+    compute_skill_efficacy,
     empty_metrics,
     grade_proposal,
     load_metrics,
@@ -89,6 +91,72 @@ def test_load_missing_returns_empty(tmp_path: Path):
     assert loaded.iterations == []
     assert loaded.fleet_summaries == []
     assert loaded.proposal_outcomes == []
+
+
+def test_compute_skill_efficacy_with_beats_without():
+    rows = [
+        IterationLedgerRow(
+            run_id="r1",
+            iteration=1,
+            task_id="T1",
+            verified=True,
+            skills_injected=["foo"],
+        ),
+        IterationLedgerRow(
+            run_id="r1",
+            iteration=2,
+            task_id="T2",
+            verified=True,
+            skills_injected=["foo"],
+        ),
+        IterationLedgerRow(
+            run_id="r1",
+            iteration=3,
+            task_id="T3",
+            verified=False,
+            skills_injected=[],
+        ),
+        IterationLedgerRow(
+            run_id="r1",
+            iteration=4,
+            task_id="T4",
+            verified=False,
+            skills_injected=[],
+        ),
+    ]
+    efficacy = compute_skill_efficacy(rows)
+    assert efficacy["foo"] == SkillEfficacyEntry(
+        with_rate=1.0,
+        without_rate=0.0,
+        matched_tasks=4,
+    )
+
+
+def test_append_run_metrics_updates_skill_efficacy(tmp_path: Path):
+    from kelix.config import Config
+
+    cfg = Config(root=tmp_path)
+    rows = [
+        IterationLedgerRow(
+            run_id="r1",
+            iteration=1,
+            task_id="T1",
+            verified=True,
+            skills_injected=["foo"],
+        ),
+        IterationLedgerRow(
+            run_id="r1",
+            iteration=2,
+            task_id="T2",
+            verified=False,
+            skills_injected=[],
+        ),
+    ]
+    path = append_run_metrics(cfg, rows)
+    loaded = load_metrics(path)
+    assert loaded.skill_efficacy["foo"].with_rate == 1.0
+    assert loaded.skill_efficacy["foo"].without_rate == 0.0
+    assert loaded.skill_efficacy["foo"].matched_tasks == 2
 
 
 def test_load_corrupt_json_returns_empty(tmp_path: Path):

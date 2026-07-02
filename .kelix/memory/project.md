@@ -178,10 +178,13 @@ Durable facts about this repo for future iterations.
   `role-match: yes/no (role vs kind)` and a per-agent `role drift: N/M`
   line. Selection unchanged — reporting only. Tests in `tests/test_fleet.py`.
 - Loop metrics schema (`src/kelix/metrics.py`): `LoopMetrics` with
-  `iterations[]`, `fleet_summaries[]`, `proposal_outcomes[]`; each
-  `IterationLedgerRow` carries run_id, iteration, task_id, verified,
+  `iterations[]`, `fleet_summaries[]`, `proposal_outcomes[]`, `skill_efficacy{}`;
+  each `IterationLedgerRow` carries run_id, iteration, task_id, verified,
   retry_count, duration_s, failure, circuit_breaker_cause, agent_id,
-  fleet_id, backlog_lint, skills_injected, tokens always null. `load_metrics` /
+  fleet_id, backlog_lint, skills_injected, tokens always null. `skill_efficacy`
+  maps skill basename → `{with_rate, without_rate, matched_tasks}` recomputed
+  from all ledger rows on each `append_run_metrics` (partition by
+  `skills_injected`, rates only on rows with `task_id`). `load_metrics` /
   `save_metrics` tolerate missing/corrupt JSON. Tests in `tests/test_metrics.py`.
 - Per-iteration ledger capture (`loop.Runner`): after each iteration appends an
   `IterationLedgerRow` to `RunResult.ledger_rows`; task_id from

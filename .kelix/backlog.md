@@ -445,7 +445,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   name). Persist through ST4 rollup. tests/test_loop.py: manifest lists
   .kelix/skills/foo/SKILL.md → row skills_injected contains "foo".
 
-- [ ] ST18: skill efficacy rollup | priority: 40 | status: ready | by: owner | deps: ST17 | phase: T-SKILLS | req: REQ-TS4
+- [x] ST18: skill efficacy rollup | priority: 40 | status: done | by: owner | deps: ST17 | phase: T-SKILLS | req: REQ-TS4
   details: extend LoopMetrics with skill_efficacy: dict[str, {with_rate,
   without_rate, matched_tasks}] computed in append_run_metrics from all
   iteration rows: for each skill name, partition rows by whether skill in
