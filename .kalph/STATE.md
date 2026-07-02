@@ -10,6 +10,6 @@ makes the runner maintain this file automatically.)
 - last_task: (none in this milestone)
 - last_verified_commit: (see git log)
 - done: 0
-- total: 13
+- total: 19
 - blockers:
   - (none)

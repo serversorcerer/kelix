@@ -92,6 +92,43 @@ Every task below names its phase and the REQ it covers in `details:`.
   CONTEXT.md template comment in .kalph/phases/README. Tests: injection,
   budget, absence.
 
+### Phase P-ONRAMP (the owner's planning onramp)
+
+- [ ] PC14: kalph plan — goal to draft plan in one iteration | priority: 89 | status: ready | by: owner | deps: PC4
+  rationale: [P-ONRAMP/REQ-O1] the most important thing a user needs is a plan; give them a command, not just a doc
+  details: add cmd_plan to src/kalph/cli.py and src/kalph/plan.py. Input: a
+  goal string (`kalph plan "build X"`) or --goal-file. Runs exactly one
+  adapter iteration with a dedicated planning prompt (new template in
+  prompt.py, PLANNING_TEMPLATE) instructing: produce .kalph/roadmap.md
+  (milestone/phases/REQ-IDs per roadmap.py format) and append backlog tasks
+  per the writing-for-the-loop contract, ALL with status: proposed; implement
+  nothing; print PLAN COMPLETE. The runner treats it like any iteration
+  (worktree isolation, transcript) but with verify replaced by plan
+  validation (PC15's validate function). On success prints "draft plan
+  ready — review .kalph/roadmap.md and promote tasks to ready". Tests with
+  the mock adapter: draft written, all tasks proposed, nothing else changed.
+
+- [ ] PC15: plan validation + kalph lint | priority: 87 | status: ready | by: owner | deps: PC4
+  rationale: [P-ONRAMP/REQ-O2+O3] a draft plan must be machine-checked against the input contract; slop is rejected with specifics
+  details: add src/kalph/lint.py with lint_backlog(tasks) -> list[Finding]
+  (finding: task_id, rule, message). Rules: missing details, details with no
+  acceptance signal (no test/assert/exit-code/file-named evidence), banned
+  unfalsifiable words (improve/better/best practices/clean up) without a
+  metric, dangling or cyclic deps, title>80 chars, multiple deliverables
+  (details containing " and then "). validate_plan(root) additionally
+  requires the roadmap to parse and every REQ to be referenced by >=1 task.
+  CLI: `kalph lint` prints findings, exit 1 if any (0 clean). Tests: each
+  rule fires on a bad fixture and stays quiet on this repo's real backlog.
+
+- [ ] PC16: init leads with the planning path | priority: 83 | status: ready | by: owner | deps: PC14
+  rationale: [P-ONRAMP/REQ-O4] the first thing init should teach is how to get a plan
+  details: cmd_init writes GOAL.md template (goal, non-goals, acceptance
+  bullets — the PRD skeleton from docs/writing-for-the-loop.md) when absent;
+  final print becomes: "1) describe your goal in GOAL.md  2) kalph plan
+  --goal-file GOAL.md  3) review + promote tasks  4) kalph run". Update
+  docs/quickstart.md and README quickstart to lead with plan-first flow.
+  Test: init creates GOAL.md; existing files untouched.
+
 ### Phase P-GATE (coverage-gated done)
 
 - [ ] PC7: phase gate — REQ coverage computation | priority: 82 | status: ready | by: owner | deps: PC5
@@ -137,18 +174,49 @@ Every task below names its phase and the REQ it covers in `details:`.
   tests/test_fleet.py: agent asking while wave 0 unfinished never receives
   a wave-1 task; status shows waves.
 
+### Phase P-HARDEN (lessons from the v0.1 proof runs)
+
+- [ ] PC17: rationale fallback from commit subject | priority: 76 | status: ready | by: owner
+  rationale: [P-HARDEN/REQ-H1] 4 proof-run iterations logged "(no rationale)" — legibility must not depend on the agent remembering a print
+  details: in src/kalph/loop.py, when _extract_rationale finds nothing, set
+  rec.rationale from the iteration's last commit subject (git log -1
+  --format=%s on the workdir, only if HEAD advanced this iteration),
+  prefixed "(from commit) ". Episodes and retrospectives use it; a truly
+  rationale-less iteration is flagged "no rationale — see transcript" in
+  the retrospective. Tests: mock agent that commits without RATIONALE gets
+  the commit subject; no-commit no-rationale iteration gets the flag.
+
+- [ ] PC18: output-inactivity watchdog in adapters | priority: 74 | status: ready | by: owner
+  rationale: [P-HARDEN/REQ-H2] fleet session 2's agent sat idle ~20 min after finishing (D13); unattended means nobody is there to kill it
+  details: in src/kalph/adapters.py, run the agent with Popen and a reader
+  thread; if no stdout/stderr bytes arrive for
+  agent.inactivity_timeout_seconds (config, default 300, 0 disables),
+  terminate then kill, mark AgentResult.timed_out=True with exit code as
+  observed. Hard timeout_seconds behavior unchanged. Tests: script that
+  prints then sleeps past the inactivity window is reaped and marked; a
+  slow-but-chatty script survives.
+
+- [ ] PC19: role-match visibility in fleet retrospectives | priority: 68 | status: ready | by: owner | deps: PC5
+  rationale: [P-HARDEN/REQ-H3] session 1's verifier built a feature — allowed, but the owner should see role drift, not archaeology it
+  details: tag tasks with an optional kind derived from phase/title
+  heuristics (test/docs/feature/fix) in fleet.py; _write_fleet_retrospective
+  appends per-iteration "role-match: yes/no (agent role vs task kind)" and
+  a per-agent drift count. Pure reporting — selection unchanged. Test:
+  fixture fleet result renders drift line.
+
 ### Phase P-PROOF (docs + self-referential proof)
 
 - [ ] PC12: docs/planning.md + init template | priority: 62 | status: ready | by: owner | deps: PC8, PC11
   rationale: [P-PROOF/REQ-P1+P2] the hierarchy is only real if a stranger can adopt it tonight
-  details: write docs/planning.md — roadmap -> phase -> task hierarchy,
-  STATE.md schema (from state.py), the phase gate, waves, and when NOT to
-  use any of it (flat backlog stays the quick path; follow
-  docs/writing-for-the-loop.md style). Link it from README Documentation
-  and docs/index.md. kalph init writes .kalph/roadmap.md template
-  (commented skeleton) only when absent; never touches existing files.
-  Test: init on a bare repo creates the template; init on this repo is a
-  no-op.
+  details: write docs/planning.md — the plan-first flow (GOAL.md ->
+  kalph plan -> review/promote -> kalph run), roadmap -> phase -> task
+  hierarchy, STATE.md schema (from state.py), kalph lint, the phase gate,
+  waves, and when NOT to use any of it (flat backlog stays the quick path;
+  follow docs/writing-for-the-loop.md style). Link it from README
+  Documentation and docs/index.md. kalph init writes .kalph/roadmap.md
+  template (commented skeleton) only when absent; never touches existing
+  files. Test: init on a bare repo creates the template; init on this repo
+  is a no-op.
 
 - [ ] PC13: self-referential proof run | priority: 60 | status: ready | by: owner | deps: PC12
   rationale: [P-PROOF/REQ-P3] the planning core must be proven by driving its own build (dogfood rule)

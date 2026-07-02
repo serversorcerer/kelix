@@ -46,6 +46,35 @@ Outcome: an owner writes goals once, top-down; loops decompose downward.
   fields; selection prefers tasks in the active phase; tasks without these
   fields behave exactly as today.
 
+### Phase P-ONRAMP — the owner's planning onramp
+
+Outcome: a new user goes from "goal in my head" to "a loop-ready roadmap +
+backlog I have reviewed" in one command. Rationale (owner directive): the
+most important thing someone needs when using this application is a plan;
+today `kalph init` hands them a one-line template and a doc to study —
+evidence from the proof runs shows output quality tracked backlog quality
+exactly (12/12 verified on precise tasks; slop would have produced slop).
+
+- REQ-O1: `kalph plan "<goal>"` (or `--goal-file GOAL.md`) runs ONE agent
+  iteration whose only deliverable is a draft plan: `.kalph/roadmap.md`
+  (milestone, phases, REQ-IDs) and backlog tasks written to the
+  writing-for-the-loop standard, all marked `status: proposed`. It never
+  implements anything; the owner promotes tasks to `ready` by editing —
+  the loop cannot start work the owner has not reviewed.
+- REQ-O2: the draft is machine-validated before it is accepted: roadmap
+  parses, every task line parses, every task has `details:` with a
+  testable acceptance, deps are acyclic and reference real ids. A draft
+  failing validation is rejected with the specific errors (agent gets one
+  retry, then the errors are written for the owner).
+- REQ-O3: `kalph lint` checks any backlog against the input contract and
+  reports slop: tasks with no details, no acceptance signal, unfalsifiable
+  words ("better", "best practices", "improve" without a metric), >1
+  deliverable per task, dangling deps. Exit non-zero on findings so it can
+  gate CI.
+- REQ-O4: `kalph init` prints the planning path first ("no plan yet? run:
+  kalph plan ...") and seeds a GOAL.md template; quickstart docs lead with
+  plan-first flow.
+
 ### Phase P-GATE — coverage-gated done
 
 Outcome: "done" for a phase means every requirement is covered by a
@@ -69,6 +98,26 @@ collide on overlapping concerns.
 - REQ-W2: the fleet claim hook only offers tasks from the earliest
   incomplete wave; claims across waves are refused.
 - REQ-W3: wave assignment is visible in `kalph status`.
+
+### Phase P-HARDEN — lessons from the v0.1 proof runs
+
+Outcome: the three weaknesses the dogfood/fleet runs exposed are fixed in
+code (evidence: docs/proof/ logs).
+
+- REQ-H1: rationale is never silently lost. 3 of 12 dogfood iterations and
+  1 fleet iteration logged "(no rationale)" because the agent skipped the
+  RATIONALE: line. Fallback: derive it from the iteration's commit subject
+  (task-id prefix); only if both are absent does the episode say so, and
+  that now counts as a lint-style warning in the retrospective.
+- REQ-H2: hung agents end themselves. The fleet-session-2 verifier finished
+  its work but its process idled ~20 min until killed by hand (D13). Add an
+  output-inactivity timeout to adapters (no stdout/stderr bytes for N
+  seconds -> terminate, default 300s, configurable) alongside the existing
+  hard timeout; the iteration is recorded with its real exit accounting.
+- REQ-H3: role fidelity is measurable. In fleet session 1 the verifier
+  claimed a builder task (allowed by design — roles prefer, not restrict —
+  but invisible). The fleet retrospective now reports role-match per
+  iteration (task kind vs. agent role) so owners can see drift.
 
 ### Phase P-PROOF — docs and self-referential proof
 
