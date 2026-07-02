@@ -1,6 +1,6 @@
-# Example fleet configuration. Copy to .kalph/fleet.toml and run `kalph fleet`.
-# Each agent is an independent Kalph loop in its own worktree/branch. They
-# coordinate ONLY through files under .kalph/fleet/ (claims, mailbox, shared
+# Example fleet configuration. Copy to .kelix/fleet.toml and run `kelix fleet`.
+# Each agent is an independent Kelix loop in its own worktree/branch. They
+# coordinate ONLY through files under .kelix/fleet/ (claims, mailbox, shared
 # skills) — no message bus, no RPC.
 
 [fleet]

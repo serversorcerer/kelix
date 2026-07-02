@@ -1,18 +1,18 @@
-from kalph.backlog import Task, parse_backlog, select_next, serialize_backlog
+from kelix.backlog import Task, parse_backlog, select_next, serialize_backlog
 
 SAMPLE_BACKLOG = """\
-# Kalph backlog
+# Kelix backlog
 
 Task line format (one per task, keep it exactly parseable):
-`- [ ] ID: title | priority: N | status: ready|done|blocked|proposed | by: owner|kalph`
+`- [ ] ID: title | priority: N | status: ready|done|blocked|proposed | by: owner|kelix`
 
 ## Tasks
 
 - [ ] KB1: backlog parser module | priority: 90 | status: ready | by: owner
   rationale: the runner needs structured backlog access
-  details: create src/kalph/backlog.py
+  details: create src/kelix/backlog.py
 - [ ] KB2: memory module tests | priority: 80 | status: ready | by: owner | deps: KB1
-- [ ] P1: polish docs | priority: 95 | status: ready | by: kalph
+- [ ] P1: polish docs | priority: 95 | status: ready | by: kelix
 - [x] DONE1: finished task | priority: 10 | status: done | by: owner
 """
 
@@ -30,7 +30,7 @@ def test_parse_sample_backlog():
     assert kb1.deps == []
     assert kb1.notes == {
         "rationale": "the runner needs structured backlog access",
-        "details": "create src/kalph/backlog.py",
+        "details": "create src/kelix/backlog.py",
     }
 
     kb2 = tasks[1]
@@ -49,7 +49,7 @@ def test_round_trip():
 def test_parse_multiline_details():
     text = """\
 - [ ] T1: demo | priority: 50 | status: ready | by: owner
-  details: create src/kalph/foo.py with helpers,
+  details: create src/kelix/foo.py with helpers,
   round-trip test in tests/test_foo.py
 """
     tasks = parse_backlog(text)
@@ -62,7 +62,7 @@ def test_select_next_priority_and_owner():
 
     blocked = [
         Task("A", "owner high", 50, "ready", "owner"),
-        Task("B", "kalph higher", 99, "ready", "kalph"),
+        Task("B", "kelix higher", 99, "ready", "kelix"),
     ]
     assert select_next(blocked).id == "A"
 
@@ -83,7 +83,7 @@ def test_select_next_skips_non_ready():
     tasks = [
         Task("A", "done", 90, "done", "owner"),
         Task("B", "blocked", 80, "blocked", "owner"),
-        Task("C", "proposed", 70, "proposed", "kalph"),
+        Task("C", "proposed", 70, "proposed", "kelix"),
     ]
     assert select_next(tasks) is None
 
@@ -91,7 +91,7 @@ def test_select_next_skips_non_ready():
 def test_select_next_normal_autonomy_skips_proposed():
     tasks = [
         Task("A", "done", 90, "done", "owner"),
-        Task("B", "proposed only", 99, "proposed", "kalph"),
+        Task("B", "proposed only", 99, "proposed", "kelix"),
     ]
     assert select_next(tasks, autonomy="normal") is None
     assert select_next(tasks) is None
@@ -100,7 +100,7 @@ def test_select_next_normal_autonomy_skips_proposed():
 def test_select_next_high_autonomy_selects_proposed():
     tasks = [
         Task("A", "done", 90, "done", "owner"),
-        Task("B", "proposed work", 60, "proposed", "kalph"),
+        Task("B", "proposed work", 60, "proposed", "kelix"),
     ]
     assert select_next(tasks, autonomy="high").id == "B"
 
@@ -109,15 +109,15 @@ def test_select_next_high_autonomy_owner_ready_beats_proposed():
     tasks = [
         Task("A", "owner ready", 50, "ready", "owner"),
         Task("B", "owner proposed", 99, "proposed", "owner"),
-        Task("C", "kalph proposed", 95, "proposed", "kalph"),
+        Task("C", "kelix proposed", 95, "proposed", "kelix"),
     ]
     assert select_next(tasks, autonomy="high").id == "A"
 
 
-def test_select_next_high_autonomy_owner_beats_kalph_proposed():
+def test_select_next_high_autonomy_owner_beats_kelix_proposed():
     tasks = [
         Task("A", "owner proposed", 40, "proposed", "owner"),
-        Task("B", "kalph proposed", 99, "proposed", "kalph"),
+        Task("B", "kelix proposed", 99, "proposed", "kelix"),
     ]
     assert select_next(tasks, autonomy="high").id == "A"
 
@@ -220,7 +220,7 @@ def test_select_next_active_phase_ordering():
 
 def test_select_next_active_phase_owner_still_wins():
     tasks = [
-        Task("A", "kalph active phase", 99, "ready", "kalph", phase="P-INTENT"),
+        Task("A", "kelix active phase", 99, "ready", "kelix", phase="P-INTENT"),
         Task("B", "owner other phase", 10, "ready", "owner", phase="P-ONRAMP"),
     ]
     assert select_next(tasks, active_phase="P-INTENT").id == "B"

@@ -1,7 +1,7 @@
 # Prioritization rubric
 
-How Kalph chooses work from `.kalph/backlog.md`. The runner and
-`select_next()` in `src/kalph/backlog.py` implement a subset of this rubric
+How Kelix chooses work from `.kelix/backlog.md`. The runner and
+`select_next()` in `src/kelix/backlog.py` implement a subset of this rubric
 mechanically; the rest guides humans and agents when writing or proposing tasks.
 
 ## Backlog task format
@@ -9,7 +9,7 @@ mechanically; the rest guides humans and agents when writing or proposing tasks.
 Each task is one line (optional indented notes below):
 
 ```text
-- [ ] ID: title | priority: N | status: ready|done|blocked|proposed | by: owner|kalph | deps: ID,ID
+- [ ] ID: title | priority: N | status: ready|done|blocked|proposed | by: owner|kelix | deps: ID,ID
 ```
 
 Optional note lines (indented two spaces):
@@ -27,9 +27,9 @@ Malformed lines are skipped on parse, never fatal.
 
 When an iteration picks work, apply these rules in order:
 
-1. **Owner intent first** — Tasks with `by: owner` always outrank `by: kalph`
+1. **Owner intent first** — Tasks with `by: owner` always outrank `by: kelix`
    tasks, regardless of priority number. Owner tasks express mission direction;
-   kalph-proposed tasks are suggestions only.
+   kelix-proposed tasks are suggestions only.
 
 2. **Ready and unblocked** — Only tasks with `status: ready` whose every
    dependency ID is `done` are candidates. Tasks in `proposed`, `blocked`, or
@@ -40,7 +40,7 @@ When an iteration picks work, apply these rules in order:
    order is fine).
 
 This matches `select_next()`: sort key is `(owner_rank, -priority)` where
-`owner_rank` is 0 for owner and 1 for kalph.
+`owner_rank` is 0 for owner and 1 for kelix.
 
 ## What the numbers mean
 
@@ -51,7 +51,7 @@ Priority bands are guidance when authoring tasks, not hard-coded in the parser.
 | **90–100** | Broken build, owner urgent, or blocking correctness — fix before anything else |
 | **70–89** | Owner features and mission-critical docs or infrastructure |
 | **50–69** | Correctness debt: tests, regressions, edge cases not yet blocking the loop |
-| **30–49** | Kalph-proposed improvements (refactors, observability, nice-to-have fixes) |
+| **30–49** | Kelix-proposed improvements (refactors, observability, nice-to-have fixes) |
 | **1–29** | Polish: wording, style, minor cleanup with no behavioral impact |
 
 Within a band, rank by **category** when choosing relative scores:

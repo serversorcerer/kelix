@@ -2,12 +2,12 @@
 Linear adapter behavior with an injected transport (no network), non-fatal
 failure handling, and backlog mirroring."""
 
-from kalph.backlog import parse_backlog
-from kalph.config import load_config
-from kalph.sync import make_tracker
-from kalph.sync.base import sanitize_inbound
-from kalph.sync.linear import LinearAdapter, branch_name, slugify
-from kalph.sync.mirror import mirror_inbound
+from kelix.backlog import parse_backlog
+from kelix.config import load_config
+from kelix.sync import make_tracker
+from kelix.sync.base import sanitize_inbound
+from kelix.sync.linear import LinearAdapter, branch_name, slugify
+from kelix.sync.mirror import mirror_inbound
 
 # --- sanitization ------------------------------------------------------------
 
@@ -102,7 +102,7 @@ def test_linear_push_status_scrubs_secrets():
 
 
 def test_branch_naming_for_github_autolink():
-    assert branch_name("kalph/", "KAL-12", "Add Login Flow!") == "kalph/kal-12-add-login-flow"
+    assert branch_name("kelix/", "KAL-12", "Add Login Flow!") == "kelix/kal-12-add-login-flow"
     assert slugify("A B  C") == "a-b-c"
 
 
@@ -139,7 +139,7 @@ def test_make_tracker_disabled_by_default(tmp_path):
 
 
 def test_make_tracker_linear(tmp_path):
-    (tmp_path / "kalph.toml").write_text('[tracker]\nprovider = "linear"\nteam = "KAL"\n')
+    (tmp_path / "kelix.toml").write_text('[tracker]\nprovider = "linear"\nteam = "KAL"\n')
     cfg = load_config(tmp_path)
     tracker = make_tracker(cfg)
     assert isinstance(tracker, LinearAdapter)

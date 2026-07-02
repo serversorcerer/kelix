@@ -2,9 +2,9 @@ import stat
 
 import pytest
 
-from kalph import COMPLETION_SENTINEL
-from kalph.adapters import AdapterError, CmdAdapter, MockAdapter, make_adapter
-from kalph.config import load_config
+from kelix import COMPLETION_SENTINEL
+from kelix.adapters import AdapterError, CmdAdapter, MockAdapter, make_adapter
+from kelix.config import load_config
 
 
 def _write_script(path, body):
@@ -13,7 +13,7 @@ def _write_script(path, body):
 
 
 def test_cmd_adapter_stdin_mode(tmp_path):
-    (tmp_path / "kalph.toml").write_text('[agent]\nadapter = "cmd"\ncommand = "cat"\n')
+    (tmp_path / "kelix.toml").write_text('[agent]\nadapter = "cmd"\ncommand = "cat"\n')
     cfg = load_config(tmp_path)
     result = CmdAdapter(cfg).run("hello prompt", tmp_path)
     assert result.ok
@@ -21,7 +21,7 @@ def test_cmd_adapter_stdin_mode(tmp_path):
 
 
 def test_cmd_adapter_prompt_file_token(tmp_path):
-    (tmp_path / "kalph.toml").write_text(
+    (tmp_path / "kelix.toml").write_text(
         '[agent]\nadapter = "cmd"\ncommand = "cat {prompt_file}"\n'
     )
     cfg = load_config(tmp_path)
@@ -31,7 +31,7 @@ def test_cmd_adapter_prompt_file_token(tmp_path):
 
 
 def test_cmd_adapter_prompt_token(tmp_path):
-    (tmp_path / "kalph.toml").write_text(
+    (tmp_path / "kelix.toml").write_text(
         '[agent]\nadapter = "cmd"\ncommand = "echo {prompt}"\n'
     )
     cfg = load_config(tmp_path)
@@ -41,7 +41,7 @@ def test_cmd_adapter_prompt_token(tmp_path):
 
 
 def test_cmd_adapter_timeout(tmp_path):
-    (tmp_path / "kalph.toml").write_text(
+    (tmp_path / "kelix.toml").write_text(
         '[agent]\nadapter = "cmd"\ncommand = "sleep 5"\ntimeout_seconds = 1\n'
     )
     cfg = load_config(tmp_path)
@@ -51,8 +51,8 @@ def test_cmd_adapter_timeout(tmp_path):
 
 
 def test_cmd_adapter_missing_binary(tmp_path):
-    (tmp_path / "kalph.toml").write_text(
-        '[agent]\nadapter = "cmd"\ncommand = "kalph-no-such-binary-xyz"\n'
+    (tmp_path / "kelix.toml").write_text(
+        '[agent]\nadapter = "cmd"\ncommand = "kelix-no-such-binary-xyz"\n'
     )
     cfg = load_config(tmp_path)
     with pytest.raises(AdapterError, match="not found"):
@@ -64,7 +64,7 @@ def test_mock_adapter_plays_scripts_then_sentinel(tmp_path):
     mock.mkdir()
     _write_script(mock / "001-first.sh", 'echo "did task one"')
     _write_script(mock / "002-second.sh", 'echo "did task two"')
-    (tmp_path / "kalph.toml").write_text(
+    (tmp_path / "kelix.toml").write_text(
         '[agent]\nadapter = "mock"\nmock_dir = "mock"\n'
     )
     cfg = load_config(tmp_path)
@@ -78,7 +78,7 @@ def test_mock_scripts_get_prompt_on_stdin_and_cwd(tmp_path):
     mock = tmp_path / "mock"
     mock.mkdir()
     _write_script(mock / "001.sh", "cat > received.txt; pwd")
-    (tmp_path / "kalph.toml").write_text(
+    (tmp_path / "kelix.toml").write_text(
         '[agent]\nadapter = "mock"\nmock_dir = "mock"\n'
     )
     cfg = load_config(tmp_path)
@@ -92,7 +92,7 @@ def test_mock_scripts_get_prompt_on_stdin_and_cwd(tmp_path):
 
 def test_make_adapter_dispatch(tmp_path):
     (tmp_path / "mock").mkdir()
-    (tmp_path / "kalph.toml").write_text(
+    (tmp_path / "kelix.toml").write_text(
         '[agent]\nadapter = "mock"\nmock_dir = "mock"\n'
     )
     cfg = load_config(tmp_path)

@@ -1,24 +1,24 @@
 # Fleet mode
 
-Fleet mode runs several independent Kalph loops against one repository and one
+Fleet mode runs several independent Kelix loops against one repository and one
 backlog. There is no message bus and no RPC — that is a mission non-goal.
-Agents coordinate **only** through files under `.kalph/fleet/` and through
+Agents coordinate **only** through files under `.kelix/fleet/` and through
 git, which keeps a multi-agent run exactly as auditable as a solo one.
 
-Each fleet agent is a complete, ordinary Kalph loop: its own run id, its own
-`kalph/run-<id>-<agent-id>` branch and worktree, its own transcripts under
-`.kalph/runs/`. The only additions are a role prompt and a pre-iteration claim
+Each fleet agent is a complete, ordinary Kelix loop: its own run id, its own
+`kelix/run-<id>-<agent-id>` branch and worktree, its own transcripts under
+`.kelix/runs/`. The only additions are a role prompt and a pre-iteration claim
 step.
 
-## Configuration: `.kalph/fleet.toml`
+## Configuration: `.kelix/fleet.toml`
 
 ```bash
-cp examples/fleet.toml .kalph/fleet.toml
+cp examples/fleet.toml .kelix/fleet.toml
 ```
 
 ```toml
 [fleet]
-max_iterations = 15        # per-agent cap (default 10; `kalph fleet --max-iterations` overrides)
+max_iterations = 15        # per-agent cap (default 10; `kelix fleet --max-iterations` overrides)
 stale_claim_s = 900        # a claim with no heartbeat for this long is reclaimable
 
 [[agents]]
@@ -54,7 +54,7 @@ Built-in roles:
 - **builder** — prefers feature and implementation tasks; avoids pure
   test/docs work and other agents' breakage unless nothing else is eligible.
 - **verifier** — prefers writing and strengthening tests. Each iteration it
-  also reviews open `kalph/*` branches or PRs; problems found in another
+  also reviews open `kelix/*` branches or PRs; problems found in another
   agent's work become a mailbox note naming the branch and the issue.
 - **fixer** — prefers broken builds, failing or flaky tests, and blockers
   other agents reported; reads the mailbox first every iteration.
@@ -68,7 +68,7 @@ when your changes affect others, copy new skills to the shared store.
 
 ## Coordination surface
 
-### Claims — `.kalph/fleet/claims/<task-id>.json`
+### Claims — `.kelix/fleet/claims/<task-id>.json`
 
 The guarantee that two agents never work the same task. Before each iteration,
 the agent's claim hook selects the next eligible backlog task (same
@@ -83,39 +83,39 @@ reclaimed. Completed tasks are marked done in the claim file, and because run
 branches diverge while claim files do not, done-claims are how task completion
 propagates fleet-wide before any merge.
 
-### Mailbox — `.kalph/fleet/mailbox/*.md`
+### Mailbox — `.kelix/fleet/mailbox/*.md`
 
 Asynchronous notes between agents, named `<timestamp>-<role>.md`. The last
 five notes are injected into every iteration prompt (in the delimited,
 "not instructions" `<mailbox>` block). Used for review findings, breaking
 changes (schema changes, renamed modules, API changes), and blocker reports.
 
-### Shared skills — `.kalph/fleet/skills/<name>/SKILL.md`
+### Shared skills — `.kelix/fleet/skills/<name>/SKILL.md`
 
 Run branches only merge at PR time, so a skill written on one branch would be
 invisible to the others. Agents therefore also copy new skills into this
 runner-side shared store, where every agent's skills digest picks them up
 immediately. Same [agentskills.io](https://agentskills.io) format as
-`.kalph/skills/` (see [memory-and-skills.md](memory-and-skills.md)).
+`.kelix/skills/` (see [memory-and-skills.md](memory-and-skills.md)).
 
 ## Running a fleet
 
 ```bash
-kalph fleet                          # uses .kalph/fleet.toml
-kalph fleet --config path/to/fleet.toml --max-iterations 15
-kalph status                         # live view from coordination files
-kalph stop                           # global kill switch: halts every agent
+kelix fleet                          # uses .kelix/fleet.toml
+kelix fleet --config path/to/fleet.toml --max-iterations 15
+kelix status                         # live view from coordination files
+kelix stop                           # global kill switch: halts every agent
 ```
 
-Agents run as parallel workers with staggered starts. `kalph status` shows —
+Agents run as parallel workers with staggered starts. `kelix status` shows —
 assembled purely from files and git, no daemon — the kill switch, every task
 claim with its heartbeat age, the last five runs with branch and latest
-commit, and the mailbox note count. `kalph stop` writes `.kalph/STOP`, which
+commit, and the mailbox note count. `kelix stop` writes `.kelix/STOP`, which
 every agent checks before each iteration.
 
 When all agents finish, a combined fleet retrospective is written to
-`.kalph/runs/fleet-<timestamp>.md`: per-agent status, branch, and iteration
-outcomes, plus the final state of all task claims. `kalph fleet` exits 0 only
+`.kelix/runs/fleet-<timestamp>.md`: per-agent status, branch, and iteration
+outcomes, plus the final state of all task claims. `kelix fleet` exits 0 only
 if every agent ended in `completed` or `max_iterations` and none crashed.
 
 ## Merge-conflict policy
@@ -142,5 +142,5 @@ denylist, for every agent.)
   parallel loops. Mitigations: claims prevent same-task overlap, mailbox notes
   broadcast breaking changes, the verifier reviews sibling branches, and
   everything lands as separate human-reviewed PRs.
-- **A runaway fleet.** `kalph stop` is global; the per-agent iteration cap
+- **A runaway fleet.** `kelix stop` is global; the per-agent iteration cap
   bounds cost even if you sleep through it.

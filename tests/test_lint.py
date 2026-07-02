@@ -1,10 +1,10 @@
-"""Tests for backlog lint and ``kalph lint``."""
+"""Tests for backlog lint and ``kelix lint``."""
 
 from pathlib import Path
 
-from kalph.backlog import Task
-from kalph.cli import cmd_lint
-from kalph.lint import Finding, format_finding, lint_backlog, lint_repo
+from kelix.backlog import Task
+from kelix.cli import cmd_lint
+from kelix.lint import Finding, format_finding, lint_backlog, lint_repo
 
 
 def _task(**kwargs) -> Task:
@@ -48,7 +48,7 @@ def test_acceptance_signal_from_test_path():
         [
             _task(
                 notes={
-                    "details": "add src/kalph/foo.py; round-trip test in tests/test_foo.py"
+                    "details": "add src/kelix/foo.py; round-trip test in tests/test_foo.py"
                 }
             )
         ]
@@ -143,7 +143,7 @@ def test_real_backlog_is_clean():
 
 
 def test_cmd_lint_clean_on_repo(repo):
-    (repo / ".kalph" / "backlog.md").write_text(
+    (repo / ".kelix" / "backlog.md").write_text(
         "- [ ] T1: good task | priority: 50 | status: ready | by: owner\n"
         "  details: add foo.py; assert True in tests/test_foo.py\n"
     )
@@ -155,7 +155,7 @@ def test_cmd_lint_clean_on_repo(repo):
 
 
 def test_cmd_lint_reports_findings(repo, capsys):
-    (repo / ".kalph" / "backlog.md").write_text(
+    (repo / ".kelix" / "backlog.md").write_text(
         "- [ ] T1: bad task | priority: 50 | status: ready | by: owner\n"
         "  details: improve everything\n"
     )
@@ -170,16 +170,16 @@ def test_cmd_lint_reports_findings(repo, capsys):
 
 
 def test_validate_plan_includes_lint_rules(repo):
-    from kalph.lint import validate_plan
+    from kelix.lint import validate_plan
 
-    (repo / ".kalph" / "roadmap.md").write_text(
+    (repo / ".kelix" / "roadmap.md").write_text(
         "# Roadmap\n\n"
         "## Milestone M1 — Demo\n\n"
         "### Phase P1 — phase\n\n"
         "- REQ-R1: requirement one\n"
     )
-    (repo / ".kalph" / "backlog.md").write_text(
-        "- [ ] T1: slop | priority: 50 | status: proposed | by: kalph | req: REQ-R1\n"
+    (repo / ".kelix" / "backlog.md").write_text(
+        "- [ ] T1: slop | priority: 50 | status: proposed | by: kelix | req: REQ-R1\n"
         "  details: make it better\n"
     )
     findings = validate_plan(repo)

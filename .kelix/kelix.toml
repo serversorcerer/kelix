@@ -1,0 +1,26 @@
+# Kelix building Kelix (self-hosting config, DECISIONS.md D8).
+# kiro-cli is not installed on this machine; the cmd adapter drives the
+# locally available headless agent instead — proof the loop core is
+# agent-agnostic.
+
+[agent]
+adapter = "cmd"
+command = "cursor-agent --force -p {prompt}"
+timeout_seconds = 2400
+
+[loop]
+max_iterations = 10
+circuit_breaker_threshold = 2
+
+[verify]
+# Same gate CI enforces. PYTHONPATH=src makes the worktree's code the code
+# under test (the venv's editable install points at the main checkout).
+# KELIX_VENV: set to the absolute path of the dev venv's bin dir, e.g.
+#   export KELIX_VENV=/path/to/Kelix/.venv/bin
+commands = [
+  "env PYTHONPATH=src $KELIX_VENV/pytest -q",
+  "$KELIX_VENV/ruff check src tests",
+]
+
+[git]
+isolation = "worktree"

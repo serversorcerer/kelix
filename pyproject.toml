@@ -3,13 +3,13 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "kalph"
+name = "kelix"
 version = "0.1.0"
-description = "Kalph: the Ralph loop, rebuilt for Kiro - a stateless autonomous agent loop with persistent memory, prioritization, and fleet mode"
+description = "Kelix: the Ralph loop, rebuilt for Kiro - a stateless autonomous agent loop with persistent memory, prioritization, and fleet mode"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
-authors = [{ name = "Kalph contributors" }]
+authors = [{ name = "Kelix contributors" }]
 keywords = ["agent", "ralph", "kiro", "autonomous", "loop"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -27,11 +27,11 @@ dependencies = []
 dev = ["pytest>=8", "ruff>=0.4"]
 
 [project.scripts]
-kalph = "kalph.cli:main"
+kelix = "kelix.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/serversorcerer/kalph"
-Documentation = "https://github.com/serversorcerer/kalph/tree/main/docs"
+Homepage = "https://github.com/serversorcerer/kelix"
+Documentation = "https://github.com/serversorcerer/kelix/tree/main/docs"
 
 [tool.setuptools.packages.find]
 where = ["src"]

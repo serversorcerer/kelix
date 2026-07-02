@@ -1,8 +1,8 @@
 import json
 
-from kalph.config import Config, MemoryConfig
-from kalph.loop import IterationRecord, RunResult
-from kalph.memory import (
+from kelix.config import Config, MemoryConfig
+from kelix.loop import IterationRecord, RunResult
+from kelix.memory import (
     _parse_skill,
     episode_digest,
     load_episodes,
@@ -18,7 +18,7 @@ def _cfg(root) -> Config:
 
 def test_record_and_load_episodes_round_trip(tmp_path):
     cfg = _cfg(tmp_path)
-    (tmp_path / ".kalph").mkdir()
+    (tmp_path / ".kelix").mkdir()
     rec = IterationRecord(
         index=1,
         started_at="2026-07-02T00:00:00",
@@ -41,7 +41,7 @@ def test_record_and_load_episodes_round_trip(tmp_path):
 
 def test_load_episodes_skips_corrupt_lines(tmp_path):
     cfg = _cfg(tmp_path)
-    ep_dir = tmp_path / ".kalph" / "memory"
+    ep_dir = tmp_path / ".kelix" / "memory"
     ep_dir.mkdir(parents=True)
     (ep_dir / "episodes.jsonl").write_text(
         json.dumps({"iteration": 1, "rationale": "good"}) + "\n"
@@ -57,7 +57,7 @@ def test_load_episodes_skips_corrupt_lines(tmp_path):
 
 def test_episode_digest_includes_rationale_and_failure(tmp_path):
     cfg = _cfg(tmp_path)
-    ep_dir = tmp_path / ".kalph" / "memory"
+    ep_dir = tmp_path / ".kelix" / "memory"
     ep_dir.mkdir(parents=True)
     (ep_dir / "episodes.jsonl").write_text(
         json.dumps(
@@ -89,7 +89,7 @@ def test_episode_digest_includes_rationale_and_failure(tmp_path):
 def test_episode_digest_respects_episodes_in_digest(tmp_path):
     cfg = _cfg(tmp_path)
     cfg.memory = MemoryConfig(episodes_in_digest=2)
-    ep_dir = tmp_path / ".kalph" / "memory"
+    ep_dir = tmp_path / ".kelix" / "memory"
     ep_dir.mkdir(parents=True)
     lines = [
         json.dumps({"ts": f"2026-07-02T00:0{i}:00", "rationale": f"episode-{i}"})
@@ -122,7 +122,7 @@ def test_parse_skill_returns_none_without_frontmatter(tmp_path):
 
 def test_skills_digest_lists_name_description_and_path(tmp_path):
     cfg = _cfg(tmp_path)
-    skill_dir = tmp_path / ".kalph" / "skills" / "demo-skill"
+    skill_dir = tmp_path / ".kelix" / "skills" / "demo-skill"
     skill_dir.mkdir(parents=True)
     skill_md = skill_dir / "SKILL.md"
     skill_md.write_text("---\nname: demo-skill\ndescription: A demo skill\n---\n")
@@ -139,7 +139,7 @@ def test_write_retrospective_with_failures(tmp_path):
     result = RunResult(
         run_id="run-20260702",
         status="completed",
-        branch="kalph/run-20260702",
+        branch="kelix/run-20260702",
         workdir=str(tmp_path),
         iterations=[
             IterationRecord(index=1, started_at="", rationale="KB1 — done", verified=True),
@@ -168,7 +168,7 @@ def test_write_retrospective_without_failures(tmp_path):
     result = RunResult(
         run_id="run-clean",
         status="completed",
-        branch="kalph/run-clean",
+        branch="kelix/run-clean",
         workdir=str(tmp_path),
         iterations=[
             IterationRecord(index=1, started_at="", rationale="All good", verified=True),

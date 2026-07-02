@@ -1,8 +1,8 @@
 from pathlib import Path
 
-from kalph.roadmap import Milestone, Req, load_roadmap, parse_roadmap
+from kelix.roadmap import Milestone, Req, load_roadmap, parse_roadmap
 
-REAL_ROADMAP = Path(__file__).resolve().parents[1] / ".kalph" / "roadmap.md"
+REAL_ROADMAP = Path(__file__).resolve().parents[1] / ".kelix" / "roadmap.md"
 
 
 def test_parse_real_roadmap():
@@ -28,7 +28,7 @@ def test_parse_real_roadmap():
 
 def test_load_real_roadmap():
     root = Path(__file__).resolve().parents[1]
-    loaded = load_roadmap(root / ".kalph")
+    loaded = load_roadmap(root / ".kelix")
     assert loaded is not None
     assert any(m.id == "v0.3" for m in loaded.milestones)
 
@@ -93,7 +93,7 @@ More prose that is not a REQ line.
 
 
 def test_load_missing_returns_none(tmp_path: Path):
-    assert load_roadmap(tmp_path / ".kalph") is None
+    assert load_roadmap(tmp_path / ".kelix") is None
 
 
 def test_prose_and_malformed_lines_ignored():

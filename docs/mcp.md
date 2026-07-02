@@ -1,10 +1,10 @@
-# The Kalph MCP server
+# The Kelix MCP server
 
-`kalph mcp` serves Kalph as an [MCP](https://modelcontextprotocol.io) server
+`kelix mcp` serves Kelix as an [MCP](https://modelcontextprotocol.io) server
 so any MCP-capable agent — Kiro first — can drive the loop by tool call:
 start a run, check status, inspect memory, hit the kill switch.
 
-The implementation (`src/kalph/mcp_server.py`) is deliberately
+The implementation (`src/kelix/mcp_server.py`) is deliberately
 dependency-free: a minimal, auditable JSON-RPC 2.0 loop over
 **newline-delimited JSON on stdio**, implementing exactly the subset of MCP
 needed here — `initialize`, `tools/list`, and `tools/call` (protocol version
@@ -12,14 +12,14 @@ needed here — `initialize`, `tools/list`, and `tools/call` (protocol version
 notifications get no response.
 
 ```bash
-kalph mcp                 # serve the current directory's repo
-kalph mcp --path DIR      # serve another repo
+kelix mcp                 # serve the current directory's repo
+kelix mcp --path DIR      # serve another repo
 ```
 
 ## Registering with Kiro CLI
 
 ```bash
-kiro-cli mcp add --name kalph --command "kalph mcp" --scope workspace
+kiro-cli mcp add --name kelix --command "kelix mcp" --scope workspace
 ```
 
 After that, a Kiro session in the workspace can call the four tools below.
@@ -29,9 +29,9 @@ After that, a Kiro session in the workspace can call the four tools below.
 All four tools return a single text content block; errors are reported as a
 text result with `isError: true` rather than a protocol failure.
 
-### `kalph_run`
+### `kelix_run`
 
-Start a Kalph loop run against the repository. **Runs synchronously** — the
+Start a Kelix loop run against the repository. **Runs synchronously** — the
 tool call does not return until the run finishes — and returns the run status
 and a per-iteration summary (rationale and outcome per iteration, plus the
 diagnosis path if the circuit breaker tripped). Use `max_iterations` to bound
@@ -47,19 +47,19 @@ cost.
 }
 ```
 
-### `kalph_status`
+### `kelix_status`
 
 Show current run/fleet status derived from coordination files: task claims,
 recent runs, mailbox notes, and the kill switch. Same output as
-`kalph status`. Takes no arguments.
+`kelix status`. Takes no arguments.
 
 ```json
 {"type": "object", "properties": {}}
 ```
 
-### `kalph_memory`
+### `kelix_memory`
 
-Inspect Kalph's memory: the project memory file, the recent-episode digest,
+Inspect Kelix's memory: the project memory file, the recent-episode digest,
 and the earned-skills digest (see
 [memory-and-skills.md](memory-and-skills.md)).
 
@@ -72,9 +72,9 @@ and the earned-skills digest (see
 }
 ```
 
-### `kalph_stop`
+### `kelix_stop`
 
-Set the kill switch (`.kalph/STOP`) so active and future runs halt before
+Set the kill switch (`.kelix/STOP`) so active and future runs halt before
 their next iteration. Takes no arguments. Remove the file to allow runs again.
 
 ```json
@@ -90,12 +90,12 @@ request per line on stdin:
 printf '%s\n%s\n' \
   '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' \
   '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' \
-  | kalph mcp
+  | kelix mcp
 ```
 
 A tool call looks like:
 
 ```json
 {"jsonrpc":"2.0","id":3,"method":"tools/call",
- "params":{"name":"kalph_run","arguments":{"max_iterations":5}}}
+ "params":{"name":"kelix_run","arguments":{"max_iterations":5}}}
 ```

@@ -1,4 +1,4 @@
-from kalph.security import CommandPolicy, contains_secret, scrub
+from kelix.security import CommandPolicy, contains_secret, scrub
 
 # --- scrub / contains_secret -------------------------------------------------
 
@@ -84,7 +84,7 @@ def test_command_policy_allows_safe_commands():
     allowed_cmds = [
         "git status",
         "pytest -q",
-        "git push origin kalph/run-1",
+        "git push origin kelix/run-1",
     ]
     for cmd in allowed_cmds:
         allowed, reason = policy.check(cmd)

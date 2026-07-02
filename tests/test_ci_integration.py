@@ -7,13 +7,13 @@ import subprocess
 
 from conftest import make_repo, write_mock_script
 
-from kalph.config import load_config
-from kalph.loop import Runner
+from kelix.config import load_config
+from kelix.loop import Runner
 
 
 def test_two_iteration_loop_on_fixture(tmp_path):
     repo = make_repo(tmp_path / "fixture")
-    (repo / ".kalph" / "backlog.md").write_text(
+    (repo / ".kelix" / "backlog.md").write_text(
         "# Backlog\n\n"
         "- [ ] A1: create greeting module | priority: 90 | status: ready | by: owner\n"
         "- [ ] A2: add farewell | priority: 80 | status: ready | by: owner\n"
@@ -34,7 +34,7 @@ def test_two_iteration_loop_on_fixture(tmp_path):
         "python3 -c \"import greet; assert greet.bye() == 'bye'\"\n"
         "git add -A && git commit -q -m 'A2: farewell'\n",
     )
-    (repo / "kalph.toml").write_text(
+    (repo / "kelix.toml").write_text(
         '[agent]\nadapter = "mock"\nmock_dir = "mockdir"\n'
         '[verify]\ncommands = ["python3 -c \\"import greet\\""]\n'
         '[git]\nisolation = "worktree"\n'

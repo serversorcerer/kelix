@@ -1,27 +1,27 @@
-# Kalph documentation
+# Kelix documentation
 
 **The [Ralph loop](https://ghuntley.com/ralph/), rebuilt for
 [Kiro](https://kiro.dev).**
 
-Kalph runs a coding agent in a loop against a static prompt: every iteration
+Kelix runs a coding agent in a loop against a static prompt: every iteration
 is a fresh, stateless agent process; all state lives in files and git history;
-the loop wins through repetition, not cleverness. Kalph adds persistent
+the loop wins through repetition, not cleverness. Kelix adds persistent
 memory, self-improvement, legible prioritization, first-class Kiro
 integration, and a file-coordinated fleet mode — so you can write a spec once
 and wake up to reviewable PRs.
 
 ```bash
-pipx install kalph
-cd your-repo && kalph init
-kalph run --max-iterations 25 --pr
+pipx install kelix
+cd your-repo && kelix init
+kelix run --max-iterations 25 --pr
 ```
 
 ## Guides
 
-- **[Concept](concept.md)** — what Kalph is, the four Ralph invariants and how
-  Kalph preserves them, verified-done, and why stateless beats clever
+- **[Concept](concept.md)** — what Kelix is, the four Ralph invariants and how
+  Kelix preserves them, verified-done, and why stateless beats clever
   orchestration.
-- **[Quickstart](quickstart.md)** — install, `kalph init`, the verification
+- **[Quickstart](quickstart.md)** — install, `kelix init`, the verification
   gate, writing backlog tasks, running overnight, and reading the results.
 - **[Writing for the loop](writing-for-the-loop.md)** — the input contract:
   how to write backlog tasks and PRDs a fresh agent gets right the first
@@ -33,8 +33,8 @@ kalph run --max-iterations 25 --pr
   loop.
 - **[Fleet mode](fleet.md)** — many role-specialized loops on one backlog,
   coordinating through claims, a mailbox, and shared skills.
-- **[MCP server](mcp.md)** — driving Kalph by tool call: `kalph_run`,
-  `kalph_status`, `kalph_memory`, `kalph_stop`.
+- **[MCP server](mcp.md)** — driving Kelix by tool call: `kelix_run`,
+  `kelix_status`, `kelix_memory`, `kelix_stop`.
 
 ## Reference
 
@@ -46,20 +46,20 @@ kalph run --max-iterations 25 --pr
 
 ## Research notes
 
-The design homework behind Kalph:
+The design homework behind Kelix:
 
 - **[The Ralph invariants](research/ralph-invariants.md)** — the four
-  properties Kalph treats as non-negotiable, derived from the source posts.
+  properties Kelix treats as non-negotiable, derived from the source posts.
 - **[Kiro public surface](research/kiro-surface.md)** — every Kiro integration
-  point Kalph uses, all public and documented.
+  point Kelix uses, all public and documented.
 - **[Prior art](research/prior-art.md)** — ralph-orchestrator, the official
   ralph-loop plugin, and Nous Research's Hermes Agent.
-- **[GSD lessons](research/gsd-lessons.md)** — what Kalph's planning core
+- **[GSD lessons](research/gsd-lessons.md)** — what Kelix's planning core
   (roadmap → phase → task, STATE.md spine, coverage gates, waves) adopts
   and rejects from GSD Core's phase loop.
 
 ## Project
 
-Kalph is open source under Apache-2.0 and was built by its own loop. Source,
+Kelix is open source under Apache-2.0 and was built by its own loop. Source,
 issues, and contributing guide live in the repository — see the
-[README](https://github.com/serversorcerer/kalph) for the project overview.
+[README](https://github.com/serversorcerer/kelix) for the project overview.

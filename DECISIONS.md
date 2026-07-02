@@ -119,3 +119,16 @@ the bottom. Format: `D<N> (<phase>): decision — rationale`.
   the loop learning policies; skill building = the loop learning
   procedures; same audacious bet at two granularities. Skills plumbing
   (format/portability/MCP exposure) stays frozen per D16.
+- D18 (rebrand): Kalph -> KELIX, owner-approved. Rationale: the project's
+  identity moved past "Ralph for Kiro" the moment v0.3 made self-improvement
+  the headline — a circle that gains altitude each pass is a helix; K keeps
+  the Kiro/Kalph lineage. Verified `kelix` free on PyPI before choosing.
+  Scope: package (src/kelix), CLI (`kelix`), runtime dir (`.kelix/`), config
+  (`kelix.toml`), sentinel (`KELIX COMPLETE`), branch prefix (`kelix/`),
+  env (`KELIX_VENV`), docs, Kiro integration files, GitHub repo rename
+  (old URLs redirect). Historical evidence (docs/proof/, PLAN.md, earlier
+  DECISIONS entries) intentionally keeps the name Kalph — history is not
+  rewritten. CLI art ships with the rebrand (src/kelix/art.py): gradient
+  wordmark + helix banner on init/run/help, themed status glyphs, honest
+  fallbacks (NO_COLOR, KELIX_NO_ART, non-TTY -> plain text, banners never
+  enter transcripts or parsed output).

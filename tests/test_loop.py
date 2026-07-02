@@ -7,13 +7,13 @@ import subprocess
 
 from conftest import write_mock_script
 
-from kalph.config import load_config
-from kalph.loop import Runner
-from kalph.state import load_state
+from kelix.config import load_config
+from kelix.loop import Runner
+from kelix.state import load_state
 
 
 def _config(repo, extra="", mock_dir="mockdir", isolation="none"):
-    (repo / "kalph.toml").write_text(
+    (repo / "kelix.toml").write_text(
         f"""
 [agent]
 adapter = "mock"
@@ -56,7 +56,7 @@ def test_transcripts_and_run_state_written(repo):
     write_mock_script(repo / "mockdir", "001.sh", COMMIT_TASK)
     cfg = _config(repo)
     result = Runner(cfg).run(log=lambda *_: None)
-    run_dir = cfg.kalph_dir / "runs" / result.run_id
+    run_dir = cfg.kelix_dir / "runs" / result.run_id
     assert (run_dir / "iter-001.log").exists()
     state = json.loads((run_dir / "run.json").read_text())
     assert state["status"] == "completed"
@@ -86,7 +86,7 @@ def test_worktree_isolation_leaves_main_untouched(repo):
     assert _git_out(repo, "rev-parse", "main").strip() == main_sha_before
     assert not (repo / "work.txt").exists()
     # The work exists on the run branch.
-    assert result.branch.startswith("kalph/run-")
+    assert result.branch.startswith("kelix/run-")
     branch_files = _git_out(repo, "ls-tree", "--name-only", result.branch)
     assert "work.txt" in branch_files
 
@@ -114,7 +114,7 @@ def test_verification_gate_blocks_sentinel_lie(repo):
             repo / "mockdir",
             f"{i:03d}.sh",
             f'echo "RATIONALE: T1 — attempt {i}"\necho {i} >> work.txt\n'
-            'git add -A && git commit -q -m attempt\necho "KALPH COMPLETE"\n',
+            'git add -A && git commit -q -m attempt\necho "KELIX COMPLETE"\n',
         )
     cfg = _config(repo, extra='[verify]\ncommands = ["false"]\n')
     result = Runner(cfg).run(log=lambda *_: None)
@@ -127,7 +127,7 @@ def test_verification_green_allows_completion(repo):
     write_mock_script(
         repo / "mockdir",
         "001.sh",
-        COMMIT_TASK + 'echo "KALPH COMPLETE"\n',
+        COMMIT_TASK + 'echo "KELIX COMPLETE"\n',
     )
     cfg = _config(repo, extra='[verify]\ncommands = ["true"]\n')
     result = Runner(cfg).run(log=lambda *_: None)
@@ -139,13 +139,13 @@ def test_checkpoint_ignores_runner_bookkeeping(repo):
     # Transcripts/run-state/episodes are runner-owned; committing them would
     # make every iteration look like progress and blind the no-diff breaker.
     # (Regression: CI machines without a global gitignore hit exactly this.)
-    from kalph.gitutil import checkpoint
+    from kelix.gitutil import checkpoint
 
-    run_dir = repo / ".kalph" / "runs" / "x"
+    run_dir = repo / ".kelix" / "runs" / "x"
     run_dir.mkdir(parents=True)
     (run_dir / "iter-001.log").write_text("transcript")
     (run_dir / "run.json").write_text("{}")
-    (repo / ".kalph" / "memory" / "episodes.jsonl").write_text("{}\n")
+    (repo / ".kelix" / "memory" / "episodes.jsonl").write_text("{}\n")
     assert checkpoint(repo, "bookkeeping only") is False
 
     (repo / "real-work.txt").write_text("agent output")
@@ -163,7 +163,7 @@ def test_circuit_breaker_on_no_diff(repo):
     result = Runner(cfg).run(log=lambda *_: None)
     assert result.status == "circuit_breaker"
     assert len(result.iterations) == 3
-    diagnosis = (cfg.kalph_dir / "runs" / result.run_id / "diagnosis.md").read_text()
+    diagnosis = (cfg.kelix_dir / "runs" / result.run_id / "diagnosis.md").read_text()
     assert "no diff produced" in diagnosis
 
 
@@ -181,8 +181,8 @@ def test_breaker_resets_after_success(repo):
 def test_kill_switch_stops_before_iteration(repo):
     write_mock_script(repo / "mockdir", "001.sh", COMMIT_TASK)
     cfg = _config(repo)
-    (cfg.kalph_dir).mkdir(exist_ok=True)
-    (cfg.kalph_dir / "STOP").write_text("stop")
+    (cfg.kelix_dir).mkdir(exist_ok=True)
+    (cfg.kelix_dir / "STOP").write_text("stop")
     result = Runner(cfg).run(log=lambda *_: None)
     assert result.status == "killed"
     assert len(result.iterations) == 0
@@ -192,9 +192,9 @@ def test_episodes_recorded_and_digested(repo):
     write_mock_script(repo / "mockdir", "001.sh", COMMIT_TASK)
     cfg = _config(repo)
     Runner(cfg).run(log=lambda *_: None)
-    episodes = (cfg.kalph_dir / "memory" / "episodes.jsonl").read_text().splitlines()
+    episodes = (cfg.kelix_dir / "memory" / "episodes.jsonl").read_text().splitlines()
     assert len(episodes) == 2
-    from kalph.memory import episode_digest
+    from kelix.memory import episode_digest
 
     digest = episode_digest(cfg)
     assert "T1" in digest
@@ -204,14 +204,14 @@ def test_state_md_written_after_run_with_matching_counts(repo):
     write_mock_script(repo / "mockdir", "001.sh", COMMIT_TASK)
     cfg = _config(repo)
     result = Runner(cfg).run(log=lambda *_: None)
-    state = load_state(cfg.kalph_dir)
+    state = load_state(cfg.kelix_dir)
     assert state is not None
     assert state.last_task == "T1"
     assert state.current_task == "selecting"
     assert state.done == 0
     assert state.total == 1
     tracked = _git_out(repo, "ls-tree", "-r", "--name-only", "HEAD")
-    assert ".kalph/STATE.md" in tracked
+    assert ".kelix/STATE.md" in tracked
     assert result.status == "completed"
 
 
@@ -220,7 +220,7 @@ def test_state_md_on_worktree_branch(repo):
     cfg = _config(repo, isolation="worktree")
     result = Runner(cfg).run(log=lambda *_: None)
     branch_files = _git_out(repo, "ls-tree", "-r", "--name-only", result.branch)
-    assert ".kalph/STATE.md" in branch_files
+    assert ".kelix/STATE.md" in branch_files
 
 
 def test_state_md_no_bogus_progress_on_no_diff(repo):
@@ -228,7 +228,7 @@ def test_state_md_no_bogus_progress_on_no_diff(repo):
         write_mock_script(repo / "mockdir", f"{i:03d}.sh", 'echo "did nothing"\n')
     cfg = _config(repo, extra="[loop]\ncircuit_breaker_threshold = 3\n")
     Runner(cfg).run(log=lambda *_: None)
-    state = load_state(cfg.kalph_dir)
+    state = load_state(cfg.kelix_dir)
     assert state is not None
     assert state.done == 0
     assert state.total == 1
@@ -240,11 +240,11 @@ def test_state_md_records_verified_commit(repo):
     write_mock_script(
         repo / "mockdir",
         "001.sh",
-        COMMIT_TASK + 'echo "KALPH COMPLETE"\n',
+        COMMIT_TASK + 'echo "KELIX COMPLETE"\n',
     )
     cfg = _config(repo, extra='[verify]\ncommands = ["true"]\n')
     Runner(cfg).run(log=lambda *_: None)
-    state = load_state(cfg.kalph_dir)
+    state = load_state(cfg.kelix_dir)
     assert state is not None
     task_sha = None
     for line in _git_out(repo, "log", "--format=%H %s").strip().splitlines():

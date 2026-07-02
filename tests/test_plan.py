@@ -1,13 +1,13 @@
-"""Tests for ``kalph plan`` — interview, one-iteration planning, validation."""
+"""Tests for ``kelix plan`` — interview, one-iteration planning, validation."""
 
 import json
 import subprocess
 
 from conftest import write_mock_script
 
-from kalph.cli import cmd_plan
-from kalph.config import load_config
-from kalph.plan import (
+from kelix.cli import cmd_plan
+from kelix.config import load_config
+from kelix.plan import (
     PlanRunner,
     load_questions_md,
     parse_questions_block,
@@ -16,7 +16,7 @@ from kalph.plan import (
     questions_answered,
     write_questions_file,
 )
-from kalph.prompt import (
+from kelix.prompt import (
     PLAN_COMPLETE_SENTINEL,
     PLANNING_INTERVIEW_TEMPLATE,
     PLANNING_TEMPLATE,
@@ -26,7 +26,7 @@ from kalph.prompt import (
 
 
 def _config(repo, mock_dir="mockdir", isolation="none"):
-    (repo / "kalph.toml").write_text(
+    (repo / "kelix.toml").write_text(
         f"""
 [agent]
 adapter = "mock"
@@ -36,9 +36,9 @@ mock_dir = "{mock_dir}"
 isolation = "{isolation}"
 """
     )
-    subprocess.run(["git", "add", "kalph.toml"], cwd=str(repo), check=True, capture_output=True)
+    subprocess.run(["git", "add", "kelix.toml"], cwd=str(repo), check=True, capture_output=True)
     subprocess.run(
-        ["git", "commit", "-q", "-m", "add kalph config"],
+        ["git", "commit", "-q", "-m", "add kelix config"],
         cwd=str(repo),
         check=True,
         capture_output=True,
@@ -68,7 +68,7 @@ EOF
 """
 
 PLAN_SCRIPT = """\
-cat > .kalph/roadmap.md << 'EOF'
+cat > .kelix/roadmap.md << 'EOF'
 # Roadmap
 
 ## Milestone M1 — Demo milestone
@@ -79,11 +79,11 @@ Outcome: demo works.
 - REQ-D1: first requirement
 EOF
 
-cat >> .kalph/backlog.md << 'EOF'
-- [ ] T10: demo task | priority: 50 | status: proposed | by: kalph | phase: P-DEMO | req: REQ-D1
+cat >> .kelix/backlog.md << 'EOF'
+- [ ] T10: demo task | priority: 50 | status: proposed | by: kelix | phase: P-DEMO | req: REQ-D1
   details: assert True in tests/test_demo.py
 EOF
-git add .kalph/roadmap.md .kalph/backlog.md && git commit -q -m "plan: draft demo"
+git add .kelix/roadmap.md .kelix/backlog.md && git commit -q -m "plan: draft demo"
 echo "PLAN COMPLETE"
 """
 
@@ -94,7 +94,7 @@ def _install_plan_scripts(repo, mock_dir="mockdir"):
 
 
 def _seed_answered_interview(repo, goal: str):
-    from kalph.plan import PlanOption, PlanQuestion, write_interview_context
+    from kelix.plan import PlanOption, PlanQuestion, write_interview_context
 
     questions = [
         PlanQuestion(
@@ -108,7 +108,7 @@ def _seed_answered_interview(repo, goal: str):
             answer="Minimal API",
         )
     ]
-    phase_dir = repo / ".kalph" / "phases" / planning_phase_slug(goal)
+    phase_dir = repo / ".kelix" / "phases" / planning_phase_slug(goal)
     write_questions_file(phase_dir / "QUESTIONS.md", questions)
     write_interview_context(phase_dir / "CONTEXT.md", questions)
 
@@ -194,8 +194,8 @@ def test_plan_tty_interview_then_draft(repo):
         input_fn=lambda _: next(inputs),
     )
     assert result.status == "completed"
-    assert (repo / ".kalph" / "roadmap.md").exists()
-    context = (repo / ".kalph" / "phases" / planning_phase_slug("build a demo") / "CONTEXT.md")
+    assert (repo / ".kelix" / "roadmap.md").exists()
+    context = (repo / ".kelix" / "phases" / planning_phase_slug("build a demo") / "CONTEXT.md")
     assert "Decisions from planning interview" in context.read_text()
 
 
@@ -205,7 +205,7 @@ def test_plan_file_interview_then_resume(repo):
     cfg = _config(repo)
     result = PlanRunner(cfg).run(goal="build a demo", log=lambda *_: None, is_tty=False)
     assert result.status == "awaiting_answers"
-    qpath = repo / ".kalph" / "phases" / planning_phase_slug("build a demo") / "QUESTIONS.md"
+    qpath = repo / ".kelix" / "phases" / planning_phase_slug("build a demo") / "QUESTIONS.md"
     assert qpath.is_file()
     answered = load_questions_md(qpath)
     answered[0].answer = "Minimal API"
@@ -214,7 +214,7 @@ def test_plan_file_interview_then_resume(repo):
     write_mock_script(repo / "mockdir", "001.sh", PLAN_SCRIPT)
     result2 = PlanRunner(cfg).run(goal="build a demo", log=lambda *_: None, is_tty=False)
     assert result2.status == "completed"
-    assert (repo / ".kalph" / "roadmap.md").exists()
+    assert (repo / ".kelix" / "roadmap.md").exists()
 
 
 def test_plan_happy_path_writes_draft(repo):
@@ -227,27 +227,27 @@ def test_plan_happy_path_writes_draft(repo):
     assert result.iteration.plan_complete
     assert result.iteration.validated
 
-    roadmap = (repo / ".kalph" / "roadmap.md").read_text()
+    roadmap = (repo / ".kelix" / "roadmap.md").read_text()
     assert "## Milestone M1" in roadmap
     assert "REQ-D1" in roadmap
 
-    from kalph.backlog import parse_backlog
+    from kelix.backlog import parse_backlog
 
-    tasks = parse_backlog((repo / ".kalph" / "backlog.md").read_text())
+    tasks = parse_backlog((repo / ".kelix" / "backlog.md").read_text())
     new_tasks = [t for t in tasks if t.id == "T10"]
     assert len(new_tasks) == 1
     assert new_tasks[0].status == "proposed"
-    assert new_tasks[0].by == "kalph"
+    assert new_tasks[0].by == "kelix"
 
-    run_dir = cfg.kalph_dir / "runs" / f"plan-{result.run_id}"
+    run_dir = cfg.kelix_dir / "runs" / f"plan-{result.run_id}"
     assert (run_dir / "iter-001.log").exists()
     assert json.loads((run_dir / "plan.json").read_text())["status"] == "completed"
 
 
 def test_plan_rejects_non_planning_changes(repo):
     bad = PLAN_SCRIPT.replace(
-        "git add .kalph/roadmap.md .kalph/backlog.md",
-        "echo oops > src.txt && git add .kalph/roadmap.md .kalph/backlog.md src.txt",
+        "git add .kelix/roadmap.md .kelix/backlog.md",
+        "echo oops > src.txt && git add .kelix/roadmap.md .kelix/backlog.md src.txt",
     )
     _seed_answered_interview(repo, "build a demo")
     write_mock_script(repo / "mockdir", "001.sh", bad)
@@ -265,7 +265,7 @@ def test_plan_worktree_leaves_main_untouched(repo):
     result = PlanRunner(cfg).run(goal="build a demo", log=lambda *_: None)
     assert result.status == "completed"
     assert _git_out(repo, "rev-parse", "main").strip() == main_sha
-    assert not (repo / ".kalph" / "roadmap.md").exists()
+    assert not (repo / ".kelix" / "roadmap.md").exists()
 
 
 def test_cmd_plan_goal_file(repo):

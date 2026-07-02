@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from kalph.state import State, load_state, write_state
+from kelix.state import State, load_state, write_state
 
 SAMPLE_STATE = State(
     milestone="v0.2 — Planning Core",
@@ -15,22 +15,22 @@ SAMPLE_STATE = State(
 
 
 def test_write_load_round_trip(tmp_path: Path):
-    kalph = tmp_path / ".kalph"
-    kalph.mkdir()
-    write_state(kalph, SAMPLE_STATE)
-    loaded = load_state(kalph)
+    kelix = tmp_path / ".kelix"
+    kelix.mkdir()
+    write_state(kelix, SAMPLE_STATE)
+    loaded = load_state(kelix)
     assert loaded == SAMPLE_STATE
 
 
 def test_load_missing_returns_none(tmp_path: Path):
-    assert load_state(tmp_path / ".kalph") is None
+    assert load_state(tmp_path / ".kelix") is None
 
 
 def test_partial_file_tolerance(tmp_path: Path):
-    kalph = tmp_path / ".kalph"
-    kalph.mkdir()
-    (kalph / "STATE.md").write_text(
-        "# Kalph state\n\n"
+    kelix = tmp_path / ".kelix"
+    kelix.mkdir()
+    (kelix / "STATE.md").write_text(
+        "# Kelix state\n\n"
         "Some prose the parser should ignore.\n\n"
         "- milestone: v0.2\n"
         "- phase: P-SPINE\n"
@@ -41,7 +41,7 @@ def test_partial_file_tolerance(tmp_path: Path):
         "garbage line\n",
         encoding="utf-8",
     )
-    loaded = load_state(kalph)
+    loaded = load_state(kelix)
     assert loaded is not None
     assert loaded.milestone == "v0.2"
     assert loaded.phase == "P-SPINE"
@@ -52,11 +52,11 @@ def test_partial_file_tolerance(tmp_path: Path):
 
 
 def test_empty_blockers_round_trip(tmp_path: Path):
-    kalph = tmp_path / ".kalph"
-    kalph.mkdir()
+    kelix = tmp_path / ".kelix"
+    kelix.mkdir()
     state = State(milestone="v0.2", phase="P-SPINE", done=0, total=1)
-    write_state(kalph, state)
-    loaded = load_state(kalph)
+    write_state(kelix, state)
+    loaded = load_state(kelix)
     assert loaded == state
     assert loaded.blockers == []
 
@@ -65,7 +65,7 @@ def test_load_real_repo_state():
     # Structural only: STATE.md's values advance with every run (that is its
     # purpose), so asserting today's phase/counts would rot immediately.
     root = Path(__file__).resolve().parents[1]
-    loaded = load_state(root / ".kalph")
+    loaded = load_state(root / ".kelix")
     assert loaded is not None
     assert loaded.milestone
     assert loaded.phase

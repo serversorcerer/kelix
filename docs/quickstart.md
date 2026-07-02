@@ -5,12 +5,12 @@ From zero to an overnight run that leaves reviewable PRs by morning.
 ## 1. Install
 
 ```bash
-pipx install kalph        # recommended
+pipx install kelix        # recommended
 # or
-pip install kalph
+pip install kelix
 ```
 
-Kalph's core is stdlib-only Python. The default agent backend is the
+Kelix's core is stdlib-only Python. The default agent backend is the
 [Kiro CLI](https://kiro.dev) (`kiro-cli` with `KIRO_API_KEY` set); a `cmd`
 adapter can drive any other agent CLI, and a `mock` adapter powers tests.
 
@@ -19,19 +19,19 @@ adapter can drive any other agent CLI, and a `mock` adapter powers tests.
 Inside a git repository:
 
 ```bash
-kalph init
+kelix init
 ```
 
 This creates:
 
 - `GOAL.md` — describe your outcome, non-goals, and acceptance criteria
-- `.kalph/backlog.md` — the work queue (a template with one placeholder task)
-- `.kalph/memory/project.md` — durable project memory
-- `.kalph/kalph.toml` — configuration (every field optional, defaults are safe)
-- `.kalph/skills/` and `.kalph/prompts/` — empty, filled as the loop learns
+- `.kelix/backlog.md` — the work queue (a template with one placeholder task)
+- `.kelix/memory/project.md` — durable project memory
+- `.kelix/kelix.toml` — configuration (every field optional, defaults are safe)
+- `.kelix/skills/` and `.kelix/prompts/` — empty, filled as the loop learns
 
 If you already have a Kiro spec, seed the backlog from it instead of writing
-tasks by hand: `kalph init --from-spec <name>` (see the
+tasks by hand: `kelix init --from-spec <name>` (see the
 [Kiro guide](kiro.md)).
 
 ## 3. Plan first — goal to backlog
@@ -42,19 +42,19 @@ Then let one planning iteration draft a roadmap and proposed backlog tasks:
 
 ```bash
 $EDITOR GOAL.md
-kalph plan --goal-file GOAL.md
+kelix plan --goal-file GOAL.md
 ```
 
-Review `.kalph/roadmap.md` and the new tasks in `.kalph/backlog.md`. Run
-`kalph lint` to catch slop before you promote anything. Change task
+Review `.kelix/roadmap.md` and the new tasks in `.kelix/backlog.md`. Run
+`kelix lint` to catch slop before you promote anything. Change task
 `status: proposed` to `status: ready` for work you want the loop to pick up.
 
 Already have a hand-written backlog? Skip planning and edit
-`.kalph/backlog.md` directly — the flat-backlog path still works.
+`.kelix/backlog.md` directly — the flat-backlog path still works.
 
 ## 4. Define "done" — the verification gate
 
-Edit `.kalph/kalph.toml` and set the commands that must all exit 0 before any
+Edit `.kelix/kelix.toml` and set the commands that must all exit 0 before any
 task counts as finished:
 
 ```toml
@@ -69,10 +69,10 @@ gate — fine for experimenting, not for unattended runs.
 
 ## 5. Write backlog tasks (optional)
 
-Each task in `.kalph/backlog.md` is one line, in exactly this format:
+Each task in `.kelix/backlog.md` is one line, in exactly this format:
 
 ```text
-- [ ] ID: title | priority: N | status: ready|done|blocked|proposed | by: owner|kalph | deps: ID,ID
+- [ ] ID: title | priority: N | status: ready|done|blocked|proposed | by: owner|kelix | deps: ID,ID
 ```
 
 Optional note lines, indented two spaces below the task:
@@ -94,23 +94,23 @@ For example:
 ```
 
 Higher `priority` number means more important; `by: owner` tasks always
-outrank `by: kalph` proposals; only `ready` tasks with all `deps` done are
+outrank `by: kelix` proposals; only `ready` tasks with all `deps` done are
 candidates. Malformed lines are skipped, never fatal. The full rubric —
 priority bands, decomposition, blocked tasks — is in
 [prioritization.md](prioritization.md).
 
-If you used `kalph plan`, most tasks are already written — promote the ones
+If you used `kelix plan`, most tasks are already written — promote the ones
 you want and skip this section.
 
 ## 6. Run
 
 ```bash
-kalph run --max-iterations 25 --pr
+kelix run --max-iterations 25 --pr
 ```
 
 Each iteration: a fresh agent process reads the backlog and git log, picks the
 one highest-priority ready task, implements it in an isolated git worktree
-(on a `kalph/run-<id>` branch), and the runner re-runs your verify commands.
+(on a `kelix/run-<id>` branch), and the runner re-runs your verify commands.
 Green: commit, record memory, next task. Red: the task stays on top. The run
 stops on the completion sentinel, the iteration cap, the circuit breaker
 (3 consecutive failures by default), or the kill switch.
@@ -126,7 +126,7 @@ Useful flags:
 
 ## 7. Read the results
 
-Every run writes an audit trail to `.kalph/runs/<run-id>/`:
+Every run writes an audit trail to `.kelix/runs/<run-id>/`:
 
 | File | Contents |
 |---|---|
@@ -142,7 +142,7 @@ one-line `RATIONALE:` explaining the task it chose.
 ## 8. Monitor and stop
 
 ```bash
-kalph status
+kelix status
 ```
 
 Shows the current state assembled purely from coordination files and git:
@@ -150,10 +150,10 @@ recent runs and their branches, any fleet task claims, mailbox notes, and
 whether the kill switch is set.
 
 ```bash
-kalph stop
+kelix stop
 ```
 
-Writes `.kalph/STOP`. Active runs halt before their next iteration; new runs
+Writes `.kelix/STOP`. Active runs halt before their next iteration; new runs
 refuse to start. Remove the file to allow runs again.
 
 ## Where next

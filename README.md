@@ -1,10 +1,22 @@
-# Kalph
+# Kelix
 
-**The [Ralph loop](https://ghuntley.com/ralph/), rebuilt for [Kiro](https://kiro.dev).**
+```text
+  ██╗  ██╗███████╗██╗     ██╗██╗  ██╗
+  ██║ ██╔╝██╔════╝██║     ██║╚██╗██╔╝
+  █████╔╝ █████╗  ██║     ██║ ╚███╔╝        ╭─╮   ╭─╮   ╭─╮   ╭─╮
+  ██╔═██╗ ██╔══╝  ██║     ██║ ██╔██╗     ╭──┼─╳───┼─╳───┼─╳───┼─╳──▲
+  ██║  ██╗███████╗███████╗██║██╔╝ ██╗    ╰──┼─╳───┼─╳───┼─╳───┼─╳──╯
+  ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝╚═╝  ╚═╝       ╰─╯   ╰─╯   ╰─╯   ╰─╯
+```
 
-Kalph runs a coding agent in a loop against a static prompt: every iteration is
+**The loop that climbs.** Ralph runs in circles; Kelix comes back higher.
+
+**The [Ralph loop](https://ghuntley.com/ralph/), rebuilt for [Kiro](https://kiro.dev)** —
+formerly known as Kalph.
+
+Kelix runs a coding agent in a loop against a static prompt: every iteration is
 a fresh, stateless agent process; all state lives in files and git history; the
-loop wins through repetition, not cleverness. Kalph keeps that core and adds
+loop wins through repetition, not cleverness. Kelix keeps that core and adds
 what plain Ralph lacks — **persistent memory**, **self-improvement from loop
 outcomes**, **legible prioritization**, **first-class Kiro integration**, and a
 file-coordinated **fleet mode**.
@@ -13,46 +25,46 @@ Write a spec or a goal once. A fleet of loops decomposes it, prioritizes, cuts
 feature branches, builds, verifies, reviews each other's PRs, and leaves an
 auditable trail — running overnight, unattended.
 
-> Status: alpha. Kalph was built by its own loop (see `DECISIONS.md` and
+> Status: alpha. Kelix was built by its own loop (see `DECISIONS.md` and
 > `PLAN.md`). It is honest about what it will and won't do unattended — see
-> [What Kalph will and will not do](#what-kalph-will-and-will-not-do-unattended).
+> [What Kelix will and will not do](#what-kelix-will-and-will-not-do-unattended).
 
 ## 60-second quickstart
 
 ```bash
-pipx install kalph        # or: pip install kalph
+pipx install kelix        # or: pip install kelix
 
 cd your-repo              # a git repo
-kalph init               # creates GOAL.md and .kalph/{backlog.md,memory,kalph.toml,...}
+kelix init               # creates GOAL.md and .kelix/{backlog.md,memory,kelix.toml,...}
 
 # 1. Describe what you want built:
 $EDITOR GOAL.md
 
 # 2. Draft a roadmap + proposed backlog tasks in one iteration:
-kalph plan --goal-file GOAL.md
+kelix plan --goal-file GOAL.md
 
 # 3. Review, lint, and promote tasks you want the loop to run:
-kalph lint
-$EDITOR .kalph/backlog.md   # change status: proposed -> ready
+kelix lint
+$EDITOR .kelix/backlog.md   # change status: proposed -> ready
 
 # 4. Tell it what "done" means — the verification gate:
-$EDITOR .kalph/kalph.toml   # set [verify] commands = ["pytest -q", "ruff check ."]
+$EDITOR .kelix/kelix.toml   # set [verify] commands = ["pytest -q", "ruff check ."]
 
 # 5. Run overnight, leaving reviewable PRs by morning:
-kalph run --max-iterations 25 --pr
+kelix run --max-iterations 25 --pr
 ```
 
-Already have a backlog? Skip steps 1–3 and edit `.kalph/backlog.md` directly.
+Already have a backlog? Skip steps 1–3 and edit `.kelix/backlog.md` directly.
 
 Each iteration: a fresh agent reads the backlog + git log, picks the one
-highest-priority task, implements it, and Kalph **re-runs your verify commands**
+highest-priority task, implements it, and Kelix **re-runs your verify commands**
 before letting the task count as done. Failed verification keeps the task at the
 top of the queue. The loop stops on completion, the iteration cap, or a
 circuit breaker — never because the agent "felt done."
 
-## Why Kalph
+## Why Kelix
 
-| Plain Ralph | Kalph adds |
+| Plain Ralph | Kelix adds |
 |---|---|
 | Static prompt, fresh context, stop sentinel, state in files | ...all preserved as **invariants** (`docs/research/ralph-invariants.md`) |
 | Agent decides when it's done | **Verified-done**: the runner re-runs your tests; a lying sentinel is ignored |
@@ -78,8 +90,8 @@ flowchart LR
 ```
 
 - **Fresh context per iteration** — no context rot; a wrong turn costs one loop.
-- **Externalized state** — `.kalph/backlog.md`, `.kalph/memory/`, transcripts
-  under `.kalph/runs/`. The repo is the database; a reviewer can audit a run in
+- **Externalized state** — `.kelix/backlog.md`, `.kelix/memory/`, transcripts
+  under `.kelix/runs/`. The repo is the database; a reviewer can audit a run in
   minutes.
 - **Legible decisions** — every iteration logs a one-line `RATIONALE:` for the
   task it chose.
@@ -88,14 +100,14 @@ flowchart LR
 
 ```bash
 # Write a Kiro spec, then:
-kalph init --from-spec my-feature   # imports .kiro/specs/my-feature/tasks.md
-kalph run --max-iterations 25 --pr  # overnight run -> PRs by morning
+kelix init --from-spec my-feature   # imports .kiro/specs/my-feature/tasks.md
+kelix run --max-iterations 25 --pr  # overnight run -> PRs by morning
 ```
 
-Register Kalph as an MCP server so Kiro can drive it by tool call:
+Register Kelix as an MCP server so Kiro can drive it by tool call:
 
 ```bash
-kiro-cli mcp add --name kalph --command "kalph mcp" --scope workspace
+kiro-cli mcp add --name kelix --command "kelix mcp" --scope workspace
 ```
 
 See [`integrations/kiro/README.md`](integrations/kiro/README.md) and
@@ -104,10 +116,10 @@ See [`integrations/kiro/README.md`](integrations/kiro/README.md) and
 ## Fleet mode
 
 ```bash
-cp examples/fleet.toml .kalph/fleet.toml   # define agents + roles
-kalph fleet --max-iterations 15            # builders, a verifier, a scribe
-kalph status                               # live view from coordination files
-kalph stop                                 # global kill switch
+cp examples/fleet.toml .kelix/fleet.toml   # define agents + roles
+kelix fleet --max-iterations 15            # builders, a verifier, a scribe
+kelix status                               # live view from coordination files
+kelix stop                                 # global kill switch
 ```
 
 Agents never talk directly. They coordinate through files: atomic task
@@ -116,13 +128,13 @@ a **shared skills** store. See [`docs/fleet.md`](docs/fleet.md).
 
 ## Configuration
 
-`.kalph/kalph.toml` — every field is optional; defaults are safe to run
+`.kelix/kelix.toml` — every field is optional; defaults are safe to run
 unattended. Highlights:
 
 ```toml
 [agent]
 adapter = "kiro"           # kiro | cmd | mock
-kiro_args = ["--agent", "kalph"]
+kiro_args = ["--agent", "kelix"]
 
 [loop]
 max_iterations = 25
@@ -144,13 +156,13 @@ team = "KAL"
 
 ## Safety
 
-Kalph treats "unattended agent + shell + prompt-injected repo content" as its
+Kelix treats "unattended agent + shell + prompt-injected repo content" as its
 threat model. Repo/tracker text is data, never instructions; a command denylist
 blocks `curl|sh`, force-push, package publish, and credential reads; secrets are
 scrubbed from transcripts and comments; runs happen in isolated worktrees and
 land as PRs (never direct to main). Full model: [`docs/SECURITY.md`](docs/SECURITY.md).
 
-## What Kalph will and will not do unattended
+## What Kelix will and will not do unattended
 
 **Will**: pick the highest-priority task, implement it, verify with your
 commands, commit, learn (memory + skills), open PRs, and stop cleanly on a cap
@@ -174,7 +186,7 @@ diagnosis and surfaces it for you).
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Kalph is stdlib-only at its core; tests
+See [CONTRIBUTING.md](CONTRIBUTING.md). Kelix is stdlib-only at its core; tests
 use a mock agent so no API keys are needed to develop.
 
 ## License

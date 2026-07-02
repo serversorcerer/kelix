@@ -1,17 +1,17 @@
-# Contributing to Kalph
+# Contributing to Kelix
 
-Thanks for your interest in Kalph — the Ralph loop, rebuilt for Kiro. This
+Thanks for your interest in Kelix — the Ralph loop, rebuilt for Kiro. This
 guide covers everything you need to get a change from idea to merged PR.
 
 ## Development setup
 
-Kalph's core is **Python 3.11+, stdlib-only**. The only development
+Kelix's core is **Python 3.11+, stdlib-only**. The only development
 dependencies are `pytest` and `ruff`. No API keys are needed: tests run
 against a mock agent adapter.
 
 ```bash
-git clone https://github.com/serversorcerer/kalph.git
-cd kalph
+git clone https://github.com/serversorcerer/kelix.git
+cd kelix
 python -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
@@ -24,13 +24,13 @@ pytest -q                  # full test suite (mock agent, no network, no keys)
 ruff check src tests       # lint
 ```
 
-Both must be green before a PR is reviewed — they are also Kalph's own
+Both must be green before a PR is reviewed — they are also Kelix's own
 verification gate when it builds itself.
 
 ## Project layout
 
 ```
-src/kalph/
+src/kelix/
   loop.py          # the core iteration loop
   backlog.py       # backlog parsing and prioritization
   memory.py        # layered memory (project / episodic / skills)
@@ -43,7 +43,7 @@ src/kalph/
   fleet.py         # fleet mode orchestration
   claims.py        # atomic task claims for fleets
   kiro.py          # Kiro integration (steering, spec import)
-  mcp_server.py    # MCP server so Kiro can drive Kalph by tool call
+  mcp_server.py    # MCP server so Kiro can drive Kelix by tool call
   sync/            # tracker sync (Linear), inbound sanitization
   cli.py, config.py
 tests/             # one test module per source module, plus drills
@@ -53,7 +53,7 @@ integrations/kiro/ # steering files, custom agent config
 
 ## Coding conventions
 
-- **Stdlib-only core.** Do not add runtime dependencies to `src/kalph/`.
+- **Stdlib-only core.** Do not add runtime dependencies to `src/kelix/`.
   If a feature seems to need a third-party library, raise it in an issue
   first — the answer is usually a smaller feature.
 - **Tests use the mock adapter.** `tests/conftest.py` provides helpers:
@@ -80,16 +80,16 @@ integrations/kiro/ # steering files, custom agent config
 - One logical change per PR. Fill in the PR template, including the
   verification checkboxes.
 - PRs target `main`; nothing lands on `main` directly — humans review and
-  merge. This mirrors how Kalph itself operates.
+  merge. This mirrors how Kelix itself operates.
 - Update docs in the same PR when behavior changes.
 
-## Kalph dogfoods itself
+## Kelix dogfoods itself
 
-Kalph is built by its own loop. `PLAN.md` holds the phased plan and
+Kelix is built by its own loop. `PLAN.md` holds the phased plan and
 `DECISIONS.md` records the choices made along the way — read both before
 proposing large changes, as many "why is it like this?" questions are
 answered there. Backlog-worthy ideas can be filed as issues or added as
-tasks in `.kalph/backlog.md` in a PR.
+tasks in `.kelix/backlog.md` in a PR.
 
 ## Reporting issues
 

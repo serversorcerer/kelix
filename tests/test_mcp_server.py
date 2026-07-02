@@ -5,16 +5,16 @@ import json
 
 from conftest import make_repo, write_mock_script
 
-from kalph.mcp_server import MCPServer, serve
+from kelix.mcp_server import MCPServer, serve
 
 
 def test_initialize_and_tools_list(tmp_path):
     server = MCPServer(tmp_path)
     init = server.handle({"jsonrpc": "2.0", "id": 1, "method": "initialize"})
-    assert init["result"]["serverInfo"]["name"] == "kalph"
+    assert init["result"]["serverInfo"]["name"] == "kelix"
     listing = server.handle({"jsonrpc": "2.0", "id": 2, "method": "tools/list"})
     names = {t["name"] for t in listing["result"]["tools"]}
-    assert names == {"kalph_run", "kalph_status", "kalph_memory", "kalph_stop"}
+    assert names == {"kelix_run", "kelix_status", "kelix_memory", "kelix_stop"}
 
 
 def test_notification_gets_no_response(tmp_path):
@@ -33,10 +33,10 @@ def test_tools_call_stop_sets_kill_switch(tmp_path):
     server = MCPServer(repo)
     resp = server.handle({
         "jsonrpc": "2.0", "id": 3, "method": "tools/call",
-        "params": {"name": "kalph_stop", "arguments": {}},
+        "params": {"name": "kelix_stop", "arguments": {}},
     })
     assert resp["result"]["isError"] is False
-    assert (repo / ".kalph" / "STOP").exists()
+    assert (repo / ".kelix" / "STOP").exists()
 
 
 def test_tools_call_run_via_mock(tmp_path):
@@ -46,13 +46,13 @@ def test_tools_call_run_via_mock(tmp_path):
         "001.sh",
         'echo "RATIONALE: T1 — x"\necho w >> w.txt\ngit add -A && git commit -q -m T1\n',
     )
-    (repo / "kalph.toml").write_text(
+    (repo / "kelix.toml").write_text(
         '[agent]\nadapter = "mock"\nmock_dir = "mockdir"\n[git]\nisolation = "none"\n'
     )
     server = MCPServer(repo)
     resp = server.handle({
         "jsonrpc": "2.0", "id": 4, "method": "tools/call",
-        "params": {"name": "kalph_run", "arguments": {"max_iterations": 2}},
+        "params": {"name": "kelix_run", "arguments": {"max_iterations": 2}},
     })
     text = resp["result"]["content"][0]["text"]
     assert "completed" in text

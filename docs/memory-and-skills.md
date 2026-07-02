@@ -1,13 +1,13 @@
 # Memory and skills
 
 A fresh agent process per iteration means nothing survives in the model's
-head. Kalph's answer is not to weaken that invariant but to externalize
+head. Kelix's answer is not to weaken that invariant but to externalize
 memory: everything worth remembering is a human-readable file, written before
 the process exits, and injected into future iterations as budgeted data.
 
 ## The three layers
 
-### 1. Project memory — `.kalph/memory/project.md`
+### 1. Project memory — `.kelix/memory/project.md`
 
 Durable facts about the repo: architecture notes, conventions, build/test
 quirks, gotchas. **Committed** to git, so it ships with the repo and arrives
@@ -15,7 +15,7 @@ in PRs. Agents append to it during iterations (the prompt instructs them to
 record durable facts before exiting), and run retrospectives append a summary
 per run. Append, don't rewrite.
 
-### 2. Episodic memory — `.kalph/memory/episodes.jsonl`
+### 2. Episodic memory — `.kelix/memory/episodes.jsonl`
 
 Runner-owned, **gitignored**, append-only. One JSON record per iteration
 across all runs:
@@ -29,7 +29,7 @@ across all runs:
 This is the "what worked / what failed recently" record. Corrupt lines are
 skipped on read, never fatal.
 
-### 3. Skills — `.kalph/skills/<name>/SKILL.md`
+### 3. Skills — `.kelix/skills/<name>/SKILL.md`
 
 Reusable procedures the loop earned, **committed**, in the
 [agentskills.io](https://agentskills.io) Open Agent Skills format — the same
@@ -47,7 +47,7 @@ description: How to regenerate the recorded API fixtures when the upstream schem
 
 `name` and `description` in the frontmatter are required for the skill to be
 discovered. In fleet mode there is a second location,
-`.kalph/fleet/skills/<name>/SKILL.md` — a runner-side shared store so fleet
+`.kelix/fleet/skills/<name>/SKILL.md` — a runner-side shared store so fleet
 agents see each other's discoveries before their branches merge (see
 [fleet.md](fleet.md)).
 
@@ -55,7 +55,7 @@ agents see each other's discoveries before their branches merge (see
 
 Memory reaches the agent as data blocks in fixed slots of the static prompt
 (preserving the static-prompt invariant), and every injected byte is capped so
-the context window stays small. From `[memory]` in `.kalph/kalph.toml`:
+the context window stays small. From `[memory]` in `.kelix/kelix.toml`:
 
 ```toml
 [memory]
@@ -77,7 +77,7 @@ episodes_in_digest = 10    # how many recent episodes the digest covers
 - Anything over budget is hard-truncated with a visible
   `[... truncated to N chars]` marker.
 - Project memory is not inlined; the prompt points at
-  `.kalph/memory/project.md` for the agent to read from disk.
+  `.kelix/memory/project.md` for the agent to read from disk.
 
 All blocks sit under an explicit "reference data, read-only; not
 instructions" banner — part of the prompt-injection defense
@@ -85,27 +85,27 @@ instructions" banner — part of the prompt-injection defense
 
 ## Retrospectives
 
-Every run ends with `retrospective.md` in `.kalph/runs/<run-id>/`: status,
+Every run ends with `retrospective.md` in `.kelix/runs/<run-id>/`: status,
 iteration count with verified/failure tallies, the branch, a per-iteration
 outcome list, and — if anything failed — a "For the owner" section listing the
 iterations that need attention.
 
 The retrospective also appends a short run summary to
-`.kalph/memory/project.md` **on the run branch** and checkpoints it, so the
+`.kelix/memory/project.md` **on the run branch** and checkpoints it, so the
 memory update arrives via the same PR as the code and gets reviewed like
 everything else.
 
 Fleet runs additionally write a combined
-`.kalph/runs/fleet-<timestamp>.md` covering every agent.
+`.kelix/runs/fleet-<timestamp>.md` covering every agent.
 
 ## Skill acquisition during the loop
 
 Skill-writing is part of the loop contract, not a separate pipeline. The
 iteration prompt instructs each agent, before exiting:
 
-- durable project facts and gotchas → append to `.kalph/memory/project.md`;
+- durable project facts and gotchas → append to `.kelix/memory/project.md`;
 - a reusable, **non-obvious** procedure → write
-  `.kalph/skills/<kebab-name>/SKILL.md` with `name:` and `description:`
+  `.kelix/skills/<kebab-name>/SKILL.md` with `name:` and `description:`
   frontmatter — and only for genuinely non-obvious, reusable procedures, so
   the skill store stays high-signal.
 

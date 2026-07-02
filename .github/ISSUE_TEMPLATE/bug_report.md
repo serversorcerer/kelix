@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Something in Kalph doesn't work as documented
+about: Something in Kelix doesn't work as documented
 labels: bug
 ---
 
@@ -12,8 +12,8 @@ A clear and concise description of what the bug is.
 
 Steps to reproduce the behavior:
 
-1. `kalph init` / config in `.kalph/kalph.toml` (paste relevant sections)
-2. Command run (e.g. `kalph run --max-iterations 5`)
+1. `kelix init` / config in `.kelix/kelix.toml` (paste relevant sections)
+2. Command run (e.g. `kelix run --max-iterations 5`)
 3. What happened
 
 If possible, reproduce with the **mock adapter** (`adapter = "mock"`) so the
@@ -25,13 +25,13 @@ What you expected to happen.
 
 ## Logs / artifacts
 
-Relevant output from the run — e.g. loop output, files under `.kalph/runs/`,
+Relevant output from the run — e.g. loop output, files under `.kelix/runs/`,
 or the diagnosis written by the circuit breaker. **Please check for secrets
 before pasting.**
 
 ## Environment
 
-- Kalph version: (e.g. 0.1.0)
+- Kelix version: (e.g. 0.1.0)
 - Python version: (`python --version`)
 - OS:
 - Agent adapter: (kiro / cmd / mock)

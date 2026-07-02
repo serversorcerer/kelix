@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea or improvement for Kalph
+about: Suggest an idea or improvement for Kelix
 labels: enhancement
 ---
 
@@ -19,9 +19,9 @@ between agents).
 ## Alternatives considered
 
 Other approaches you've thought about, including "do nothing" or solving it
-outside Kalph.
+outside Kelix.
 
 ## Additional context
 
-Links, prior art, or examples. Note that Kalph's core is stdlib-only, so
+Links, prior art, or examples. Note that Kelix's core is stdlib-only, so
 features requiring new runtime dependencies need a strong case.

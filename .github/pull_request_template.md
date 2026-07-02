@@ -14,5 +14,5 @@ Link the issue, backlog task, or Linear ticket this addresses (if any).
 
 ## Safety
 
-- [ ] No secrets in code, tests, or fixtures, and no assumptions that Kalph
+- [ ] No secrets in code, tests, or fixtures, and no assumptions that Kelix
       can push or merge directly to `main`/`master`

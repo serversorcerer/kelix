@@ -10,8 +10,8 @@ import subprocess
 
 from conftest import make_repo, write_mock_script
 
-from kalph.config import load_config
-from kalph.loop import Runner
+from kelix.config import load_config
+from kelix.loop import Runner
 
 TOY_BACKLOG = """\
 # Toy project backlog
@@ -52,26 +52,26 @@ def _script(n: int) -> str:
         "python3 checks.py",  # agent-side verification before claiming done
         f"""python3 -c "
 import pathlib
-p = pathlib.Path('.kalph/backlog.md')
+p = pathlib.Path('.kelix/backlog.md')
 p.write_text(p.read_text().replace('- [ ] T{n}:', '- [x] T{n}:'))
 " """,
         f'git add -A && git commit -q -m "T{n}: implemented and verified"',
     ]
     if n == 5:
-        lines.append('echo "KALPH COMPLETE"')
+        lines.append('echo "KELIX COMPLETE"')
     return "\n".join(lines) + "\n"
 
 
 def test_parity_demo_five_task_plan(tmp_path):
     repo = make_repo(tmp_path / "toy")
-    (repo / ".kalph" / "backlog.md").write_text(TOY_BACKLOG)
+    (repo / ".kelix" / "backlog.md").write_text(TOY_BACKLOG)
     (repo / "calc.py").write_text("# toy calculator\n")
     (repo / "checks_header.py").write_text("import calc\n")
     (repo / "checks_body.py").write_text("")
     (repo / "checks.py").write_text("import calc\n")
     for n in range(1, 6):
         write_mock_script(repo / "mockdir", f"{n:03d}.sh", _script(n))
-    (repo / "kalph.toml").write_text(
+    (repo / "kelix.toml").write_text(
         """
 [agent]
 adapter = "mock"
@@ -102,18 +102,18 @@ isolation = "worktree"
 
     # All five tasks checked off on the run branch; main untouched.
     branch_backlog = subprocess.run(
-        ["git", "show", f"{result.branch}:.kalph/backlog.md"],
+        ["git", "show", f"{result.branch}:.kelix/backlog.md"],
         cwd=repo, capture_output=True, text=True,
     ).stdout
     assert branch_backlog.count("- [x]") == 5
     main_backlog = subprocess.run(
-        ["git", "show", "main:.kalph/backlog.md"],
+        ["git", "show", "main:.kelix/backlog.md"],
         cwd=repo, capture_output=True, text=True,
     ).stdout
     assert main_backlog.count("- [ ]") == 5
 
     # Auditable trail: transcripts + retrospective + episodes exist.
-    run_dir = cfg.kalph_dir / "runs" / result.run_id
+    run_dir = cfg.kelix_dir / "runs" / result.run_id
     assert len(list(run_dir.glob("iter-*.log"))) == 5
     retro = (run_dir / "retrospective.md").read_text()
     assert "completed" in retro and "5 verified" in retro

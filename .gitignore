@@ -8,21 +8,21 @@ build/
 .pytest_cache/
 .ruff_cache/
 
-# Kalph runtime state is local by default.
+# Kelix runtime state is local by default.
 # Shareable memory/skills/backlog are explicitly re-included; run state,
 # transcripts, and fleet coordination never leave the machine by default
 # (they may contain command output). See docs/SECURITY.md.
-.kalph/*
-!.kalph/backlog.md
-!.kalph/roadmap.md
-!.kalph/STATE.md
-!.kalph/phases/
-!.kalph/memory/
-.kalph/memory/*
-!.kalph/memory/project.md
-!.kalph/skills/
-!.kalph/prompts/
-!.kalph/kalph.toml
+.kelix/*
+!.kelix/backlog.md
+!.kelix/roadmap.md
+!.kelix/STATE.md
+!.kelix/phases/
+!.kelix/memory/
+.kelix/memory/*
+!.kelix/memory/project.md
+!.kelix/skills/
+!.kelix/prompts/
+!.kelix/kelix.toml
 
 # OS
 .DS_Store

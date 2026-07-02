@@ -13,22 +13,22 @@ Nothing yet.
 
 ### Added
 
-- **Core loop** (`kalph run`): fresh stateless agent per iteration against a
+- **Core loop** (`kelix run`): fresh stateless agent per iteration against a
   static prompt, with git worktree isolation, per-iteration auto-checkpoints,
   a verification gate that re-runs your configured commands before a task
-  counts as done, a same-failure circuit breaker, and a `kalph stop` kill
+  counts as done, a same-failure circuit breaker, and a `kelix stop` kill
   switch.
 - **Layered memory**: project, episodic, and skills memory injected into each
   iteration as budgeted data; skills use the agentskills.io format.
-- **Backlog and prioritization**: `.kalph/backlog.md` task queue, legible
+- **Backlog and prioritization**: `.kelix/backlog.md` task queue, legible
   prioritization with a one-line `RATIONALE:` per pick, and
-  branch-per-task PRs (`kalph/*` branches; humans merge).
+  branch-per-task PRs (`kelix/*` branches; humans merge).
 - **Tracker sync**: Linear integration with inbound sanitization of
   untrusted tracker text.
-- **Kiro integration**: steering files, a custom `kalph` agent, spec import
-  (`kalph init --from-spec`), and an MCP server (`kalph mcp`) so Kiro can
-  drive Kalph by tool call.
-- **Fleet mode** (`kalph fleet`): multiple role-specialized loops (builders,
+- **Kiro integration**: steering files, a custom `kelix` agent, spec import
+  (`kelix init --from-spec`), and an MCP server (`kelix mcp`) so Kiro can
+  drive Kelix by tool call.
+- **Fleet mode** (`kelix fleet`): multiple role-specialized loops (builders,
   verifier, scribe) coordinating only through files — atomic task claims, a
   mailbox, and shared skills.
 - **Security**: command denylist with safe defaults (blocks `curl | sh`,
@@ -39,5 +39,5 @@ Nothing yet.
 - **CI**: test suite (mock agent, no API keys) and lint run on every commit,
   including denylist regression and prompt-injection drill tests.
 
-[Unreleased]: https://github.com/serversorcerer/kalph/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/serversorcerer/kalph/releases/tag/v0.1.0
+[Unreleased]: https://github.com/serversorcerer/kelix/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/serversorcerer/kelix/releases/tag/v0.1.0

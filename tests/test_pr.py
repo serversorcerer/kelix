@@ -8,9 +8,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from kalph.config import Config, VerifyConfig
-from kalph.loop import IterationRecord, RunResult
-from kalph.pr import build_pr_body, open_pr
+from kelix.config import Config, VerifyConfig
+from kelix.loop import IterationRecord, RunResult
+from kelix.pr import build_pr_body, open_pr
 
 
 def _cfg(root: Path, commands: list[str] | None = None) -> Config:
@@ -21,7 +21,7 @@ def _cfg(root: Path, commands: list[str] | None = None) -> Config:
 
 
 def _result(
-    branch: str = "kalph/run-test",
+    branch: str = "kelix/run-test",
     workdir: str = "/tmp/workdir",
     **kwargs,
 ) -> RunResult:
@@ -81,7 +81,7 @@ def test_push_before_gh(tmp_path, record_subprocess):
     assert url == "https://github.com/org/repo/pull/42"
     assert len(record_subprocess) == 2
     assert record_subprocess[0][:3] == ["git", "push", "-u"]
-    assert record_subprocess[0][3:] == ["origin", "kalph/run-test"]
+    assert record_subprocess[0][3:] == ["origin", "kelix/run-test"]
     assert record_subprocess[1][:3] == ["gh", "pr", "create"]
 
 
@@ -127,7 +127,7 @@ def test_body_contains_verification_evidence(tmp_path, record_subprocess):
     assert "iteration 2: failed" in body
     assert "KB6" in body
     assert "KB7" in body
-    assert "Opened by Kalph run 20260702-003053" in body
+    assert "Opened by Kelix run 20260702-003053" in body
 
 
 def test_build_pr_body_standalone(tmp_path):

@@ -9,7 +9,7 @@ Ralph in its purest form:
 while :; do cat PROMPT.md | agent ; done
 ```
 
-Kalph treats the following four properties as **invariants**. Every feature must
+Kelix treats the following four properties as **invariants**. Every feature must
 preserve them; any feature that cannot be built without breaking one does not
 ship.
 
@@ -20,7 +20,7 @@ from conversation history and it is not mutated by the agent mid-run. Tuning
 the prompt is an *operator* act between runs ("erecting signs"), not an agent
 act during one.
 
-*Kalph nuance:* Kalph injects memory digests and skills into the prompt as
+*Kelix nuance:* Kelix injects memory digests and skills into the prompt as
 **data blocks with fixed slots**. The prompt template is static; only the
 file-derived data inside clearly delimited slots varies. The agent is told the
 blocks are reference data, not instructions.
@@ -33,7 +33,7 @@ loop deterministic-ish and cheap: no context rot, no compounding confusion, and
 a wrong turn only costs one iteration.
 
 Huntley: use as little of the context window as possible; the primary context
-acts as a scheduler and expensive work goes to subagents. Kalph honors this by
+acts as a scheduler and expensive work goes to subagents. Kelix honors this by
 budgeting every injected byte (plan slice, memory digest, skills) with hard
 caps.
 
@@ -41,7 +41,7 @@ caps.
 
 The loop stops for mechanical, checkable reasons only:
 
-- a completion sentinel emitted by the agent (`KALPH COMPLETE` in Kalph),
+- a completion sentinel emitted by the agent (`KELIX COMPLETE` in Kelix),
 - an iteration cap (`--max-iterations`),
 - a circuit breaker (N consecutive failures / no-diff iterations),
 - an explicit kill switch.
@@ -63,24 +63,24 @@ Corollaries:
 - coordination between agents (fleet mode) is expressed as "write a file,
   commit; another agent reads it" — never RPC.
 
-## Supporting observations from the source posts (not invariants, but encoded in Kalph)
+## Supporting observations from the source posts (not invariants, but encoded in Kelix)
 
 - **One task per loop.** Relaxable when things go well, the first thing to
-  narrow when they don't. Kalph never relaxes it: decompose instead.
+  narrow when they don't. Kelix never relaxes it: decompose instead.
 - **Backpressure is engineering.** Tests, type checkers, linters, scanners —
-  anything that mechanically rejects bad generations. Kalph makes verification
+  anything that mechanically rejects bad generations. Kelix makes verification
   a loop responsibility (`verify` commands in config), not an agent promise.
 - **Don't assume not-implemented.** Search before writing; a common Ralph
-  failure is duplicate implementations. Encoded in Kalph's iteration prompt.
+  failure is duplicate implementations. Encoded in Kelix's iteration prompt.
 - **Capture the "why" in the moment.** Notes for future iterations (test
-  docstrings, plan annotations) substitute for the missing memory. Kalph
+  docstrings, plan annotations) substitute for the missing memory. Kelix
   formalizes this as episodic memory and skills.
 - **Let Ralph take himself to university.** The AGENT.md self-improvement rule
-  becomes Kalph's skill acquisition: operational learnings are distilled to
+  becomes Kelix's skill acquisition: operational learnings are distilled to
   files that future iterations load.
 - **You will wake up to a broken codebase sometimes.** Mitigations: per-run
   branch/worktree isolation, auto-checkpoint, circuit breaker with a written
   diagnosis instead of token burn.
 - **Monolith over multi-agent chatter.** A single loop, one repo, one task per
-  iteration. Kalph's fleet mode composes *independent* loops through files and
+  iteration. Kelix's fleet mode composes *independent* loops through files and
   git, precisely to avoid non-deterministic microservices ("a red hot mess").

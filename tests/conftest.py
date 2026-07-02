@@ -12,15 +12,15 @@ def sh(args, cwd):
 def make_repo(path: Path) -> Path:
     path.mkdir(parents=True, exist_ok=True)
     sh(["git", "init", "-q", "-b", "main"], path)
-    sh(["git", "config", "user.email", "kalph-test@example.com"], path)
-    sh(["git", "config", "user.name", "Kalph Test"], path)
-    kalph = path / ".kalph"
-    (kalph / "memory").mkdir(parents=True)
-    (kalph / "skills").mkdir()
-    (kalph / "backlog.md").write_text(
+    sh(["git", "config", "user.email", "kelix-test@example.com"], path)
+    sh(["git", "config", "user.name", "Kelix Test"], path)
+    kelix = path / ".kelix"
+    (kelix / "memory").mkdir(parents=True)
+    (kelix / "skills").mkdir()
+    (kelix / "backlog.md").write_text(
         "# Backlog\n\n- [ ] T1: demo task | priority: 50 | status: ready | by: owner\n"
     )
-    (kalph / "memory" / "project.md").write_text("# Project memory\n")
+    (kelix / "memory" / "project.md").write_text("# Project memory\n")
     (path / "README.md").write_text("fixture repo\n")
     sh(["git", "add", "-A"], path)
     sh(["git", "commit", "-q", "-m", "initial"], path)

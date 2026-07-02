@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from kalph.backlog import parse_backlog
-from kalph.kiro import import_spec, parse_spec_tasks
+from kelix.backlog import parse_backlog
+from kelix.kiro import import_spec, parse_spec_tasks
 
 SPEC_TASKS = """\
 # Implementation Plan
@@ -20,8 +20,8 @@ def _repo_with_spec(tmp_path: Path) -> Path:
     root = tmp_path / "proj"
     (root / ".kiro" / "specs" / "user-auth").mkdir(parents=True)
     (root / ".kiro" / "specs" / "user-auth" / "tasks.md").write_text(SPEC_TASKS)
-    (root / ".kalph").mkdir()
-    (root / ".kalph" / "backlog.md").write_text("# Backlog\n")
+    (root / ".kelix").mkdir()
+    (root / ".kelix" / "backlog.md").write_text("# Backlog\n")
     return root
 
 
@@ -38,7 +38,7 @@ def test_import_spec_appends_owner_tasks_in_order(tmp_path):
     root = _repo_with_spec(tmp_path)
     count = import_spec(root, "user-auth")
     assert count == 3  # the [x] item is skipped
-    tasks = parse_backlog((root / ".kalph" / "backlog.md").read_text())
+    tasks = parse_backlog((root / ".kelix" / "backlog.md").read_text())
     imported = [t for t in tasks if t.id.startswith("user-auth-")]
     assert len(imported) == 3
     assert all(t.by == "owner" for t in imported)

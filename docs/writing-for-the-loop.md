@@ -1,6 +1,6 @@
 # Writing for the loop
 
-Kalph is a fresh, stateless agent every iteration. It cannot ask you a
+Kelix is a fresh, stateless agent every iteration. It cannot ask you a
 follow-up question, and it cannot remember the conversation where you
 explained what you really meant. **Everything it knows about your intent is
 what you wrote down.** Good input in, good output out; slop in, slop out.
@@ -20,7 +20,7 @@ into essays that slow every iteration down.
    that get decomposed by the agent anyway, burning an iteration you could
    have spent building.
 3. **Say the constraint once, in the file the agent reads.** Conventions go
-   in `.kalph/memory/project.md`, work goes in `.kalph/backlog.md`, done
+   in `.kelix/memory/project.md`, work goes in `.kelix/backlog.md`, done
    goes in `[verify] commands`. Repeating yourself across files creates
    contradictions; the agent will trip on them.
 
@@ -54,7 +54,7 @@ input made wrong turns hard to take.
 |---|---|---|
 | "Make persistence better" | No acceptance; agent guesses | "save/load preserve `next_id` so ids don't reset after reload; regression test included" |
 | "Add auth, tests, and docs" | Three tasks wearing one id | Three tasks with `deps` between them |
-| "Fix the bug" | Which bug? Reproduce how? | "`kalph status` crashes when run.json is truncated; repro: `echo '{' > run.json`; should print `?` instead" |
+| "Fix the bug" | Which bug? Reproduce how? | "`kelix status` crashes when run.json is truncated; repro: `echo '{' > run.json`; should print `?` instead" |
 | "Use best practices" | Unfalsifiable | Put the practice in `[verify]` (a linter) or delete the sentence |
 
 ## From PRD to backlog
@@ -73,7 +73,7 @@ it to four sections, in the repo where the agent can read it:
 Non-goals matter as much as goals: the loop's failure mode isn't laziness,
 it's enthusiasm. A stated non-goal is a fence; an unstated one is an
 invitation. (Kiro users: a spec's `tasks.md` imports directly via
-`kalph init --from-spec <name>` — same rules apply to how you write the
+`kelix init --from-spec <name>` — same rules apply to how you write the
 spec tasks.)
 
 ## Don't over-think it either
@@ -99,7 +99,7 @@ You steer with one-line edits, not conversations:
 - Reprioritize: change a `priority:` number.
 - Redirect: edit a task's `details:` — the next iteration reads the new text.
 - Veto: set `status: blocked` with a `diagnosis:` note.
-- Stop: `kalph stop` (writes the kill switch file).
+- Stop: `kelix stop` (writes the kill switch file).
 
 The loop reads state from disk at every iteration start, so every edit
 lands at the next natural boundary — no need to interrupt anything.

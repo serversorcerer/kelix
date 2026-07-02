@@ -1,5 +1,5 @@
-from kalph.config import load_config
-from kalph.prompt import (
+from kelix.config import load_config
+from kelix.prompt import (
     DEFAULT_TEMPLATE,
     PHASE_CONTEXT_BANNER,
     assemble_prompt,
@@ -43,7 +43,7 @@ def test_slots_filled_with_data(tmp_path):
 
 
 def test_digest_budget_enforced(tmp_path):
-    (tmp_path / "kalph.toml").write_text("[memory]\ndigest_max_chars = 50\n")
+    (tmp_path / "kelix.toml").write_text("[memory]\ndigest_max_chars = 50\n")
     cfg = load_config(tmp_path)
     out = assemble_prompt(DEFAULT_TEMPLATE, cfg, memory_digest="x" * 500)
     assert "truncated to 50 chars" in out
@@ -52,9 +52,9 @@ def test_digest_budget_enforced(tmp_path):
 
 
 def test_contract_and_security_present_in_default():
-    assert "KALPH COMPLETE" in DEFAULT_TEMPLATE
+    assert "KELIX COMPLETE" in DEFAULT_TEMPLATE
     assert "exactly ONE task" in DEFAULT_TEMPLATE
-    assert "Read `.kalph/STATE.md` first" in DEFAULT_TEMPLATE
+    assert "Read `.kelix/STATE.md` first" in DEFAULT_TEMPLATE
     assert "DATA" in DEFAULT_TEMPLATE
     assert "Never push directly to main" in DEFAULT_TEMPLATE
 
@@ -67,20 +67,20 @@ def test_state_slot_before_episode_digest():
 
 def test_state_slot_filled_from_file(tmp_path):
     cfg = load_config(tmp_path)
-    kalph = tmp_path / ".kalph"
-    kalph.mkdir()
-    (kalph / "STATE.md").write_text(
-        "# Kalph state\n\n- milestone: v0.2\n- phase: P-SPINE\n",
+    kelix = tmp_path / ".kelix"
+    kelix.mkdir()
+    (kelix / "STATE.md").write_text(
+        "# Kelix state\n\n- milestone: v0.2\n- phase: P-SPINE\n",
         encoding="utf-8",
     )
-    out = assemble_prompt(DEFAULT_TEMPLATE, cfg, state=(kalph / "STATE.md").read_text())
+    out = assemble_prompt(DEFAULT_TEMPLATE, cfg, state=(kelix / "STATE.md").read_text())
     assert "milestone: v0.2" in out
     assert "P-SPINE" in out
     assert "(no state file" not in out
 
 
 def test_state_budget_enforced(tmp_path):
-    (tmp_path / "kalph.toml").write_text("[memory]\nstate_max_chars = 40\n")
+    (tmp_path / "kelix.toml").write_text("[memory]\nstate_max_chars = 40\n")
     cfg = load_config(tmp_path)
     out = assemble_prompt(DEFAULT_TEMPLATE, cfg, state="s" * 500)
     assert "truncated to 40 chars" in out
@@ -109,7 +109,7 @@ def test_phase_context_injected_with_banner(tmp_path):
 
 
 def test_phase_context_budget_enforced(tmp_path):
-    (tmp_path / "kalph.toml").write_text("[memory]\nphase_context_max_chars = 60\n")
+    (tmp_path / "kelix.toml").write_text("[memory]\nphase_context_max_chars = 60\n")
     cfg = load_config(tmp_path)
     out = assemble_prompt(DEFAULT_TEMPLATE, cfg, phase_context="x" * 500)
     assert "truncated to 60 chars" in out
@@ -117,13 +117,13 @@ def test_phase_context_budget_enforced(tmp_path):
 
 
 def test_load_phase_context_from_active_phase(tmp_path):
-    kalph = tmp_path / ".kalph"
-    phase_dir = kalph / "phases" / "P-INTENT"
+    kelix = tmp_path / ".kelix"
+    phase_dir = kelix / "phases" / "P-INTENT"
     phase_dir.mkdir(parents=True)
     (phase_dir / "CONTEXT.md").write_text("Decision: use stdlib only.\n", encoding="utf-8")
-    assert load_phase_context(kalph, "P-INTENT") == "Decision: use stdlib only.\n"
-    assert load_phase_context(kalph, "P-OTHER") == ""
-    assert load_phase_context(kalph, "") == ""
+    assert load_phase_context(kelix, "P-INTENT") == "Decision: use stdlib only.\n"
+    assert load_phase_context(kelix, "P-OTHER") == ""
+    assert load_phase_context(kelix, "") == ""
 
 
 def test_format_phase_context_empty():
@@ -132,14 +132,14 @@ def test_format_phase_context_empty():
 
 
 def test_init_writes_phases_readme(tmp_path):
-    from kalph.cli import cmd_init
+    from kelix.cli import cmd_init
 
     class Args:
         path = str(tmp_path)
         from_spec = ""
 
     cmd_init(Args())
-    readme = tmp_path / ".kalph" / "phases" / "README.md"
+    readme = tmp_path / ".kelix" / "phases" / "README.md"
     assert readme.is_file()
     text = readme.read_text(encoding="utf-8")
     assert "CONTEXT.md" in text
@@ -147,7 +147,7 @@ def test_init_writes_phases_readme(tmp_path):
 
 
 def test_init_writes_goal_md(tmp_path):
-    from kalph.cli import GOAL_TEMPLATE, cmd_init
+    from kelix.cli import GOAL_TEMPLATE, cmd_init
 
     class Args:
         path = str(tmp_path)
@@ -163,7 +163,7 @@ def test_init_writes_goal_md(tmp_path):
 
 
 def test_init_does_not_overwrite_existing_goal_md(tmp_path):
-    from kalph.cli import cmd_init
+    from kelix.cli import cmd_init
 
     class Args:
         path = str(tmp_path)

@@ -6,9 +6,9 @@ import re
 import pytest
 from conftest import make_repo, write_mock_script
 
-from kalph.claims import list_claims
-from kalph.config import load_config
-from kalph.fleet import (
+from kelix.claims import list_claims
+from kelix.config import load_config
+from kelix.fleet import (
     FleetError,
     load_fleet_spec,
     make_claim_hook,
@@ -53,7 +53,7 @@ echo "RATIONALE: $task — assigned by fleet claim"
 python3 - "$task" <<'PY'
 import pathlib, re, sys
 task = sys.argv[1]
-p = pathlib.Path('.kalph/backlog.md')
+p = pathlib.Path('.kelix/backlog.md')
 pat = re.compile(r'- \[ \] ' + re.escape(task) + r': (.*) \| status: ready')
 p.write_text(pat.sub(r'- [x] ' + task + r': \1 | status: done', p.read_text()))
 PY
@@ -64,11 +64,11 @@ git add -A && git commit -q -m "$task: fleet work"
 
 def _fleet_repo(tmp_path, n_scripts=6):
     repo = make_repo(tmp_path / "repo")
-    (repo / ".kalph" / "backlog.md").write_text(FLEET_BACKLOG)
-    (repo / ".kalph" / "fleet.toml").write_text(FLEET_TOML)
+    (repo / ".kelix" / "backlog.md").write_text(FLEET_BACKLOG)
+    (repo / ".kelix" / "fleet.toml").write_text(FLEET_TOML)
     for i in range(1, n_scripts + 1):
         write_mock_script(repo / "mockdir", f"{i:03d}.sh", FLEET_SCRIPT)
-    (repo / "kalph.toml").write_text(
+    (repo / "kelix.toml").write_text(
         """
 [agent]
 adapter = "mock"
@@ -91,26 +91,26 @@ isolation = "worktree"
 def test_load_fleet_spec(tmp_path):
     repo = _fleet_repo(tmp_path)
     cfg = load_config(repo)
-    spec = load_fleet_spec(cfg, ".kalph/fleet.toml")
+    spec = load_fleet_spec(cfg, ".kelix/fleet.toml")
     assert [a.id for a in spec.agents] == ["builder-1", "scribe-1"]
     assert spec.max_iterations == 4
     assert "Custom scribe prompt" in spec.role_prompt("scribe")
-    assert "one agent in a Kalph fleet" in spec.role_prompt("scribe")
+    assert "one agent in a Kelix fleet" in spec.role_prompt("scribe")
     assert "builder" in spec.role_prompt("builder")
 
 
 def test_fleet_spec_validation(tmp_path):
     repo = _fleet_repo(tmp_path)
-    (repo / ".kalph" / "fleet.toml").write_text("[fleet]\n")
+    (repo / ".kelix" / "fleet.toml").write_text("[fleet]\n")
     cfg = load_config(repo)
     with pytest.raises(FleetError, match="no agents"):
-        load_fleet_spec(cfg, ".kalph/fleet.toml")
+        load_fleet_spec(cfg, ".kelix/fleet.toml")
 
 
 def test_claim_hook_assigns_distinct_tasks(tmp_path):
     repo = _fleet_repo(tmp_path)
     cfg = load_config(repo)
-    spec = load_fleet_spec(cfg, ".kalph/fleet.toml")
+    spec = load_fleet_spec(cfg, ".kelix/fleet.toml")
     hook_a = make_claim_hook(cfg, spec, "agent-a")
     hook_b = make_claim_hook(cfg, spec, "agent-b")
     a = hook_a(repo, 1)
@@ -128,7 +128,7 @@ def test_agent_sticks_to_its_unfinished_task(tmp_path):
     # re-assigns it rather than moving on (verified-done rule).
     repo = _fleet_repo(tmp_path)
     cfg = load_config(repo)
-    spec = load_fleet_spec(cfg, ".kalph/fleet.toml")
+    spec = load_fleet_spec(cfg, ".kelix/fleet.toml")
     hook = make_claim_hook(cfg, spec, "agent-a")
     first = hook(repo, 1)
     second = hook(repo, 2)
@@ -138,7 +138,7 @@ def test_agent_sticks_to_its_unfinished_task(tmp_path):
 def test_claim_hook_returns_none_when_all_claimed(tmp_path):
     repo = _fleet_repo(tmp_path)
     cfg = load_config(repo)
-    spec = load_fleet_spec(cfg, ".kalph/fleet.toml")
+    spec = load_fleet_spec(cfg, ".kelix/fleet.toml")
     for i in range(4):  # four distinct agents claim the four tasks
         assert make_claim_hook(cfg, spec, f"hog-{i}")(repo, 1) is not None
     starved = make_claim_hook(cfg, spec, "starved")
@@ -148,9 +148,9 @@ def test_claim_hook_returns_none_when_all_claimed(tmp_path):
 def test_fleet_run_end_to_end_zero_collisions(tmp_path):
     repo = _fleet_repo(tmp_path)
     cfg = load_config(repo)
-    rc = run_fleet(cfg, ".kalph/fleet.toml")
+    rc = run_fleet(cfg, ".kelix/fleet.toml")
     assert rc == 0
-    claims = list_claims(cfg.kalph_dir)
+    claims = list_claims(cfg.kelix_dir)
     # Every task claimed exactly once (file per task), each by a single agent.
     claimed_tasks = [c["task"] for c in claims]
     assert sorted(claimed_tasks) == ["FT1", "FT2", "FT3", "FT4"]
@@ -158,7 +158,7 @@ def test_fleet_run_end_to_end_zero_collisions(tmp_path):
     agents_used = {c["agent"] for c in claims}
     assert len(agents_used) == 2
     # Fleet retrospective written and names both agents.
-    retros = list((cfg.kalph_dir / "runs").glob("fleet-*.md"))
+    retros = list((cfg.kelix_dir / "runs").glob("fleet-*.md"))
     assert retros
     body = retros[0].read_text()
     assert "builder-1" in body and "scribe-1" in body
@@ -167,9 +167,9 @@ def test_fleet_run_end_to_end_zero_collisions(tmp_path):
 def test_render_status_reads_coordination_files(tmp_path):
     repo = _fleet_repo(tmp_path)
     cfg = load_config(repo)
-    spec = load_fleet_spec(cfg, ".kalph/fleet.toml")
+    spec = load_fleet_spec(cfg, ".kelix/fleet.toml")
     make_claim_hook(cfg, spec, "agent-a")(repo, 1)
     out = render_status(cfg)
     assert "FT1" in out and "agent-a" in out
-    (cfg.kalph_dir / "STOP").write_text("halt")
+    (cfg.kelix_dir / "STOP").write_text("halt")
     assert "KILL SWITCH" in render_status(cfg)
