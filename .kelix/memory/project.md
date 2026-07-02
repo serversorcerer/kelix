@@ -301,3 +301,6 @@ Durable facts about this repo for future iterations.
 
 ## Run 20260702-182619 (completed)
 10 iterations, 10 verified. Failures: agent exit 143 (timeout); no diff produced.
+
+## Run 20260702-191513-scribe-1 (max_iterations)
+8 iterations, 8 verified. Clean run.
