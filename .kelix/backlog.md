@@ -655,21 +655,21 @@ All tasks below are `status: proposed` until the owner promotes them.
   details: same pattern for docs/SECURITY.md; proof link to
   tests/test_injection_drill.py or docs/proof/injection-drill-backlog.diff.
 
-- [ ] KE23: mcp audacity intro | priority: 70 | status: ready | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
+- [x] KE23: mcp audacity intro | priority: 70 | status: done | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
   details: same pattern for docs/mcp.md; proof link to tests/test_mcp_server.py.
 
-- [ ] KE24: writing-for-the-loop tagline | priority: 69 | status: ready | by: owner | phase: P-AUDIT | req: REQ-U2
+- [x] KE24: writing-for-the-loop tagline | priority: 69 | status: done | by: owner | phase: P-AUDIT | req: REQ-U2
   details: update docs/writing-for-the-loop.md: adopt "Gold in, diamonds out"
   as the one-line principle in the opening; demote good/slop pairing to body
   examples only. Acceptance: first mention of gold/diamonds is the canon line.
 
-- [ ] KE25: CLI art.say theming | priority: 68 | status: ready | by: owner | deps: KE17,KE18,KE19,KE21,KE22,KE23,KE24 | phase: P-AUDIT | req: REQ-U3
+- [x] KE25: CLI art.say theming | priority: 68 | status: done | by: owner | deps: KE17,KE18,KE19,KE21,KE22,KE23,KE24 | phase: P-AUDIT | req: REQ-U3
   details: retire flat print strings in src/kelix/cli.py (run complete, init,
   status summaries) in favor of art.say() with themes; run-complete message
   lists verify commands run and verified-done count, not bare "done." Tests in
   tests/test_ci_integration.py or cli capture updated substrings.
 
-- [ ] KE26: README/index audacity pass | priority: 67 | status: ready | by: owner | deps: KE25,KE1,KE2 | phase: P-AUDIT | req: REQ-U4
+- [x] KE26: README/index audacity pass | priority: 67 | status: done | by: owner | deps: KE25,KE1,KE2 | phase: P-AUDIT | req: REQ-U4
   details: final voice pass on README.md and docs/index.md: audacity + evidence
   links after structural reposition (KE1/KE2). Each opens with capability claim
   + proof link. Acceptance: reviewer can trace opening claim to docs/proof or
@@ -677,7 +677,7 @@ All tasks below are `status: proposed` until the owner promotes them.
 
 ### Phase P-COMPARE — Honest comparison
 
-- [ ] KE27: docs/compare.md draft | priority: 66 | status: ready | by: owner | deps: KE16 | phase: P-COMPARE | req: REQ-CM1
+- [x] KE27: docs/compare.md draft | priority: 66 | status: done | by: owner | deps: KE16 | phase: P-COMPARE | req: REQ-CM1
   details: create docs/compare.md comparing Kelix vs plain Ralph vs Claude Code
   alone vs Codex alone vs GSD-style orchestrators. Axes: state persistence,
   verified-done rate, unattended runtime, token cost per verified task,
@@ -686,14 +686,14 @@ All tasks below are `status: proposed` until the owner promotes them.
   single-iteration latency, IDE pairing affordances, adapter hang/timeout (D13).
   Acceptance: zero cells with bare numbers lacking source link or command.
 
-- [ ] KE28: compare.md site links | priority: 65 | status: ready | by: owner | deps: KE27 | phase: P-COMPARE | req: REQ-CM2
+- [x] KE28: compare.md site links | priority: 65 | status: done | by: owner | deps: KE27 | phase: P-COMPARE | req: REQ-CM2
   details: link docs/compare.md from README.md (Why Kelix or new section) and
   docs/index.md Reference. Acceptance: `rg compare.md README.md docs/index.md`
   finds both links.
 
 ### Phase P-GOLD — First-contact spec gate
 
-- [ ] KE29: run spec-gate for ready tasks | priority: 64 | status: ready | by: owner | phase: P-GOLD | req: REQ-GD1
+- [x] KE29: run spec-gate for ready tasks | priority: 64 | status: done | by: owner | phase: P-GOLD | req: REQ-GD1
   details: in src/kelix/loop.py Runner.run() before iteration 1: lint only
   tasks with status=ready via lint_backlog; on findings print actionable
   messages with inline good/bad task example (from lint.py or dedicated formatter);
@@ -701,19 +701,19 @@ All tasks below are `status: proposed` until the owner promotes them.
   tests/test_loop.py: vague ready task → exit 1 before adapter called; good
   task → proceeds.
 
-- [ ] KE30: run --force bypass | priority: 63 | status: ready | by: owner | deps: KE29 | phase: P-GOLD | req: REQ-GD1
+- [x] KE30: run --force bypass | priority: 63 | status: done | by: owner | deps: KE29 | phase: P-GOLD | req: REQ-GD1
   details: add `--force` to kelix run argparse; skips spec gate only (document in
   --help and docs/quickstart.md); git safety unchanged. Test: vague backlog +
   --force reaches adapter. Acceptance: help text states spec-gate scope explicitly.
 
-- [ ] KE31: plan interview acceptance questions | priority: 62 | status: ready | by: owner | phase: P-GOLD | req: REQ-GD2
+- [x] KE31: plan interview acceptance questions | priority: 62 | status: done | by: owner | phase: P-GOLD | req: REQ-GD2
   details: extend PLANNING_TEMPLATE / plan.py interview rubric so each emitted
   question block includes at least one acceptance-criteria probe per roadmap
   phase in the draft goal (reuse lint rules from docs/writing-for-the-loop.md).
   Test: mock adapter planning fixture goal with two phases → interview output
   contains ≥2 acceptance-themed questions.
 
-- [ ] KE32: GOAL template + lint tagline | priority: 61 | status: ready | by: owner | deps: KE24 | phase: P-GOLD | req: REQ-GD3
+- [x] KE32: GOAL template + lint tagline | priority: 61 | status: done | by: owner | deps: KE24 | phase: P-GOLD | req: REQ-GD3
   details: update GOAL_TEMPLATE in cli.py to include one-line "Gold in, diamonds
   out." principle; update run spec-gate and kelix lint stderr banner to use
   canon tagline once (retire slop pairing from gate message). Test: init creates

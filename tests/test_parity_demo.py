@@ -17,10 +17,15 @@ TOY_BACKLOG = """\
 # Toy project backlog
 
 - [ ] T1: add() function | priority: 90 | status: ready | by: owner
+  details: add(a,b) in calc.py; assert calc.add(2,3)==5 in checks.py
 - [ ] T2: sub() function | priority: 80 | status: ready | by: owner
+  details: sub(a,b) in calc.py; assert calc.sub(5,3)==2 in checks.py
 - [ ] T3: mul() function | priority: 70 | status: ready | by: owner
+  details: mul(a,b) in calc.py; assert calc.mul(2,3)==6 in checks.py
 - [ ] T4: div() with zero guard | priority: 60 | status: ready | by: owner
+  details: div(a,b) raises on zero; assert in checks.py
 - [ ] T5: cli entrypoint | priority: 50 | status: ready | by: owner
+  details: __main__ block in calc.py; assert in checks.py
 """
 
 # Each script: implement one task, extend the executable spec (checks.py),

@@ -4,6 +4,9 @@ from pathlib import Path
 
 import pytest
 
+# Minimal acceptance signal for fixture backlogs (run spec-gate KE29).
+FIXTURE_DETAILS = "  details: fixture task; assert True in tests/test_fixture.py\n"
+
 
 def sh(args, cwd):
     subprocess.run(args, cwd=str(cwd), check=True, capture_output=True)
@@ -18,7 +21,9 @@ def make_repo(path: Path) -> Path:
     (kelix / "memory").mkdir(parents=True)
     (kelix / "skills").mkdir()
     (kelix / "backlog.md").write_text(
-        "# Backlog\n\n- [ ] T1: demo task | priority: 50 | status: ready | by: owner\n"
+        "# Backlog\n\n"
+        "- [ ] T1: demo task | priority: 50 | status: ready | by: owner\n"
+        f"{FIXTURE_DETAILS}"
     )
     (kelix / "memory" / "project.md").write_text("# Project memory\n")
     (path / "README.md").write_text("fixture repo\n")

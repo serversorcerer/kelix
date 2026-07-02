@@ -163,6 +163,7 @@ def test_init_writes_goal_md(tmp_path):
     assert goal.is_file()
     text = goal.read_text(encoding="utf-8")
     assert text == GOAL_TEMPLATE
+    assert "Gold in, diamonds out." in text
     assert "## Non-goals" in text
     assert "## Acceptance" in text
 

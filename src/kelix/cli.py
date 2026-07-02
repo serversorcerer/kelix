@@ -122,6 +122,8 @@ into the iteration prompt as read-only data — not instructions.
 GOAL_TEMPLATE = """\
 # Project goal
 
+**Gold in, diamonds out.** What you write here becomes the backlog the loop climbs.
+
 Describe what should exist when this work ships, and for whom.
 
 ## Non-goals
@@ -209,12 +211,18 @@ def cmd_init(
     if not roadmap_path.exists():
         roadmap_path.write_text(ROADMAP_TEMPLATE, encoding="utf-8")
         created.append(str(roadmap_path.relative_to(root)))
+    from .art import banner, next_steps, say
+
     if args.from_spec:
         from .kiro import import_spec
 
         count = import_spec(root, args.from_spec)
-        print(f"imported {count} tasks from .kiro/specs/{args.from_spec}/tasks.md")
-    from .art import banner, next_steps, say
+        print(
+            say(
+                f"imported {count} tasks from .kiro/specs/{args.from_spec}/tasks.md",
+                "ok",
+            )
+        )
 
     print(banner())
     if created:
@@ -236,16 +244,19 @@ def cmd_init(
 
 def cmd_lint(args) -> int:
     from .art import say
-    from .lint import format_finding, lint_repo
+    from .lint import INPUT_QUALITY_TAGLINE, format_finding, lint_repo
 
     root = Path(args.path).resolve()
     findings = lint_repo(root)
     if not findings:
-        print(say("lint: clean — good input in, good output out", "ok"))
+        print(say("lint: clean", "ok"))
         return 0
     for finding in findings:
         print(say(f"lint: {format_finding(finding)}", "warn"), file=sys.stderr)
-    print(say(f"{len(findings)} finding(s) — slop in, slop out", "fail"), file=sys.stderr)
+    print(
+        say(f"{len(findings)} finding(s) — {INPUT_QUALITY_TAGLINE}", "fail"),
+        file=sys.stderr,
+    )
     return 1
 
 
@@ -312,17 +323,21 @@ def cmd_run(args) -> int:
     try:
         cfg = load_config(Path(args.path))
         runner = Runner(cfg, role=args.role or "")
-        result = runner.run(max_iterations=args.max_iterations)
+        result = runner.run(
+            max_iterations=args.max_iterations,
+            skip_spec_gate=args.force,
+        )
     except (ConfigError, LoopError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
     if args.pr and result.status in ("completed", "max_iterations"):
+        from .art import say
         from .pr import open_pr
 
         run_dir = cfg.kelix_dir / "runs" / result.run_id
         pr_url = open_pr(cfg, result, run_dir)
         if pr_url:
-            print(f"PR opened: {pr_url}")
+            print(say(f"PR opened: {pr_url}", "ok"))
     return 0 if result.status in ("completed", "max_iterations") else 1
 
 
@@ -371,13 +386,24 @@ def cmd_watch(args) -> int:
 
 
 def cmd_status(args) -> int:
-    from .art import strip
+    from .art import say, strip
     from .fleet import render_status
 
     cfg = load_config(Path(args.path))
     if sys.stdout.isatty():
         print(strip())
-    print(render_status(cfg))
+    print(say("kelix status — assembled from coordination files", "info"))
+    for line in render_status(cfg).splitlines():
+        if line in ("kelix status", "============"):
+            continue
+        if "KILL SWITCH" in line:
+            print(say(line, "warn"))
+        elif line.startswith("Live now"):
+            print(say(line, "climb"))
+        elif line.startswith("No task claims"):
+            print(say(line, "info"))
+        else:
+            print(line)
     return 0
 
 
@@ -386,8 +412,15 @@ def cmd_stop(args) -> int:
     stop = cfg.kelix_dir / "STOP"
     stop.parent.mkdir(parents=True, exist_ok=True)
     stop.write_text("stop requested by owner\n", encoding="utf-8")
-    print(f"kill switch set: {stop} (runs stop before their next iteration; "
-          "remove the file to allow new runs)")
+    from .art import say
+
+    print(
+        say(
+            f"kill switch set: {stop} — runs halt before next iteration; "
+            "remove the file to resume",
+            "warn",
+        )
+    )
     return 0
 
 
@@ -651,6 +684,14 @@ def main(argv: list[str] | None = None) -> int:
         "--pr",
         action="store_true",
         help="open a GitHub PR after a completed or max-iterations run",
+    )
+    p.add_argument(
+        "--force",
+        action="store_true",
+        help=(
+            "skip the run-time spec gate only (status: ready backlog lint); "
+            "git safety rails unchanged"
+        ),
     )
     p.set_defaults(func=cmd_run)
 

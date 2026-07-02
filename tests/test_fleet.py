@@ -44,16 +44,22 @@ FLEET_BACKLOG = """\
 # Backlog
 
 - [ ] FT1: task one | priority: 90 | status: ready | by: owner
+  details: fleet work for FT1; assert in tests/test_fleet.py
 - [ ] FT2: task two | priority: 80 | status: ready | by: owner
+  details: fleet work for FT2; assert in tests/test_fleet.py
 - [ ] FT3: task three | priority: 70 | status: ready | by: owner
+  details: fleet work for FT3; assert in tests/test_fleet.py
 - [ ] FT4: task four | priority: 60 | status: ready | by: owner
+  details: fleet work for FT4; assert in tests/test_fleet.py
 """
 
 WAVE_BACKLOG = """\
 # Backlog
 
 - [ ] W0: wave zero task | priority: 90 | status: ready | by: owner
+  details: wave zero work; assert in tests/test_fleet.py
 - [ ] W1: wave one task | priority: 99 | status: ready | by: owner | deps: W0
+  details: wave one work after W0; assert in tests/test_fleet.py
 """
 
 # Fleet mock agents: mark the assigned task (parsed from the prompt on stdin)
@@ -265,6 +271,7 @@ GATE_BACKLOG = """\
 - [x] T1: first | priority: 90 | status: done | by: owner | phase: P-GATE | req: REQ-G1
 - [x] T2: second | priority: 80 | status: done | by: owner | phase: P-GATE | req: REQ-G2
 - [ ] T3: third | priority: 70 | status: ready | by: owner | phase: P-GATE | req: REQ-G3
+  details: finish gate phase task; assert in tests/test_fleet.py
 """
 
 GATE_STATE = """\

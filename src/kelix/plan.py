@@ -31,6 +31,17 @@ QUESTIONS_BLOCK_RE = re.compile(r"```QUESTIONS\s*\n(.*?)```", re.DOTALL | re.IGN
 QUESTION_HEADER_RE = re.compile(r"^Q(\d+):\s*(.+)$", re.MULTILINE)
 OPTION_RE = re.compile(r"^(\d+)\.\s*(.+?)(?:\s*\(recommended\))?\s*$", re.IGNORECASE)
 ANSWER_RE = re.compile(r"^answer:\s*(.*)$", re.MULTILINE | re.IGNORECASE)
+GOAL_PHASE_RE = re.compile(r"^### Phase (\S+)", re.MULTILINE)
+
+# Acceptance probe patterns aligned with lint.ACCEPTANCE_SIGNAL / writing-for-the-loop.
+ACCEPTANCE_PROBE_SIGNAL = re.compile(
+    r"(?i)"
+    r"(?:\bacceptance\b|\bverify\b|\bverification\b|\bproof\b|\btestable\b"
+    r"|\bhow (?:will|do|to) (?:we|you) (?:prove|verify|know|test)\b"
+    r"|\bwhat (?:test|assert|exit|command)\b"
+    r"|\btests?\b|\bassert\b|\bexit(?:s|[- ]code)?\b|\bround[- ]trip\b"
+    r"|(?:tests?/|src/|[\w.-]+\.(?:py|md|toml|json|sh)\b))"
+)
 
 
 @dataclass
@@ -87,6 +98,58 @@ def planning_phase_slug(goal: str) -> str:
     first = goal.strip().splitlines()[0] if goal.strip() else "plan"
     slug = re.sub(r"[^a-z0-9]+", "-", first.lower()).strip("-")
     return slug[:60] or "plan"
+
+
+def extract_goal_phases(goal: str) -> list[str]:
+    """Return roadmap phase ids from ``### Phase <id>`` headers in the goal."""
+    return GOAL_PHASE_RE.findall(goal)
+
+
+def _question_probe_text(question: PlanQuestion) -> str:
+    parts = [question.title, question.text]
+    parts.extend(opt.text for opt in question.options)
+    return "\n".join(parts)
+
+
+def is_acceptance_probe_question(question: PlanQuestion) -> bool:
+    """True when a question probes testable acceptance per writing-for-the-loop."""
+    return bool(ACCEPTANCE_PROBE_SIGNAL.search(_question_probe_text(question)))
+
+
+def acceptance_rubric_for_goal(goal: str) -> str:
+    """Prompt text listing detected phases and required acceptance probes."""
+    phases = extract_goal_phases(goal)
+    if phases:
+        listed = ", ".join(phases)
+        return (
+            f"Detected roadmap phases in the goal: {listed}.\n"
+            f"Emit at least {len(phases)} acceptance probe(s) — one per phase — "
+            "with titles or question text that name the phase and ask how to "
+            "verify it (pytest path, exit code, assert, or named file)."
+        )
+    return (
+        "No `### Phase <id>` headers detected in the goal.\n"
+        "Emit at least one acceptance probe asking how the owner will prove "
+        "the plan shipped (tests, exit codes, file paths, verify commands)."
+    )
+
+
+def validate_interview_questions(goal: str, questions: list[PlanQuestion]) -> list[str]:
+    """Return validation errors when acceptance probes are missing per phase."""
+    phases = extract_goal_phases(goal)
+    probes = [q for q in questions if is_acceptance_probe_question(q)]
+    required = len(phases) if phases else 1
+    if len(probes) >= required:
+        return []
+    if phases:
+        return [
+            f"interview missing acceptance probe(s): need ≥{required} for phases "
+            f"{', '.join(phases)}, got {len(probes)}"
+        ]
+    return [
+        "interview missing acceptance probe: need at least one question about "
+        "testable verification (tests, exit codes, file paths, verify commands)"
+    ]
 
 
 def parse_questions_block(text: str) -> list[PlanQuestion]:
@@ -406,6 +469,11 @@ class PlanRunner:
         questions = parse_questions_block(agent.output)
         if not questions:
             rec.failure = "missing ```QUESTIONS``` block in agent output"
+            return _InterviewOutcome(status="error", iteration=rec, diagnosis=rec.failure)
+
+        probe_errors = validate_interview_questions(goal, questions)
+        if probe_errors:
+            rec.failure = "; ".join(probe_errors)
             return _InterviewOutcome(status="error", iteration=rec, diagnosis=rec.failure)
 
         log(

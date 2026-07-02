@@ -392,7 +392,18 @@ class Runner:
 
     # -- the loop ------------------------------------------------------------
 
-    def run(self, max_iterations: int | None = None, log=None) -> RunResult:
+    def _check_spec_gate(self, workdir: Path) -> list:
+        from .lint import lint_backlog
+
+        return lint_backlog(self._backlog_tasks(workdir), scope="ready")
+
+    def run(
+        self,
+        max_iterations: int | None = None,
+        log=None,
+        *,
+        skip_spec_gate: bool = False,
+    ) -> RunResult:
         if log is None:
             # Line-buffered progress even when stdout is a pipe (backgrounded
             # or tee'd runs): an unattended owner must see iterations land
@@ -423,6 +434,25 @@ class Runner:
         adapter = make_adapter(cfg)
 
         consecutive_failures = 0
+
+        if not skip_spec_gate:
+            import sys
+
+            from .lint import format_spec_gate_findings
+
+            spec_findings = self._check_spec_gate(workdir)
+            if spec_findings:
+                for line in format_spec_gate_findings(spec_findings):
+                    print(line, file=sys.stderr)
+                result.status = "spec_gate"
+                result.diagnosis = (
+                    "ready tasks fail backlog lint; fix with kelix lint"
+                )
+                log(f"kelix run {run_id}: spec gate failed ({len(spec_findings)} finding(s))")
+                self._save_state(run_dir, result)
+                self._finish(result, run_dir, log)
+                return result
+
         log(f"kelix run {run_id}: branch={branch or '(in place)'} cap={cap}")
 
         for index in range(1, cap + 1):
@@ -641,9 +671,16 @@ class Runner:
                 run_distillation(self.cfg, result, run_dir, log=log)
             except Exception as exc:  # distillation must never mask run status
                 log(f"  (distillation failed: {exc})")
+        from .art import run_complete_receipt
+
+        verified_count = sum(1 for rec in result.iterations if rec.verified is True)
         log(
-            f"kelix run {result.run_id} finished: {result.status} "
-            f"({len(result.iterations)} iterations)"
+            run_complete_receipt(
+                run_id=result.run_id,
+                status=result.status,
+                iteration_count=len(result.iterations),
+                verified_count=verified_count,
+                verify_commands=list(self.cfg.verify.commands),
+                diagnosis=result.diagnosis,
+            )
         )
-        if result.diagnosis:
-            log(f"  diagnosis: {result.diagnosis}")

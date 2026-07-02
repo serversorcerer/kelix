@@ -307,7 +307,8 @@ def test_phase_gate_advances_when_covered(repo):
         "- [x] T1: finish alpha | priority: 50 | status: done | by: owner | "
         "phase: P-A | req: REQ-A1\n"
         "- [ ] T2: beta work | priority: 49 | status: ready | by: owner | "
-        "phase: P-B | req: REQ-B1\n",
+        "phase: P-B | req: REQ-B1\n"
+        "  details: emit KELIX COMPLETE sentinel; assert in tests/test_loop.py\n",
     )
     write_mock_script(
         repo / "mockdir",
@@ -330,7 +331,8 @@ def test_phase_gate_blocks_and_reports_uncovered(repo):
     _write_state(repo, phase="P-A")
     _write_backlog(
         repo,
-        "- [ ] T0: unrelated work | priority: 50 | status: ready | by: owner\n",
+        "- [ ] T0: unrelated work | priority: 50 | status: ready | by: owner\n"
+        "  details: write work.txt; assert file exists in tests/test_loop.py\n",
     )
     write_mock_script(
         repo / "mockdir",
@@ -560,3 +562,85 @@ def test_distillation_skipped_when_disabled(repo):
     skill_md = repo / ".kelix" / "skills" / "_proposed" / "test-skill" / "SKILL.md"
     assert not skill_md.exists()
     assert not (cfg.kelix_dir / "runs" / result.run_id / "distill").exists()
+
+
+def test_spec_gate_blocks_vague_ready_task(repo, capsys):
+    (repo / ".kelix" / "backlog.md").write_text(
+        "# Backlog\n\n"
+        "- [ ] T1: vague task | priority: 50 | status: ready | by: owner\n"
+        "  details: improve everything\n"
+    )
+    write_mock_script(
+        repo / "mockdir",
+        "001.sh",
+        'echo "RATIONALE: T1 — should not run"\n',
+    )
+    cfg = _config(repo)
+    result = Runner(cfg).run(max_iterations=1, log=lambda *_: None)
+
+    assert result.status == "spec_gate"
+    assert len(result.iterations) == 0
+    err = capsys.readouterr().err
+    assert "spec gate:" in err
+    assert err.count("Gold in, diamonds out.") == 1
+    assert "T1:" in err
+    assert "bad:" in err
+    assert "good:" in err
+
+
+def test_spec_gate_allows_well_specified_ready_task(repo):
+    (repo / ".kelix" / "backlog.md").write_text(
+        "# Backlog\n\n"
+        "- [ ] T1: good task | priority: 50 | status: ready | by: owner\n"
+        "  details: echo work into work.txt; assert in tests/test_loop.py\n"
+    )
+    write_mock_script(repo / "mockdir", "001.sh", COMMIT_TASK)
+    cfg = _config(repo)
+    result = Runner(cfg).run(max_iterations=1, log=lambda *_: None)
+
+    assert result.status != "spec_gate"
+    assert len(result.iterations) >= 1
+
+
+def test_spec_gate_force_bypass_reaches_adapter(repo):
+    (repo / ".kelix" / "backlog.md").write_text(
+        "# Backlog\n\n"
+        "- [ ] T1: vague task | priority: 50 | status: ready | by: owner\n"
+        "  details: improve everything\n"
+    )
+    write_mock_script(
+        repo / "mockdir",
+        "001.sh",
+        'echo "RATIONALE: T1 — forced past spec gate"\n',
+    )
+    cfg = _config(repo)
+    result = Runner(cfg).run(
+        max_iterations=1, log=lambda *_: None, skip_spec_gate=True
+    )
+
+    assert result.status != "spec_gate"
+    assert len(result.iterations) >= 1
+
+
+def test_run_force_help_documents_spec_gate_scope():
+    import os
+    import subprocess
+    import sys
+
+    env = os.environ.copy()
+    env["PYTHONPATH"] = "src"
+    out = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "from kelix.cli import main; raise SystemExit(main(['run', '--help']))",
+        ],
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+    assert out.returncode == 0
+    help_text = out.stdout.lower()
+    assert "--force" in help_text
+    assert "spec gate" in help_text
+    assert "git" in help_text

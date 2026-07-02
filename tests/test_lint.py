@@ -31,6 +31,40 @@ def test_format_finding_includes_task_id():
     )
 
 
+def test_lint_ready_scope_ignores_proposed():
+    findings = lint_backlog(
+        [
+            _task(
+                id="READY",
+                notes={"details": "improve everything"},
+            ),
+            _task(
+                id="PROP",
+                status="proposed",
+                by="kelix",
+                notes={"details": "improve everything"},
+            ),
+        ],
+        scope="ready",
+    )
+    assert all(f.task_id == "READY" for f in findings)
+    assert len(findings) >= 1
+
+
+def test_format_spec_gate_findings_includes_examples():
+    from kelix.lint import INPUT_QUALITY_TAGLINE, format_spec_gate_findings
+
+    lines = format_spec_gate_findings(
+        [Finding("T1", "missing_details", "task has no details: note with testable acceptance")]
+    )
+    text = "\n".join(lines)
+    assert "spec gate:" in text
+    assert text.count(INPUT_QUALITY_TAGLINE) == 1
+    assert "bad:" in text
+    assert "good:" in text
+    assert "T1:" in text
+
+
 def test_missing_details():
     findings = lint_backlog([_task(notes={"rationale": "why"})])
     assert any(f.rule == "missing_details" for f in findings)
@@ -167,6 +201,7 @@ def test_cmd_lint_reports_findings(repo, capsys):
     err = capsys.readouterr().err
     assert "lint:" in err
     assert "no_acceptance_signal" in err or "unfalsifiable_wording" in err
+    assert err.count("Gold in, diamonds out.") == 1
 
 
 def test_validate_plan_includes_lint_rules(repo):

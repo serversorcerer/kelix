@@ -1,13 +1,20 @@
 # The Kelix MCP server
 
-`kelix mcp` serves Kelix as an [MCP](https://modelcontextprotocol.io) server
-so any MCP-capable agent — Kiro first — can drive the loop by tool call:
-start a run, check status, inspect memory, hit the kill switch.
+You can register Kelix as an MCP server in any MCP-capable agent — Claude
+Code, Cursor, Gemini CLI, Kiro — and drive full loop runs, check status,
+inspect memory, or hit the kill switch entirely through tool calls, without
+writing a custom adapter.
 
-The implementation (`src/kelix/mcp_server.py`) is deliberately
-dependency-free: a minimal, auditable JSON-RPC 2.0 loop over
-**newline-delimited JSON on stdio**, implementing exactly the subset of MCP
-needed here — `initialize`, `tools/list`, and `tools/call` (protocol version
+That wire protocol is proven, not hand-waved. A stdlib-only JSON-RPC server
+exposes four tools, completes a mock run end-to-end, and sets the kill switch
+— see [`tests/test_mcp_server.py`](../tests/test_mcp_server.py) and reproduce
+with `pytest tests/test_mcp_server.py -q`.
+
+`kelix mcp` serves Kelix as an [MCP](https://modelcontextprotocol.io) server
+over **newline-delimited JSON on stdio**. The implementation
+(`src/kelix/mcp_server.py`) is deliberately dependency-free: a minimal,
+auditable JSON-RPC 2.0 loop implementing exactly the subset of MCP needed here
+— `initialize`, `tools/list`, and `tools/call` (protocol version
 `2024-11-05`). It serves until stdin reaches EOF; malformed lines are ignored;
 notifications get no response.
 

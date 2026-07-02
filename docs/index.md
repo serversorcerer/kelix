@@ -1,5 +1,15 @@
 # Kelix documentation
 
+You can write a spec once, point any headless coding agent at it overnight,
+and return to verified commits — each gated by your repo's own test and lint
+commands, not agent promises.
+
+That is not hypothetical. The dogfood proof shipped a full stdlib task-tracker
+library unattended:
+**[12/12 tasks verified-done in 12 iterations, zero failures](proof/final-report.md#d1--dogfood-run-docsproofdogfood-runlog-dogfood-retrospectivemd)**
+(see the [final build report](proof/final-report.md)). Reproduce the verify gate
+with `pytest tests/test_verify.py -q`.
+
 **The loop that climbs.** Ralph runs in circles; Kelix comes back higher.
 
 Kelix runs any headless coding agent in a loop against a static prompt: every
@@ -62,6 +72,9 @@ loop stays the same.
 
 ## Reference
 
+- **[Comparison](compare.md)** — honest comparison to plain Ralph, Claude Code
+  and Codex alone, and GSD-style orchestrators; cites proof artifacts or reads
+  "not measured — no receipt."
 - **[Security model](SECURITY.md)** — the threat model (unattended agent +
   shell + prompt-injected repo content) and the mitigations that live in code.
   Read this before an unattended run.

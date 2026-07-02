@@ -1,9 +1,12 @@
 # Writing for the loop
 
+**Gold in, diamonds out.** What you write into the backlog is what the loop
+can actually ship — verified commits, not vibes.
+
 Kelix is a fresh, stateless agent every iteration. It cannot ask you a
 follow-up question, and it cannot remember the conversation where you
 explained what you really meant. **Everything it knows about your intent is
-what you wrote down.** Good input in, good output out; slop in, slop out.
+what you wrote down.**
 
 This page is the input contract: how to write backlogs, PRDs, and plans that
 a fresh agent executes correctly on the first read — without padding them
@@ -11,10 +14,11 @@ into essays that slow every iteration down.
 
 ## The three rules
 
-1. **Write the acceptance, not the vibe.** "Improve the CLI" is slop.
-   "`done <id>` on a missing id exits non-zero with an error on stderr" is a
-   task. If you can't state how the agent proves it's done, the task isn't
-   ready for the loop — it's still a thought.
+1. **Write the acceptance, not the vibe.** Good input in, good output out;
+   slop in, slop out. "Improve the CLI" is slop. "`done <id>` on a missing
+   id exits non-zero with an error on stderr" is a task. If you can't state
+   how the agent proves it's done, the task isn't ready for the loop — it's
+   still a thought.
 2. **One iteration, one task.** If a task needs an "and then", split it. The
    loop's unit of progress is one verified commit; tasks sized bigger than
    that get decomposed by the agent anyway, burning an iteration you could

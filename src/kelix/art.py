@@ -97,3 +97,37 @@ def next_steps(steps: list[str]) -> str:
     for i, step in enumerate(steps, 1):
         lines.append(f"    {i}. {step}")
     return "\n".join(lines)
+
+
+def run_complete_receipt(
+    *,
+    run_id: str,
+    status: str,
+    iteration_count: int,
+    verified_count: int,
+    verify_commands: list[str],
+    diagnosis: str = "",
+) -> str:
+    """Themed run-end summary: status, verify gate, verified-done count."""
+    status_kind = {
+        "completed": "ok",
+        "max_iterations": "ok",
+        "circuit_breaker": "fail",
+        "killed": "warn",
+    }.get(status, "info")
+    noun = "iteration" if iteration_count == 1 else "iterations"
+    lines = [
+        say(
+            f"run {run_id} finished: {status} "
+            f"({iteration_count} {noun}, {verified_count} verified-done)",
+            status_kind,
+        ),
+    ]
+    if verify_commands:
+        gate = "; ".join(verify_commands)
+        lines.append(say(f"verify gate: {gate}", "info"))
+    else:
+        lines.append(say("verify gate: none configured", "info"))
+    if diagnosis:
+        lines.append(say(f"diagnosis: {diagnosis}", "warn"))
+    return "\n".join(lines)

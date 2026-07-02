@@ -9,11 +9,14 @@ from kelix.cli import cmd_plan
 from kelix.config import load_config
 from kelix.plan import (
     PlanRunner,
+    extract_goal_phases,
+    is_acceptance_probe_question,
     load_questions_md,
     parse_questions_block,
     planning_phase_slug,
     present_questions_tty,
     questions_answered,
+    validate_interview_questions,
     write_questions_file,
 )
 from kelix.prompt import (
@@ -127,7 +130,109 @@ def test_planning_interview_prompt_emits_questions_only(tmp_path):
     assert "build widgets" in out
     assert "```QUESTIONS" in out
     assert "Do NOT print PLAN COMPLETE" in out
+    assert "acceptance-criteria probe" in out
+    assert "acceptance probe" in out.lower()
     assert "{{" not in out
+
+
+def test_planning_interview_prompt_lists_goal_phases(tmp_path):
+    cfg = load_config(tmp_path)
+    goal = (
+        "## Milestone M1 — demo\n\n"
+        "### Phase P-AUTH — auth\n\n"
+        "### Phase P-DATA — data\n"
+    )
+    out = assemble_planning_interview_prompt(cfg, goal=goal)
+    assert "P-AUTH" in out
+    assert "P-DATA" in out
+    assert "at least 2 acceptance probe" in out
+
+
+def test_extract_goal_phases():
+    goal = "### Phase P-A — first\n\n### Phase P-B — second\n"
+    assert extract_goal_phases(goal) == ["P-A", "P-B"]
+
+
+def test_is_acceptance_probe_question():
+    verify_q = parse_questions_block(
+        "```QUESTIONS\nQ1: Verify auth\nHow will we prove login works?\n"
+        "1. pytest in tests/test_auth.py (recommended)\n2. manual\n```"
+    )[0]
+    scope_q = parse_questions_block(
+        "```QUESTIONS\nQ1: Demo scope\nWhat should the demo cover?\n"
+        "1. Minimal API (recommended)\n2. Full stack\n```"
+    )[0]
+    assert is_acceptance_probe_question(verify_q)
+    assert not is_acceptance_probe_question(scope_q)
+
+
+def test_validate_interview_questions_requires_probe_per_phase():
+    goal = "### Phase P-A — first\n\n### Phase P-DATA — data\n"
+    one_probe = parse_questions_block(
+        "```QUESTIONS\n"
+        "Q1: P-A acceptance\nHow verify auth with pytest?\n"
+        "1. tests/test_auth.py (recommended)\n2. manual\n"
+        "Q2: Scope\nWhat ships?\n1. API (recommended)\n2. UI\n"
+        "```"
+    )
+    assert validate_interview_questions(goal, one_probe)
+    two_probes = parse_questions_block(
+        "```QUESTIONS\n"
+        "Q1: P-A acceptance\nHow verify auth with pytest?\n"
+        "1. tests/test_auth.py (recommended)\n2. manual\n"
+        "Q2: P-DATA acceptance\nWhat test proves persistence?\n"
+        "1. round-trip in tests/test_data.py (recommended)\n2. manual\n"
+        "```"
+    )
+    assert not validate_interview_questions(goal, two_probes)
+
+
+TWO_PHASE_GOAL = """\
+build two-phase widget tracker
+
+## Milestone M1 — Widgets
+
+### Phase P-AUTH — authentication
+Outcome: users can sign in.
+
+### Phase P-DATA — persistence
+Outcome: widgets survive reload.
+"""
+
+TWO_PHASE_INTERVIEW_SCRIPT = """\
+cat << 'EOF'
+```QUESTIONS
+Q1: P-AUTH acceptance
+How will we verify authentication works?
+1. pytest in tests/test_auth.py (recommended)
+2. manual login checklist
+Q2: P-DATA acceptance
+How will we prove persistence round-trips?
+1. save/load test in tests/test_data.py (recommended)
+2. sqlite browser inspection
+Q3: Widget scope
+What is the first widget feature?
+1. create/list only (recommended)
+2. full CRUD
+```
+EOF
+"""
+
+
+def test_plan_interview_two_phases_requires_acceptance_probes(repo):
+    write_mock_script(repo / "mockdir", "001.sh", TWO_PHASE_INTERVIEW_SCRIPT)
+    cfg = _config(repo)
+    result = PlanRunner(cfg).run(
+        goal=TWO_PHASE_GOAL,
+        log=lambda *_: None,
+        is_tty=False,
+    )
+    assert result.status == "awaiting_answers"
+    questions = load_questions_md(
+        repo / ".kelix" / "phases" / planning_phase_slug(TWO_PHASE_GOAL) / "QUESTIONS.md"
+    )
+    acceptance_questions = [q for q in questions if is_acceptance_probe_question(q)]
+    assert len(acceptance_questions) >= 2
 
 
 def test_planning_template_is_static():

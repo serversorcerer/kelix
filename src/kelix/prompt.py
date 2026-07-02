@@ -132,8 +132,16 @@ structured questions for the owner — do NOT draft a roadmap or backlog yet.
 3. Emit exactly one fenced block tagged QUESTIONS (format below). Each item
    needs a decision title, the question text, 2-4 numbered options, and mark
    exactly one option with "(recommended)".
-4. Implement nothing — no file changes, no commits.
-5. Do NOT print PLAN COMPLETE.
+4. Include at least one **acceptance-criteria probe** per roadmap phase named
+   in the goal (see rubric below). Reuse docs/writing-for-the-loop.md: ask how
+   the owner will prove the phase shipped (tests, exit codes, file paths,
+   verify commands) — not vibes like "improve" or "best practices".
+5. Implement nothing — no file changes, no commits.
+6. Do NOT print PLAN COMPLETE.
+
+## Acceptance probe rubric
+
+{{ACCEPTANCE_RUBRIC}}
 
 ## Question block format
 
@@ -519,6 +527,15 @@ def assemble_planning_prompt(
     return out
 
 
+SLOT_ACCEPTANCE_RUBRIC = "{{ACCEPTANCE_RUBRIC}}"
+
+
+def _acceptance_rubric_for_goal(goal: str) -> str:
+    from .plan import acceptance_rubric_for_goal
+
+    return acceptance_rubric_for_goal(goal)
+
+
 def assemble_planning_interview_prompt(
     cfg: Config,
     goal: str,
@@ -528,6 +545,7 @@ def assemble_planning_interview_prompt(
     values = {
         SLOT_ROLE: role or PLANNING_ROLE,
         SLOT_GOAL: goal.strip(),
+        SLOT_ACCEPTANCE_RUBRIC: _acceptance_rubric_for_goal(goal),
     }
     out = PLANNING_INTERVIEW_TEMPLATE
     for slot, value in values.items():

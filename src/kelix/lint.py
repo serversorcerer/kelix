@@ -14,6 +14,8 @@ PLAN_ARTIFACTS = (
     ".kelix/backlog.md",
 )
 
+INPUT_QUALITY_TAGLINE = "Gold in, diamonds out."
+
 ACCEPTANCE_SIGNAL = re.compile(
     r"(?i)"
     r"(?:\btests?\b|\bassert\b|\bexit(?:s|[- ]code)?\b|\bround[- ]trip\b"
@@ -44,6 +46,63 @@ class Finding:
 def format_finding(finding: Finding) -> str:
     prefix = f"{finding.task_id}: " if finding.task_id else ""
     return f"{prefix}{finding.rule}: {finding.message}"
+
+
+# Inline good/bad examples for the run spec-gate (REQ-GD1).
+SPEC_GATE_EXAMPLES: dict[str, tuple[str, str]] = {
+    "missing_details": (
+        "- [ ] T1: demo task | priority: 50 | status: ready | by: owner",
+        "- [ ] T1: JSON persistence | priority: 80 | status: ready | by: owner\n"
+        "  details: save/load round-trip in tests/test_persistence.py",
+    ),
+    "no_acceptance_signal": (
+        "  details: make the module nicer and refactor things",
+        "  details: add src/kelix/foo.py; round-trip test in tests/test_foo.py",
+    ),
+    "unfalsifiable_wording": (
+        "  details: improve the CLI experience",
+        "  details: improve CLI startup to under 100ms; assert in tests/test_cli.py",
+    ),
+    "multiple_deliverables": (
+        '  details: add foo.py and then add bar.py',
+        "  details: add foo.py; tests/test_foo.py — split bar into its own task",
+    ),
+    "title_too_long": (
+        "- [ ] T1: " + "x" * 81 + " | priority: 50 | status: ready | by: owner",
+        "- [ ] T1: short title | priority: 50 | status: ready | by: owner\n"
+        "  details: change in tests/test_x.py",
+    ),
+    "dangling_dep": (
+        "- [ ] T1: work | priority: 50 | status: ready | by: owner | deps: MISSING",
+        "- [ ] T1: work | priority: 50 | status: ready | by: owner | deps: T0\n"
+        "  details: implement in tests/test_t1.py",
+    ),
+    "cyclic_deps": (
+        "T1 deps T2, T2 deps T1 — both status: ready",
+        "break the cycle: one task depends on the other only",
+    ),
+}
+
+
+def format_spec_gate_findings(findings: list[Finding]) -> list[str]:
+    """Actionable spec-gate output with one good/bad example per rule."""
+    lines = [
+        "spec gate: status: ready tasks must pass kelix lint before kelix run",
+        INPUT_QUALITY_TAGLINE,
+        "",
+    ]
+    seen_rules: set[str] = set()
+    for finding in findings:
+        lines.append(format_finding(finding))
+        if finding.rule in seen_rules:
+            continue
+        seen_rules.add(finding.rule)
+        examples = SPEC_GATE_EXAMPLES.get(finding.rule)
+        if examples:
+            bad, good = examples
+            lines.append(f"  bad:  {bad}")
+            lines.append(f"  good: {good}")
+    return lines
 
 
 def _task_text(task: Task) -> str:
@@ -106,15 +165,18 @@ def _strip_metaspec(text: str) -> str:
 def lint_backlog(tasks: list[Task], *, scope: str = "active") -> list[Finding]:
     """Check backlog tasks against the writing-for-the-loop input contract.
 
-    ``scope`` is ``"active"`` (default: all non-done tasks) or ``"proposed"``
-    (only kelix-authored proposed tasks, for draft-plan validation).
+    ``scope`` is ``"active"`` (default: all non-done tasks), ``"ready"`` (only
+    ``status: ready`` tasks — run spec-gate), or ``"proposed"`` (only kelix-
+    authored proposed tasks, for draft-plan validation).
     """
     findings: list[Finding] = []
     task_ids = {task.id for task in tasks}
     deps_map = {task.id: task.deps for task in tasks}
 
     lint_tasks = tasks
-    if scope == "proposed":
+    if scope == "ready":
+        lint_tasks = [t for t in tasks if t.status == "ready"]
+    elif scope == "proposed":
         lint_tasks = [t for t in tasks if t.by == "kelix" and t.status == "proposed"]
 
     cycle = _find_cycle(task_ids, deps_map)
@@ -129,6 +191,8 @@ def lint_backlog(tasks: list[Task], *, scope: str = "active") -> list[Finding]:
 
     for task in lint_tasks:
         if scope == "active" and task.status == "done":
+            continue
+        if scope == "ready" and task.status != "ready":
             continue
 
         for dep in task.deps:

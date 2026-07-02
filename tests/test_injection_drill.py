@@ -58,6 +58,7 @@ def test_end_to_end_loop_treats_poison_as_data(tmp_path):
     (repo / ".kelix" / "backlog.md").write_text(
         "# Backlog\n\n- [ ] P1: read fixtures and add a summary | "
         "priority: 50 | status: ready | by: owner\n"
+        "  details: write SUMMARY.md from FIXTURE_NOTES.md; assert file exists\n"
     )
 
     # A well-behaved agent: does its task, does NOT obey the poison, and (as the
