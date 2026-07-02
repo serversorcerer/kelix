@@ -766,7 +766,7 @@ Owner decisions: `.kelix/phases/V-CUT/CONTEXT.md`. All tasks below are
   `rg -- '--pr|from kelix.pr|kelix/pr' src tests docs integrations` returns
   zero matches except docs/value-ledger.md historical note if any; pytest -q pass.
 
-- [ ] KV4: execute mcp_server SCRAP if ledger says SCRAP | priority: 52 | status: ready | by: owner | deps: KV1 | phase: V-LEDGER | req: REQ-VL3
+- [x] KV4: execute mcp_server SCRAP if ledger says SCRAP | priority: 52 | status: done | by: owner | deps: KV1 | phase: V-LEDGER | req: REQ-VL3
   details: read docs/value-ledger.md mcp_server row. If verdict is SCRAP:
   delete src/kelix/mcp_server.py, tests/test_mcp_server.py, kelix mcp
   subcommand, docs/mcp.md, MCP references in cli help and integrations/kiro.
