@@ -1,9 +1,177 @@
 # Kalph
 
-**The Ralph loop, rebuilt for Kiro.** A stateless autonomous agent loop with
-persistent memory, legible prioritization, first-class Kiro integration, and a
-file-coordinated fleet mode.
+**The [Ralph loop](https://ghuntley.com/ralph/), rebuilt for [Kiro](https://kiro.dev).**
 
-> Status: under construction — being built by its own loop. See `PLAN.md` for
-> live progress and `DECISIONS.md` for the decision log. A full README with
-> quickstart ships in Phase 7.
+Kalph runs a coding agent in a loop against a static prompt: every iteration is
+a fresh, stateless agent process; all state lives in files and git history; the
+loop wins through repetition, not cleverness. Kalph keeps that core and adds
+what plain Ralph lacks — **persistent memory**, **self-improvement from loop
+outcomes**, **legible prioritization**, **first-class Kiro integration**, and a
+file-coordinated **fleet mode**.
+
+Write a spec or a goal once. A fleet of loops decomposes it, prioritizes, cuts
+feature branches, builds, verifies, reviews each other's PRs, and leaves an
+auditable trail — running overnight, unattended.
+
+> Status: alpha. Kalph was built by its own loop (see `DECISIONS.md` and
+> `PLAN.md`). It is honest about what it will and won't do unattended — see
+> [What Kalph will and will not do](#what-kalph-will-and-will-not-do-unattended).
+
+## 60-second quickstart
+
+```bash
+pipx install kalph        # or: pip install kalph
+
+cd your-repo              # a git repo
+kalph init               # creates .kalph/{backlog.md,memory,kalph.toml,...}
+
+# 1. Tell it what "done" means — the verification gate:
+$EDITOR .kalph/kalph.toml   # set [verify] commands = ["pytest -q", "ruff check ."]
+
+# 2. Write the work as backlog tasks (one per line):
+$EDITOR .kalph/backlog.md
+
+# 3. Run overnight, leaving reviewable PRs by morning:
+kalph run --max-iterations 25 --pr
+```
+
+Each iteration: a fresh agent reads the backlog + git log, picks the one
+highest-priority task, implements it, and Kalph **re-runs your verify commands**
+before letting the task count as done. Failed verification keeps the task at the
+top of the queue. The loop stops on completion, the iteration cap, or a
+circuit breaker — never because the agent "felt done."
+
+## Why Kalph
+
+| Plain Ralph | Kalph adds |
+|---|---|
+| Static prompt, fresh context, stop sentinel, state in files | ...all preserved as **invariants** (`docs/research/ralph-invariants.md`) |
+| Agent decides when it's done | **Verified-done**: the runner re-runs your tests; a lying sentinel is ignored |
+| No memory between iterations | **Layered memory** (project / episodic / skills) injected as budgeted data |
+| One loop | **Fleet mode**: many role-specialized loops, coordinating through files + git |
+| — | **Kiro integration**: steering, custom agent, spec→backlog, MCP server |
+| — | **Safety rails**: worktree isolation, command denylist, secret scrubbing, PRs-only |
+
+## How the loop works
+
+```mermaid
+flowchart LR
+    A[fresh agent process] --> B[read backlog + git log]
+    B --> C[pick ONE top task]
+    C --> D[implement in isolated worktree]
+    D --> E[runner re-runs verify commands]
+    E -->|green| F[commit, record memory, next task]
+    E -->|red| G[task stays on top]
+    F --> H{sentinel or cap?}
+    G --> H
+    H -->|no| A
+    H -->|yes| I[retrospective + PR]
+```
+
+- **Fresh context per iteration** — no context rot; a wrong turn costs one loop.
+- **Externalized state** — `.kalph/backlog.md`, `.kalph/memory/`, transcripts
+  under `.kalph/runs/`. The repo is the database; a reviewer can audit a run in
+  minutes.
+- **Legible decisions** — every iteration logs a one-line `RATIONALE:` for the
+  task it chose.
+
+## Kiro in one command
+
+```bash
+# Write a Kiro spec, then:
+kalph init --from-spec my-feature   # imports .kiro/specs/my-feature/tasks.md
+kalph run --max-iterations 25 --pr  # overnight run -> PRs by morning
+```
+
+Register Kalph as an MCP server so Kiro can drive it by tool call:
+
+```bash
+kiro-cli mcp add --name kalph --command "kalph mcp" --scope workspace
+```
+
+See [`integrations/kiro/README.md`](integrations/kiro/README.md) and
+[`docs/kiro.md`](docs/kiro.md).
+
+## Fleet mode
+
+```bash
+cp examples/fleet.toml .kalph/fleet.toml   # define agents + roles
+kalph fleet --max-iterations 15            # builders, a verifier, a scribe
+kalph status                               # live view from coordination files
+kalph stop                                 # global kill switch
+```
+
+Agents never talk directly. They coordinate through files: atomic task
+**claims** (two agents never work the same task), a **mailbox** for notes, and
+a **shared skills** store. See [`docs/fleet.md`](docs/fleet.md).
+
+## Configuration
+
+`.kalph/kalph.toml` — every field is optional; defaults are safe to run
+unattended. Highlights:
+
+```toml
+[agent]
+adapter = "kiro"           # kiro | cmd | mock
+kiro_args = ["--agent", "kalph"]
+
+[loop]
+max_iterations = 25
+circuit_breaker_threshold = 3
+
+[verify]
+commands = ["pytest -q", "ruff check ."]   # this is your definition of done
+
+[git]
+isolation = "worktree"     # worktree (safest) | branch | none
+
+[autonomy]
+level = "normal"           # normal: proposed tasks rank below owner tasks
+
+[tracker]
+provider = "linear"        # optional; "" disables sync
+team = "KAL"
+```
+
+## Safety
+
+Kalph treats "unattended agent + shell + prompt-injected repo content" as its
+threat model. Repo/tracker text is data, never instructions; a command denylist
+blocks `curl|sh`, force-push, package publish, and credential reads; secrets are
+scrubbed from transcripts and comments; runs happen in isolated worktrees and
+land as PRs (never direct to main). Full model: [`docs/SECURITY.md`](docs/SECURITY.md).
+
+## What Kalph will and will not do unattended
+
+**Will**: pick the highest-priority task, implement it, verify with your
+commands, commit, learn (memory + skills), open PRs, and stop cleanly on a cap
+or repeated failure — leaving an auditable trail.
+
+**Will not**: push to `main`/`master`, merge its own PRs, run `curl | sh`,
+publish packages, read credential files, treat repo text as instructions, or
+grind the same failure a third time (it marks the task `blocked` with a
+diagnosis and surfaces it for you).
+
+## Documentation
+
+- [Concept](docs/concept.md) · [Quickstart](docs/quickstart.md) ·
+  [Kiro guide](docs/kiro.md) · [Security model](docs/SECURITY.md) ·
+  [Memory & skills](docs/memory-and-skills.md) · [Fleet](docs/fleet.md) ·
+  [Prioritization](docs/prioritization.md) · [MCP](docs/mcp.md)
+- Research notes: [Ralph invariants](docs/research/ralph-invariants.md) ·
+  [prior art](docs/research/prior-art.md) · [Kiro surface](docs/research/kiro-surface.md)
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Kalph is stdlib-only at its core; tests
+use a mock agent so no API keys are needed to develop.
+
+## License
+
+[Apache-2.0](LICENSE).
+
+## Acknowledgments
+
+- [Geoffrey Huntley](https://ghuntley.com/ralph/) — the Ralph Wiggum technique.
+- Prior art studied in `docs/research/prior-art.md`: ralph-orchestrator, the
+  official ralph-loop plugin, and Nous Research's Hermes Agent.

@@ -94,9 +94,11 @@ frontmatter `name` (≤64 chars, kebab) + `description` (≤1024 chars), optiona
 progressively: metadata at start, body on demand.
 
 **Kalph's skills live at `.kalph/skills/<name>/SKILL.md` in the same format.**
-`kalph init` offers to symlink/copy shareable ones into `.kiro/skills/` so Kiro
-sessions benefit from what the loop learned. (Kept separate so `.kalph/` stays
-gitignored-by-default while curated skills can be committed.)
+Because the format is identical, a shareable skill can be copied into
+`.kiro/skills/` so Kiro sessions benefit from what the loop learned. (Kept
+separate so `.kalph/` stays gitignored-by-default while curated skills can be
+committed.) NOTE (as-built): `kalph init` creates `.kalph/skills/` but does not
+auto-copy into `.kiro/skills/`; that copy is a documented manual step.
 
 ## 7. MCP — docs/mcp, docs/cli/mcp/*
 

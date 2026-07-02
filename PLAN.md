@@ -65,9 +65,9 @@ itself. Record the switchover in DECISIONS.md.
 
 ## Phase 7 — Packaging
 
-- [ ] P1: README (what/why/quickstart/architecture/FAQ/"will and will not do unattended"), CONTRIBUTING, CODE_OF_CONDUCT, SECURITY reporting, issue/PR templates, CHANGELOG
-- [ ] P2: CI: lint + unit + 2-iteration integration loop on fixture with mock agent + secret scan; green required
-- [ ] P3: docs/ static site (GitHub Pages ready): concept, quickstart, Kiro guide, security model, memory/skills reference
+- [x] P1: README (what/why/quickstart/architecture/FAQ/"will and will not do unattended"), CONTRIBUTING, CODE_OF_CONDUCT, SECURITY reporting, issue/PR templates, CHANGELOG (evidence: all files present)
+- [x] P2: CI: lint + unit + 2-iteration integration loop on fixture with mock agent + secret scan; green required (evidence: .github/workflows/ci.yml + test_ci_integration.py)
+- [x] P3: docs/ static site (GitHub Pages ready): concept, quickstart, Kiro guide, security model, memory/skills reference (evidence: docs/*.md + _config.yml)
 
 ## Phase 8 — Proof
 
