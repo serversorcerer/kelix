@@ -586,7 +586,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   from Claude Code CLI upstream docs; prominent **Not Kelix CI-tested — community
   corrections welcome** banner. Acceptance: TOML parses via load_config.
 
-- [ ] KE10: codex agent guide (upstream-sourced) | priority: 83 | status: ready | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A2
+- [x] KE10: codex agent guide (upstream-sourced) | priority: 83 | status: done | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A2
   details: create docs/agents/codex.md — same structure as KE9 for OpenAI Codex
   CLI; upstream-sourced banner. Acceptance: TOML parses via load_config.
 

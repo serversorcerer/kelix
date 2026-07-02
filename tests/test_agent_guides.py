@@ -12,6 +12,7 @@ from kelix.config import ADAPTER_PRESET_COMMANDS, load_config
 ROOT = Path(__file__).resolve().parents[1]
 CURSOR_GUIDE = ROOT / "docs" / "agents" / "cursor.md"
 CLAUDE_GUIDE = ROOT / "docs" / "agents" / "claude.md"
+CODEX_GUIDE = ROOT / "docs" / "agents" / "codex.md"
 
 _TOML_FENCE_RE = re.compile(r"```toml\n(.*?)```", re.DOTALL)
 _HEADING_RE = re.compile(r"^## (.+)$", re.MULTILINE)
@@ -71,6 +72,26 @@ def test_claude_guide_loop_heading_parity():
 
 @pytest.mark.parametrize("toml_block", _toml_blocks(CLAUDE_GUIDE.read_text(encoding="utf-8")))
 def test_claude_guide_toml_blocks_load(toml_block: str, tmp_path: Path):
+    kelix_dir = tmp_path / ".kelix"
+    kelix_dir.mkdir()
+    (kelix_dir / "kelix.toml").write_text(toml_block + "\n", encoding="utf-8")
+    load_config(tmp_path)
+
+
+def test_codex_guide_has_upstream_sourced_banner():
+    text = CODEX_GUIDE.read_text(encoding="utf-8")
+    assert "**Not Kelix CI-tested" in text
+    assert ADAPTER_PRESET_COMMANDS["codex"] in text
+
+
+def test_codex_guide_loop_heading_parity():
+    headings = _headings(CODEX_GUIDE.read_text(encoding="utf-8"))
+    for required in AGENT_GUIDE_LOOP_HEADINGS:
+        assert required in headings, f"missing ## {required}"
+
+
+@pytest.mark.parametrize("toml_block", _toml_blocks(CODEX_GUIDE.read_text(encoding="utf-8")))
+def test_codex_guide_toml_blocks_load(toml_block: str, tmp_path: Path):
     kelix_dir = tmp_path / ".kelix"
     kelix_dir.mkdir()
     (kelix_dir / "kelix.toml").write_text(toml_block + "\n", encoding="utf-8")
