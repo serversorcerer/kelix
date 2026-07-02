@@ -643,7 +643,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   details: same pattern for docs/prioritization.md; proof link to backlog
   selection tests or proof run evidence.
 
-- [ ] KE20: planning doc audacity intro | priority: 73 | status: ready | by: owner | deps: KE16,PC12 | phase: P-AUDIT | req: REQ-U2
+- [x] KE20: planning doc audacity intro | priority: 73 | status: done | by: owner | deps: KE16,PC12 | phase: P-AUDIT | req: REQ-U2
   details: same pattern for docs/planning.md (requires PC12 shipped); proof
   link to kelix plan/lint tests. If PC12 not done when task runs, seed minimal
   planning.md stub is out of scope — task blocked until PC12 done.

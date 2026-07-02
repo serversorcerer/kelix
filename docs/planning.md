@@ -1,5 +1,15 @@
 # Planning with Kelix
 
+You can go from a goal in your head to a machine-checked roadmap and
+loop-ready backlog in one iteration — without the agent writing product code
+or re-litigating your decisions every run.
+
+That hierarchy is proven on this repo, not a paper spec. Kelix decomposed its
+own v0.3 and v0.4 milestones through `kelix plan` — phased REQs, proposed
+tasks, and lint rejection of slop before anything was promoted to `ready`.
+Reproduce the draft-and-validate path with
+`pytest tests/test_plan.py tests/test_lint.py -q`.
+
 Kelix can run on a flat backlog — edit `.kelix/backlog.md`, set tasks to
 `status: ready`, run `kelix run`. That path is still the quick path for small
 repos and bugfix queues.
@@ -7,8 +17,7 @@ repos and bugfix queues.
 Use planning when the work has **structure**: milestones you will ship in
 order, phases that close only when specific requirements are verified, or
 parallel agents that must not collide on dependent tasks. This page is the
-owner's guide to that hierarchy — how to go from a goal in your head to a
-loop-ready plan a stranger can adopt tonight.
+owner's guide to that hierarchy.
 
 For task-level writing rules, see [writing-for-the-loop.md](writing-for-the-loop.md).
 
