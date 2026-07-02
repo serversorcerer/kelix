@@ -3,8 +3,8 @@
 - milestone: V
 - phase: V-SHARPEN
 - current_task: selecting
-- last_task: KV7
-- last_verified_commit: bdc3602
-- done: 95
+- last_task: KV8
+- last_verified_commit: 
+- done: 96
 - total: 106
 - blockers:

@@ -168,14 +168,21 @@ def test_checkpoint_ignores_runner_bookkeeping(repo):
 
 
 def test_circuit_breaker_on_no_diff(repo):
-    for i in (1, 2, 3):
+    for i in (1, 2, 3, 4):
         write_mock_script(repo / "mockdir", f"{i:03d}.sh", 'echo "did nothing"\n')
+    logs: list[str] = []
     cfg = _config(repo, extra="[loop]\ncircuit_breaker_threshold = 3\n")
-    result = Runner(cfg).run(log=lambda *_: None)
+    result = Runner(cfg).run(log=lambda msg: logs.append(msg))
     assert result.status == "circuit_breaker"
     assert len(result.iterations) == 3
+    output = "\n".join(logs)
+    assert "T1" in output
+    assert "fix:" in output.lower()
+    assert "no-diff" in output.lower()
     diagnosis = (cfg.kelix_dir / "runs" / result.run_id / "diagnosis.md").read_text()
     assert "no diff produced" in diagnosis
+    assert "T1" in diagnosis
+    assert "**Fix:**" in diagnosis
 
 
 def test_breaker_resets_after_success(repo):

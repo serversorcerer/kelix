@@ -277,6 +277,100 @@ class Runner:
             task_id = current_task
         return task_id
 
+    def _resolve_breaker_task_id(
+        self,
+        workdir: Path,
+        current_task: str,
+        recent: list[IterationRecord],
+    ) -> str:
+        if current_task and current_task != "selecting":
+            return current_task
+        for rec in reversed(recent):
+            task_id = self._task_from_rationale(rec.rationale)
+            if task_id:
+                return task_id
+        from .backlog import parse_backlog, select_next
+
+        backlog_path = workdir / self.cfg.loop.plan_file
+        if backlog_path.is_file():
+            tasks = parse_backlog(backlog_path.read_text(encoding="utf-8"))
+            active_phase = ""
+            if self._run_state is not None:
+                active_phase = self._run_state.phase
+            task = select_next(
+                tasks,
+                autonomy=self.cfg.autonomy.level,
+                active_phase=active_phase,
+            )
+            if task is not None:
+                return task.id
+        return "(unknown)"
+
+    @staticmethod
+    def _breaker_condition_description(recent: list[IterationRecord]) -> str:
+        failures = [rec.failure for rec in recent if rec.failure]
+        if failures and all("no diff produced" in failure for failure in failures):
+            return "consecutive no-diff iterations"
+        if failures and all("verification failed" in failure for failure in failures):
+            return "consecutive verification failures"
+        if failures and all(
+            failure.startswith("adapter error:") for failure in failures
+        ):
+            return "consecutive adapter failures"
+        if failures and all("agent exit" in failure for failure in failures):
+            return "consecutive agent failures"
+        return f"{len(recent)} consecutive failure iterations"
+
+    def _dirty_agent_paths(self, workdir: Path) -> list[str]:
+        from .gitutil import RUNNER_BOOKKEEPING, git
+
+        raw = git(["status", "--porcelain"], workdir).strip()
+        if not raw:
+            return []
+        paths: list[str] = []
+        for line in raw.splitlines():
+            if len(line) < 4:
+                continue
+            path = line[3:].strip()
+            if " -> " in path:
+                path = path.split(" -> ", 1)[1].strip()
+            if path.startswith('"') and path.endswith('"'):
+                path = path[1:-1]
+            if any(
+                path == prefix or path.startswith(f"{prefix}/")
+                for prefix in RUNNER_BOOKKEEPING
+            ):
+                continue
+            paths.append(path)
+        return paths
+
+    def _breaker_fix_line(
+        self,
+        workdir: Path,
+        task_id: str,
+        recent: list[IterationRecord],
+    ) -> str:
+        failures = [rec.failure for rec in recent if rec.failure]
+        dirty = self._dirty_agent_paths(workdir)
+        if dirty:
+            suffix = f" (+{len(dirty) - 1} more)" if len(dirty) > 1 else ""
+            return f"check worktree for uncommitted changes in {dirty[0]}{suffix}"
+        if failures and all("no diff produced" in failure for failure in failures):
+            return (
+                f"edit backlog task {task_id} details: add concrete deliverables "
+                "and a test path"
+            )
+        if failures and all("verification failed" in failure for failure in failures):
+            return (
+                f"run verify commands locally or edit backlog task {task_id} "
+                "details: fix failing acceptance checks"
+            )
+        if failures and all(
+            failure.startswith("adapter error:") for failure in failures
+        ):
+            return "fix agent adapter config in kelix.toml (command, auth, or timeout)"
+        return f"edit backlog task {task_id} details: break the failure pattern above"
+
     def _backlog_snapshot(self, workdir: Path) -> tuple[str, list]:
         from .backlog import parse_backlog
 
@@ -526,7 +620,14 @@ class Runner:
                 consecutive_failures += 1
                 log(f"  iter {index}: {rec.failure}")
                 if consecutive_failures >= cfg.loop.circuit_breaker_threshold:
-                    self._trip_breaker(result, run_dir, consecutive_failures)
+                    self._trip_breaker(
+                        result,
+                        run_dir,
+                        consecutive_failures,
+                        workdir,
+                        current_task,
+                        log,
+                    )
                     break
                 continue
 
@@ -606,7 +707,14 @@ class Runner:
                 log("  sentinel ignored: verification is red")
 
             if consecutive_failures >= cfg.loop.circuit_breaker_threshold:
-                self._trip_breaker(result, run_dir, consecutive_failures)
+                self._trip_breaker(
+                    result,
+                    run_dir,
+                    consecutive_failures,
+                    workdir,
+                    current_task,
+                    log,
+                )
                 break
         else:
             result.status = "max_iterations"
@@ -615,17 +723,38 @@ class Runner:
         self._finish(result, run_dir, log)
         return result
 
-    def _trip_breaker(self, result: RunResult, run_dir: Path, failures: int):
+    def _trip_breaker(
+        self,
+        result: RunResult,
+        run_dir: Path,
+        failures: int,
+        workdir: Path,
+        current_task: str,
+        log,
+    ):
+        from .art import say
+
         result.status = "circuit_breaker"
         cause = f"consecutive_failures:{failures}"
         for row in result.ledger_rows[-failures:]:
             row.circuit_breaker_cause = cause
         recent = [r for r in result.iterations if r.failure][-failures:]
+        condition = self._breaker_condition_description(recent)
+        task_id = self._resolve_breaker_task_id(workdir, current_task, recent)
+        fix = self._breaker_fix_line(workdir, task_id, recent)
+        log(say(f"circuit breaker: {condition}", "fail"))
+        log(say(f"task: {task_id}", "warn"))
+        log(say(f"fix: {fix}", "climb"))
         lines = [
             "# Kelix circuit breaker diagnosis",
             "",
             f"The loop stopped itself after {failures} consecutive failure "
             "iterations instead of burning more tokens.",
+            "",
+            "## Action",
+            f"- **Cause:** {condition}",
+            f"- **Task:** {task_id}",
+            f"- **Fix:** {fix}",
             "",
             "## Failure sequence",
         ]

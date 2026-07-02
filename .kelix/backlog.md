@@ -800,7 +800,7 @@ Owner decisions: `.kelix/phases/V-CUT/CONTEXT.md`. All tasks below are
   fixture emitting 8 questions → validation failure or truncation to 7; fixture
   with 5 MC questions → accepted; CONTEXT.md receives answers on resume path.
 
-- [ ] KV8: circuit breaker actionable message | priority: 48 | status: ready | by: owner | deps: KV6 | phase: V-SHARPEN | req: REQ-VS3
+- [x] KV8: circuit breaker actionable message | priority: 48 | status: done | by: owner | deps: KV6 | phase: V-SHARPEN | req: REQ-VS3
   details: when circuit_breaker_threshold trips in loop.py, stderr/stdout must
   state: breaker cause (e.g. consecutive no-diff), active task id, and one-line
   fix ("edit backlog task X details:" or "check worktree for uncommitted changes
