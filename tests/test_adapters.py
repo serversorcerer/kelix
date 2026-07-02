@@ -124,6 +124,7 @@ def test_claude_preset_run_integration(tmp_path, monkeypatch):
     (repo / ".kelix" / "backlog.md").write_text(
         "# Backlog\n\n"
         "- [ ] C1: create artifact | priority: 90 | status: ready | by: owner\n"
+        "  details: write artifact.txt; assert file exists in tests/test_fixture.py\n"
     )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()

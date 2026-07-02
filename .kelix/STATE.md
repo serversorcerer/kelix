@@ -1,10 +1,10 @@
 # Kelix state
 
 - milestone: v0.4
-- phase: P-COMPARE
+- phase: P-GOLD
 - current_task: selecting
-- last_task: KE28
-- last_verified_commit: 355885d
-- done: 84
+- last_task: KE29
+- last_verified_commit: pending
+- done: 85
 - total: 106
 - blockers:

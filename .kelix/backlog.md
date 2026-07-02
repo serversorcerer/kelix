@@ -693,7 +693,7 @@ All tasks below are `status: proposed` until the owner promotes them.
 
 ### Phase P-GOLD — First-contact spec gate
 
-- [ ] KE29: run spec-gate for ready tasks | priority: 64 | status: ready | by: owner | phase: P-GOLD | req: REQ-GD1
+- [x] KE29: run spec-gate for ready tasks | priority: 64 | status: done | by: owner | phase: P-GOLD | req: REQ-GD1
   details: in src/kelix/loop.py Runner.run() before iteration 1: lint only
   tasks with status=ready via lint_backlog; on findings print actionable
   messages with inline good/bad task example (from lint.py or dedicated formatter);

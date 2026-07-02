@@ -31,6 +31,39 @@ def test_format_finding_includes_task_id():
     )
 
 
+def test_lint_ready_scope_ignores_proposed():
+    findings = lint_backlog(
+        [
+            _task(
+                id="READY",
+                notes={"details": "improve everything"},
+            ),
+            _task(
+                id="PROP",
+                status="proposed",
+                by="kelix",
+                notes={"details": "improve everything"},
+            ),
+        ],
+        scope="ready",
+    )
+    assert all(f.task_id == "READY" for f in findings)
+    assert len(findings) >= 1
+
+
+def test_format_spec_gate_findings_includes_examples():
+    from kelix.lint import format_spec_gate_findings
+
+    lines = format_spec_gate_findings(
+        [Finding("T1", "missing_details", "task has no details: note with testable acceptance")]
+    )
+    text = "\n".join(lines)
+    assert "spec gate:" in text
+    assert "bad:" in text
+    assert "good:" in text
+    assert "T1:" in text
+
+
 def test_missing_details():
     findings = lint_backlog([_task(notes={"rationale": "why"})])
     assert any(f.rule == "missing_details" for f in findings)

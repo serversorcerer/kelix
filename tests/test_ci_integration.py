@@ -29,7 +29,9 @@ def test_two_iteration_loop_on_fixture(tmp_path):
     (repo / ".kelix" / "backlog.md").write_text(
         "# Backlog\n\n"
         "- [ ] A1: create greeting module | priority: 90 | status: ready | by: owner\n"
+        "  details: greet.py with hello(); assert in python3 -c import greet\n"
         "- [ ] A2: add farewell | priority: 80 | status: ready | by: owner\n"
+        "  details: add bye() to greet.py; assert in python3 -c import greet\n"
     )
     write_mock_script(
         repo / "mockdir",
@@ -72,6 +74,7 @@ def test_run_complete_receipt_names_verify_gate_and_verified_count(tmp_path):
     (repo / ".kelix" / "backlog.md").write_text(
         "# Backlog\n\n"
         "- [ ] A1: create greeting module | priority: 90 | status: ready | by: owner\n"
+        "  details: greet.py with hello(); assert in python3 -c import greet\n"
     )
     write_mock_script(
         repo / "mockdir",
