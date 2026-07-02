@@ -910,7 +910,7 @@ Owner context: `.kelix/phases/DRIFT-FIX/CONTEXT.md`. Fleet config:
   PR}; still link docs/SECURITY.md; `pytest tests/test_value_demo.py -q` pass
   (README first-screen test unchanged).
 
-- [ ] DR2: README install block PR-free audit | priority: 94 | status: ready | by: owner | deps: DR1 | phase: DRIFT-FIX | req: REQ-DR1
+- [x] DR2: README install block PR-free audit | priority: 94 | status: done | by: owner | deps: DR1 | phase: DRIFT-FIX | req: REQ-DR1
   details: scan README.md full file for stale PR/sync/--pr claims outside
   historical compare table footnotes. Fix any found. Ensure "Why Kelix" table
   and fleet/Kiro sections describe run branches + owner review, not automated
