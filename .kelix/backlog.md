@@ -608,7 +608,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   kelix run --max-iterations 1 (mock backlog + verify echo). Proves preset
   resolves and subprocess runs. Acceptance: test passes in CI without real CLI.
 
-- [ ] KE14: agent guide TOML CI check | priority: 79 | status: ready | by: owner | deps: KE8,KE9,KE10,KE11 | phase: P-AGENT | req: REQ-A4
+- [x] KE14: agent guide TOML CI check | priority: 79 | status: done | by: owner | deps: KE8,KE9,KE10,KE11 | phase: P-AGENT | req: REQ-A4
   details: add tests/test_agent_guides.py: extract fenced `[agent]` TOML from
   docs/agents/*.md and docs/kiro.md; each must parse via load_config into a
   temp dir without ConfigError. Wire into CI (pytest). Acceptance: test covers
