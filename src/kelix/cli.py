@@ -73,6 +73,32 @@ What the loop must NOT build, even if tempting.
 - (add acceptance criteria here)
 """
 
+ROADMAP_TEMPLATE = """\
+# Kelix roadmap
+
+<!-- Optional. Delete this file to use a flat backlog (no milestones or phase
+gates). See docs/planning.md for the plan-first flow. -->
+
+## Milestone M1 — (release title)
+
+Describe what exists when this milestone ships, and for whom.
+
+Non-goals: what the loop must NOT build, even if tempting.
+
+### Phase P-EXAMPLE — (phase title)
+
+Outcome: one sentence — what "done" means for this phase.
+
+- REQ-EX1: (testable requirement — every REQ must map to backlog task(s))
+- REQ-EX2: (another requirement)
+
+### Phase P-NEXT — (next phase title)
+
+Outcome: (next phase outcome)
+
+- REQ-N1: (requirement for the next phase)
+"""
+
 
 def cmd_init(args) -> int:
     root = Path(args.path).resolve()
@@ -99,6 +125,10 @@ def cmd_init(args) -> int:
     if not goal_path.exists():
         goal_path.write_text(GOAL_TEMPLATE, encoding="utf-8")
         created.append("GOAL.md")
+    roadmap_path = kelix / "roadmap.md"
+    if not roadmap_path.exists():
+        roadmap_path.write_text(ROADMAP_TEMPLATE, encoding="utf-8")
+        created.append(str(roadmap_path.relative_to(root)))
     if args.from_spec:
         from .kiro import import_spec
 

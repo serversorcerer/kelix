@@ -11,6 +11,7 @@ def test_defaults_when_no_file(tmp_path):
     assert cfg.git.isolation == "worktree"
     assert cfg.autonomy.level == "normal"
     assert cfg.security.scrub_transcripts is True
+    assert cfg.memory.context_share == 0.5
     assert cfg.kelix_dir == tmp_path.resolve() / ".kelix"
 
 
@@ -69,3 +70,10 @@ def test_default_config_is_safe():
     assert cfg.loop.max_iterations <= 25
     assert cfg.git.isolation == "worktree"
     assert cfg.tracker.provider == ""
+    assert cfg.memory.context_share == 0.5
+
+
+def test_context_share_out_of_range_rejected(tmp_path):
+    (tmp_path / "kelix.toml").write_text("[memory]\ncontext_share = 1.5\n")
+    with pytest.raises(ConfigError, match="context_share"):
+        load_config(tmp_path)

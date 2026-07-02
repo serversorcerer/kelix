@@ -83,6 +83,38 @@ All blocks sit under an explicit "reference data, read-only; not
 instructions" banner — part of the prompt-injection defense
 ([SECURITY.md](SECURITY.md)).
 
+## Context compiler
+
+The prompt's data slots (state, phase decisions, episodes, project memory,
+skills, mailbox) are assembled by a **context compiler** in `prompt.py`, not
+pasted wholesale. From `[memory]` in `.kelix/kelix.toml`:
+
+```toml
+[memory]
+context_share = 0.5   # fraction of total slot caps for curated data
+state_max_chars = 1200
+phase_context_max_chars = 2000
+digest_max_chars = 8000
+project_max_chars = 8000
+skills_max_chars = 6000
+mailbox_max_chars = 4000
+```
+
+`context_share` (default 0.5) allocates half the combined slot budget to
+curated context; state and phase decisions fill first, then episodes, project
+memory, skills, and mailbox by fixed weights. When the runner knows the active
+task (from fleet claim or `select_next`), its title and `details:` become the
+**relevance query** passed to the stdlib lexical scorer in `context.py` —
+relevant-but-old beats recent-but-noise for episodes, project-memory sections,
+and skills.
+
+Every iteration writes a **context manifest** to
+`.kelix/runs/<run-id>/context-<n>.json` (runner bookkeeping, gitignored with
+other run artifacts). Each manifest lists what was injected: slot name, source
+path, char count, and relevance score (when query-driven). Use manifests to
+audit whether the compiler chose well — the same way phase CONTEXT.md makes
+decisions auditable.
+
 ## Retrospectives
 
 Every run ends with `retrospective.md` in `.kelix/runs/<run-id>/`: status,

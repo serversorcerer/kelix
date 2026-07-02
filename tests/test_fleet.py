@@ -6,15 +6,21 @@ import re
 import pytest
 from conftest import make_repo, write_mock_script
 
+from kelix.backlog import Task
 from kelix.claims import list_claims
 from kelix.config import load_config
 from kelix.fleet import (
+    FleetAgent,
     FleetError,
+    FleetSpec,
+    _write_fleet_retrospective,
+    infer_task_kind,
     load_fleet_spec,
     make_claim_hook,
     render_status,
     run_fleet,
 )
+from kelix.loop import IterationRecord, RunResult
 
 FLEET_TOML = """\
 [fleet]
@@ -39,6 +45,13 @@ FLEET_BACKLOG = """\
 - [ ] FT2: task two | priority: 80 | status: ready | by: owner
 - [ ] FT3: task three | priority: 70 | status: ready | by: owner
 - [ ] FT4: task four | priority: 60 | status: ready | by: owner
+"""
+
+WAVE_BACKLOG = """\
+# Backlog
+
+- [ ] W0: wave zero task | priority: 90 | status: ready | by: owner
+- [ ] W1: wave one task | priority: 99 | status: ready | by: owner | deps: W0
 """
 
 # Fleet mock agents: mark the assigned task (parsed from the prompt on stdin)
@@ -145,6 +158,38 @@ def test_claim_hook_returns_none_when_all_claimed(tmp_path):
     assert starved(repo, 1) is None
 
 
+def test_claim_hook_respects_earliest_incomplete_wave(tmp_path):
+    repo = make_repo(tmp_path / "repo")
+    (repo / ".kelix" / "backlog.md").write_text(WAVE_BACKLOG)
+    (repo / ".kelix" / "fleet.toml").write_text(FLEET_TOML)
+    (repo / "kelix.toml").write_text("[agent]\nadapter = \"mock\"\n")
+    cfg = load_config(repo)
+    spec = load_fleet_spec(cfg, ".kelix/fleet.toml")
+
+    hook_a = make_claim_hook(cfg, spec, "agent-a")
+    hook_b = make_claim_hook(cfg, spec, "agent-b")
+
+    first = hook_a(repo, 1)
+    assert first is not None
+    assert "W0" in first
+    assert "W1" not in first
+
+    # W0 is claimed but not done — wave 1 must stay blocked for other agents.
+    second = hook_b(repo, 1)
+    assert second is None or "W1" not in second
+
+
+def test_render_status_shows_pending_task_waves(tmp_path):
+    repo = make_repo(tmp_path / "repo")
+    (repo / ".kelix" / "backlog.md").write_text(WAVE_BACKLOG)
+    (repo / "kelix.toml").write_text("[agent]\nadapter = \"mock\"\n")
+    cfg = load_config(repo)
+    out = render_status(cfg)
+    assert "Pending tasks (waves):" in out
+    assert "wave 0: W0 (ready)" in out
+    assert "wave 1: W1 (ready)" in out
+
+
 def test_fleet_run_end_to_end_zero_collisions(tmp_path):
     repo = _fleet_repo(tmp_path)
     cfg = load_config(repo)
@@ -171,5 +216,127 @@ def test_render_status_reads_coordination_files(tmp_path):
     make_claim_hook(cfg, spec, "agent-a")(repo, 1)
     out = render_status(cfg)
     assert "FT1" in out and "agent-a" in out
+    assert "Phase gate coverage" not in out
     (cfg.kelix_dir / "STOP").write_text("halt")
     assert "KILL SWITCH" in render_status(cfg)
+
+
+GATE_ROADMAP = """\
+# Roadmap
+
+## Milestone m1 — Demo
+
+### Phase P-GATE — gate phase
+
+Outcome: gate it.
+
+- REQ-G1: first req
+- REQ-G2: second req
+- REQ-G3: third req
+"""
+
+GATE_BACKLOG = """\
+# Backlog
+
+- [x] T1: first | priority: 90 | status: done | by: owner | phase: P-GATE | req: REQ-G1
+- [x] T2: second | priority: 80 | status: done | by: owner | phase: P-GATE | req: REQ-G2
+- [ ] T3: third | priority: 70 | status: ready | by: owner | phase: P-GATE | req: REQ-G3
+"""
+
+GATE_STATE = """\
+# Kelix state
+
+- milestone: m1 — Demo
+- phase: P-GATE
+- current_task: selecting
+- last_task: T2
+- last_verified_commit: abc123
+- done: 2
+- total: 3
+- blockers:
+  - REQ-G3
+"""
+
+
+def test_render_status_phase_gate_coverage(tmp_path):
+    repo = make_repo(tmp_path / "repo")
+    kelix = repo / ".kelix"
+    kelix.mkdir(parents=True, exist_ok=True)
+    (kelix / "roadmap.md").write_text(GATE_ROADMAP)
+    (kelix / "backlog.md").write_text(GATE_BACKLOG)
+    (kelix / "STATE.md").write_text(GATE_STATE)
+    (repo / "kelix.toml").write_text("[agent]\nadapter = \"mock\"\n")
+    cfg = load_config(repo)
+    out = render_status(cfg)
+    assert "Milestone: m1 — Demo" in out
+    assert "Phase: P-GATE — gate phase" in out
+    assert "Phase gate coverage:" in out
+    assert "REQ-G1     covered      T1" in out
+    assert "REQ-G2     covered      T2" in out
+    assert "REQ-G3     in-progress  T3" in out
+    assert "Blockers:" in out
+    assert "REQ-G3" in out.split("Blockers:")[1]
+
+
+def test_infer_task_kind_heuristics():
+    base = dict(priority=50, status="ready", by="owner")
+    assert infer_task_kind(Task("T1", "add unit tests for module", **base)) == "test"
+    assert infer_task_kind(Task("T2", "write planning documentation", **base)) == "docs"
+    assert infer_task_kind(Task("T3", "fix broken build", **base)) == "fix"
+    assert infer_task_kind(Task("T4", "add priority field to backlog", **base)) == "feature"
+
+
+def test_fleet_retrospective_reports_role_drift(tmp_path):
+    repo = make_repo(tmp_path / "repo")
+    backlog = """\
+# Backlog
+
+- [ ] T1: add unit tests for module | priority: 90 | status: ready | by: owner
+- [ ] T2: write planning documentation | priority: 80 | status: ready | by: owner
+"""
+    (repo / ".kelix" / "backlog.md").write_text(backlog)
+    (repo / "kelix.toml").write_text("[agent]\nadapter = \"mock\"\n")
+    cfg = load_config(repo)
+
+    spec = FleetSpec(
+        agents=[
+            FleetAgent(id="verifier-1", role="verifier"),
+            FleetAgent(id="scribe-1", role="scribe"),
+        ]
+    )
+    results = {
+        "verifier-1": RunResult(
+            run_id="run-v",
+            status="completed",
+            branch="kelix/run-v",
+            iterations=[
+                IterationRecord(
+                    index=1,
+                    started_at="2026-07-02T00:00:00",
+                    rationale="T2 — scribe task claimed by verifier",
+                    verified=True,
+                ),
+            ],
+        ),
+        "scribe-1": RunResult(
+            run_id="run-s",
+            status="completed",
+            branch="kelix/run-s",
+            iterations=[
+                IterationRecord(
+                    index=1,
+                    started_at="2026-07-02T00:00:00",
+                    rationale="T1 — test task claimed by scribe",
+                    verified=True,
+                ),
+            ],
+        ),
+    }
+    _write_fleet_retrospective(cfg, spec, results, {})
+
+    retros = list((cfg.kelix_dir / "runs").glob("fleet-*.md"))
+    assert retros
+    body = retros[0].read_text()
+    assert "role-match: no (verifier vs docs)" in body
+    assert "role-match: no (scribe vs test)" in body
+    assert "role drift: 1/1 iterations" in body

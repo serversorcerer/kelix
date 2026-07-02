@@ -23,6 +23,9 @@ kelix run --max-iterations 25 --pr
   orchestration.
 - **[Quickstart](quickstart.md)** — install, `kelix init`, the verification
   gate, writing backlog tasks, running overnight, and reading the results.
+- **[Planning](planning.md)** — plan-first flow (`GOAL.md` → `kelix plan` →
+  promote → run), roadmap → phase → task hierarchy, STATE.md, lint, phase
+  gate, waves, and when to stay on a flat backlog.
 - **[Writing for the loop](writing-for-the-loop.md)** — the input contract:
   how to write backlog tasks and PRDs a fresh agent gets right the first
   time. Good input in, good output out.

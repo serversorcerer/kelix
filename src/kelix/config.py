@@ -23,6 +23,8 @@ class AgentConfig:
     # Extra args appended to the kiro adapter invocation (e.g. ["--agent", "kelix"]).
     kiro_args: list[str] = field(default_factory=list)
     timeout_seconds: int = 1800
+    # Kill the agent if stdout/stderr is silent this long (seconds). 0 disables.
+    inactivity_timeout_seconds: int = 300
     # For the `mock` adapter: directory of numbered scripts (see adapters.py).
     mock_dir: str = ""
 
@@ -46,10 +48,13 @@ class VerifyConfig:
 @dataclass
 class MemoryConfig:
     enabled: bool = True
+    context_share: float = 0.5
     state_max_chars: int = 1200
     phase_context_max_chars: int = 2000
     digest_max_chars: int = 8000
+    project_max_chars: int = 4000
     skills_max_chars: int = 6000
+    mailbox_max_chars: int = 2000
     episodes_in_digest: int = 10
 
 
@@ -157,4 +162,7 @@ def load_config(root: Path | None = None) -> Config:
         raise ConfigError(f"unknown git isolation {cfg.git.isolation!r}")
     if cfg.autonomy.level not in ("normal", "high"):
         raise ConfigError(f"unknown autonomy level {cfg.autonomy.level!r}")
+    share = cfg.memory.context_share
+    if not isinstance(share, float) or not (0.0 <= share <= 1.0):
+        raise ConfigError("[memory].context_share must be a float between 0 and 1")
     return cfg

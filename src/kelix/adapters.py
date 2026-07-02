@@ -18,6 +18,8 @@ import os
 import shlex
 import subprocess
 import tempfile
+import threading
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -39,32 +41,95 @@ class AdapterError(Exception):
     pass
 
 
+def _terminate_process(proc: subprocess.Popen[bytes]) -> None:
+    if proc.poll() is not None:
+        return
+    proc.terminate()
+    try:
+        proc.wait(timeout=2)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait()
+
+
 def _run_process(
     argv: list[str],
     cwd: Path,
     timeout: int,
+    inactivity_timeout: int = 0,
     stdin_text: str | None = None,
     env: dict | None = None,
 ) -> AgentResult:
     try:
-        proc = subprocess.run(
+        proc = subprocess.Popen(
             argv,
             cwd=str(cwd),
-            input=stdin_text,
+            stdin=subprocess.PIPE if stdin_text is not None else None,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            text=True,
-            timeout=timeout,
             env=env,
         )
-    except subprocess.TimeoutExpired as exc:
-        out = exc.output or ""
-        if isinstance(out, bytes):
-            out = out.decode(errors="replace")
-        return AgentResult(exit_code=124, output=out, timed_out=True)
     except FileNotFoundError as exc:
         raise AdapterError(f"agent command not found: {argv[0]}") from exc
-    return AgentResult(exit_code=proc.returncode, output=proc.stdout or "")
+
+    if stdin_text is not None:
+        assert proc.stdin is not None
+        proc.stdin.write(stdin_text.encode())
+        proc.stdin.close()
+
+    output_chunks: list[bytes] = []
+    last_activity = time.monotonic()
+    activity_lock = threading.Lock()
+
+    def reader() -> None:
+        nonlocal last_activity
+        assert proc.stdout is not None
+        while True:
+            chunk = proc.stdout.read(4096)
+            if not chunk:
+                break
+            with activity_lock:
+                output_chunks.append(chunk)
+                last_activity = time.monotonic()
+
+    reader_thread = threading.Thread(target=reader, daemon=True)
+    reader_thread.start()
+
+    start = time.monotonic()
+    timed_out = False
+    hard_timeout = False
+
+    while proc.poll() is None:
+        now = time.monotonic()
+        elapsed = now - start
+
+        if timeout > 0 and elapsed >= timeout:
+            timed_out = True
+            hard_timeout = True
+            _terminate_process(proc)
+            break
+
+        if inactivity_timeout > 0:
+            with activity_lock:
+                inactive = now - last_activity
+            if inactive >= inactivity_timeout:
+                timed_out = True
+                _terminate_process(proc)
+                break
+
+        time.sleep(0.05)
+
+    reader_thread.join(timeout=5)
+    out = b"".join(output_chunks).decode(errors="replace")
+
+    if hard_timeout:
+        exit_code = 124
+    elif proc.returncode is not None:
+        exit_code = proc.returncode
+    else:
+        exit_code = 1
+
+    return AgentResult(exit_code=exit_code, output=out, timed_out=timed_out)
 
 
 class KiroAdapter:
@@ -84,7 +149,13 @@ class KiroAdapter:
             *self.cfg.agent.kiro_args,
             prompt,
         ]
-        return _run_process(argv, cwd, self.cfg.agent.timeout_seconds, env=env)
+        return _run_process(
+            argv,
+            cwd,
+            self.cfg.agent.timeout_seconds,
+            inactivity_timeout=self.cfg.agent.inactivity_timeout_seconds,
+            env=env,
+        )
 
 
 class CmdAdapter:
@@ -99,6 +170,7 @@ class CmdAdapter:
     def run(self, prompt: str, cwd: Path) -> AgentResult:
         template = self.cfg.agent.command
         timeout = self.cfg.agent.timeout_seconds
+        inactivity = self.cfg.agent.inactivity_timeout_seconds
         if "{prompt_file}" in template:
             with tempfile.NamedTemporaryFile(
                 "w", suffix=".md", prefix="kelix-prompt-", delete=False
@@ -110,14 +182,20 @@ class CmdAdapter:
                     part.replace("{prompt_file}", prompt_path)
                     for part in shlex.split(template)
                 ]
-                return _run_process(argv, cwd, timeout)
+                return _run_process(argv, cwd, timeout, inactivity_timeout=inactivity)
             finally:
                 Path(prompt_path).unlink(missing_ok=True)
         if "{prompt}" in template:
             argv = [part.replace("{prompt}", prompt) for part in shlex.split(template)]
-            return _run_process(argv, cwd, timeout)
+            return _run_process(argv, cwd, timeout, inactivity_timeout=inactivity)
         # No token: classic Ralph, prompt on stdin.
-        return _run_process(shlex.split(template), cwd, timeout, stdin_text=prompt)
+        return _run_process(
+            shlex.split(template),
+            cwd,
+            timeout,
+            inactivity_timeout=inactivity,
+            stdin_text=prompt,
+        )
 
 
 class MockAdapter:
@@ -148,7 +226,11 @@ class MockAdapter:
         script = self._scripts[self._index]
         self._index += 1
         return _run_process(
-            [str(script)], cwd, self.cfg.agent.timeout_seconds, stdin_text=prompt
+            [str(script)],
+            cwd,
+            self.cfg.agent.timeout_seconds,
+            inactivity_timeout=self.cfg.agent.inactivity_timeout_seconds,
+            stdin_text=prompt,
         )
 
 

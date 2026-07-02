@@ -8,6 +8,7 @@ reference data, not instructions — part of the prompt-injection defense.
 
 from __future__ import annotations
 
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
 from .config import Config
@@ -16,6 +17,7 @@ from .state import load_state
 SLOT_STATE = "{{STATE}}"
 SLOT_PHASE_CONTEXT = "{{PHASE_CONTEXT}}"
 SLOT_MEMORY = "{{MEMORY_DIGEST}}"
+SLOT_PROJECT = "{{PROJECT_MEMORY}}"
 SLOT_SKILLS = "{{SKILLS}}"
 SLOT_MAILBOX = "{{MAILBOX}}"
 SLOT_ROLE = "{{ROLE}}"
@@ -96,7 +98,9 @@ touch the main branch directly.
 </episodes>
 
 ### Project memory
-(see `.kelix/memory/project.md` for the full file)
+<project_memory>
+{{PROJECT_MEMORY}}
+</project_memory>
 
 ### Relevant skills you previously earned
 <skills>
@@ -196,16 +200,135 @@ _EMPTY = {
     SLOT_STATE: "(no state file — flat-backlog mode)",
     SLOT_PHASE_CONTEXT: "(no phase decisions)",
     SLOT_MEMORY: "(no episodes yet)",
+    SLOT_PROJECT: "(no project memory yet)",
     SLOT_SKILLS: "(no skills yet)",
     SLOT_MAILBOX: "(empty)",
     SLOT_ROLE: DEFAULT_ROLE,
 }
+
+_SLOT_CAPS = (
+    "state",
+    "phase_context",
+    "episodes",
+    "project_memory",
+    "skills",
+    "mailbox",
+)
+_PRIORITY_SLOTS = ("state", "phase_context")
+_SECONDARY_WEIGHTS = {
+    "episodes": 4,
+    "project_memory": 3,
+    "skills": 3,
+    "mailbox": 1,
+}
+
+
+@dataclass
+class ContextManifestItem:
+    slot: str
+    source: str
+    chars: int
+    score: float | None = None
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
+def _manifest_append(
+    manifest: list[dict],
+    slot: str,
+    source: str,
+    text: str,
+    score: float | None = None,
+) -> None:
+    manifest.append(
+        ContextManifestItem(
+            slot=slot,
+            source=source,
+            chars=len(text),
+            score=round(score, 4) if score is not None else None,
+        ).to_dict()
+    )
 
 
 def _truncate(text: str, budget: int, label: str) -> str:
     if len(text) <= budget:
         return text
     return text[:budget] + f"\n[... truncated to {budget} chars ({label} budget)]"
+
+
+def _slot_caps(cfg: Config) -> dict[str, int]:
+    mem = cfg.memory
+    return {
+        "state": mem.state_max_chars,
+        "phase_context": mem.phase_context_max_chars,
+        "episodes": mem.digest_max_chars,
+        "project_memory": mem.project_max_chars,
+        "skills": mem.skills_max_chars,
+        "mailbox": mem.mailbox_max_chars,
+    }
+
+
+def compute_slot_budgets(cfg: Config) -> dict[str, int]:
+    """Allocate the context-share pool across data slots (state/phase first)."""
+    caps = _slot_caps(cfg)
+    total = sum(caps.values())
+    pool = max(0, int(cfg.memory.context_share * total))
+    allocated = {slot: 0 for slot in _SLOT_CAPS}
+    remaining = pool
+
+    for slot in _PRIORITY_SLOTS:
+        take = min(caps[slot], remaining)
+        allocated[slot] = take
+        remaining -= take
+
+    if remaining > 0:
+        weight_sum = sum(_SECONDARY_WEIGHTS.values())
+        for slot, weight in _SECONDARY_WEIGHTS.items():
+            share = int(remaining * weight / weight_sum)
+            allocated[slot] = min(caps[slot], share)
+
+    if pool > 0 and allocated["state"] == 0:
+        allocated["state"] = min(caps["state"], max(1, pool // 10))
+
+    return allocated
+
+
+def relevance_query_for_task(
+    cfg: Config,
+    workdir: Path,
+    current_task: str = "",
+) -> str:
+    """Build the lexical query from the active or next selectable task."""
+    from .backlog import find_task, parse_backlog, select_next
+    from .state import load_state
+
+    backlog_path = workdir / cfg.loop.plan_file
+    if not backlog_path.is_file():
+        return ""
+
+    tasks = parse_backlog(backlog_path.read_text(encoding="utf-8"))
+    active_phase = ""
+    run_state = load_state(workdir / ".kelix")
+    if run_state is not None:
+        active_phase = run_state.phase
+
+    task = None
+    if current_task and current_task != "selecting":
+        task = find_task(tasks, current_task)
+    if task is None:
+        task = select_next(
+            tasks,
+            autonomy=cfg.autonomy.level,
+            active_phase=active_phase,
+        )
+    if task is None:
+        return ""
+
+    parts = [task.title]
+    if "details" in task.notes:
+        parts.append(task.notes["details"])
+    return " ".join(parts)
 
 
 def load_phase_context(kelix_dir: Path, phase_id: str) -> str:
@@ -283,32 +406,136 @@ def assemble_prompt(
     cfg: Config,
     state: str = "",
     phase_context: str = "",
-    memory_digest: str = "",
-    skills: str = "",
+    memory_digest: str | None = None,
+    project_memory: str | None = None,
+    skills: str | None = None,
     mailbox: str = "",
     role: str = "",
-) -> str:
-    values = {
-        SLOT_STATE: _truncate(state, cfg.memory.state_max_chars, "state")
-        if state
-        else _EMPTY[SLOT_STATE],
-        SLOT_PHASE_CONTEXT: _truncate(
+    relevance_query: str = "",
+    workdir: Path | None = None,
+    state_source: str = ".kelix/STATE.md",
+    phase_source: str = "",
+    mailbox_source: str = ".kelix/fleet/mailbox",
+) -> tuple[str, list[dict]]:
+    budgets = compute_slot_budgets(cfg)
+    manifest: list[dict] = []
+
+    if memory_digest is None:
+        from .memory import episode_digest
+
+        memory_digest = episode_digest(
+            cfg,
+            query=relevance_query,
+            budget_chars=budgets["episodes"],
+            manifest=manifest,
+        )
+    else:
+        memory_digest = _truncate(memory_digest, budgets["episodes"], "digest")
+        if memory_digest:
+            _manifest_append(
+                manifest, "episodes", "(provided)", memory_digest, score=None
+            )
+
+    if project_memory is None:
+        from .memory import project_memory_digest
+
+        project_memory = project_memory_digest(
+            cfg,
+            workdir or cfg.root,
+            query=relevance_query,
+            budget_chars=budgets["project_memory"],
+            manifest=manifest,
+        )
+    else:
+        project_memory = _truncate(
+            project_memory, budgets["project_memory"], "project_memory"
+        )
+        if project_memory:
+            _manifest_append(
+                manifest,
+                "project_memory",
+                "(provided)",
+                project_memory,
+                score=None,
+            )
+
+    if skills is None:
+        from .memory import skills_digest
+
+        skills = skills_digest(
+            cfg,
+            workdir or cfg.root,
+            query=relevance_query,
+            budget_chars=budgets["skills"],
+            manifest=manifest,
+        )
+    else:
+        skills = _truncate(skills, budgets["skills"], "skills")
+        if skills:
+            _manifest_append(manifest, "skills", "(provided)", skills, score=None)
+
+    if state:
+        state_text = _truncate(state, budgets["state"], "state")
+        _manifest_append(manifest, "state", state_source, state_text, score=None)
+    else:
+        state_text = _EMPTY[SLOT_STATE]
+        _manifest_append(manifest, "state", "(missing)", state_text, score=None)
+
+    if phase_context:
+        phase_text = _truncate(
             format_phase_context(phase_context),
-            cfg.memory.phase_context_max_chars,
+            budgets["phase_context"],
             "phase_context",
         )
-        if phase_context
-        else _EMPTY[SLOT_PHASE_CONTEXT],
-        SLOT_MEMORY: _truncate(memory_digest, cfg.memory.digest_max_chars, "digest")
-        if memory_digest
-        else _EMPTY[SLOT_MEMORY],
-        SLOT_SKILLS: _truncate(skills, cfg.memory.skills_max_chars, "skills")
-        if skills
-        else _EMPTY[SLOT_SKILLS],
-        SLOT_MAILBOX: mailbox or _EMPTY[SLOT_MAILBOX],
+        _manifest_append(
+            manifest,
+            "phase_context",
+            phase_source or ".kelix/phases/CONTEXT.md",
+            phase_text,
+            score=None,
+        )
+    else:
+        phase_text = _EMPTY[SLOT_PHASE_CONTEXT]
+        _manifest_append(
+            manifest, "phase_context", "(missing)", phase_text, score=None
+        )
+
+    if mailbox:
+        mailbox_text = _truncate(mailbox, budgets["mailbox"], "mailbox")
+        _manifest_append(
+            manifest, "mailbox", mailbox_source, mailbox_text, score=None
+        )
+    else:
+        mailbox_text = _EMPTY[SLOT_MAILBOX]
+        _manifest_append(manifest, "mailbox", "(empty)", mailbox_text, score=None)
+
+    if not memory_digest:
+        memory_digest = _EMPTY[SLOT_MEMORY]
+        if not any(item["slot"] == "episodes" for item in manifest):
+            _manifest_append(manifest, "episodes", "(missing)", memory_digest)
+
+    if not project_memory:
+        project_memory = _EMPTY[SLOT_PROJECT]
+        if not any(item["slot"] == "project_memory" for item in manifest):
+            _manifest_append(
+                manifest, "project_memory", "(missing)", project_memory
+            )
+
+    if not skills:
+        skills = _EMPTY[SLOT_SKILLS]
+        if not any(item["slot"] == "skills" for item in manifest):
+            _manifest_append(manifest, "skills", "(missing)", skills)
+
+    values = {
+        SLOT_STATE: state_text,
+        SLOT_PHASE_CONTEXT: phase_text,
+        SLOT_MEMORY: memory_digest,
+        SLOT_PROJECT: project_memory,
+        SLOT_SKILLS: skills,
+        SLOT_MAILBOX: mailbox_text,
         SLOT_ROLE: role or _EMPTY[SLOT_ROLE],
     }
     out = template
     for slot, value in values.items():
         out = out.replace(slot, value)
-    return out
+    return out, manifest

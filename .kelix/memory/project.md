@@ -118,6 +118,65 @@ Durable facts about this repo for future iterations.
   clearing blockers; otherwise uncovered REQ-IDs land in blockers and the run
   retrospective gets a `## Phase gate` section (only when uncovered REQs exist).
   Tests in `tests/test_loop.py`.
+- `kelix status` phase gate (`src/kelix/fleet.py` `render_status`): when
+  `.kelix/roadmap.md` and STATE.md with an active phase exist, prints milestone,
+  phase title, REQ coverage table (id, status, covering task id), and blockers;
+  repos without a roadmap keep the prior claims/runs/mailbox output only.
+  Tests in `tests/test_fleet.py`.
+- Context relevance scorer lives in `src/kelix/context.py` (`score`, `select`).
+  Stdlib-only token overlap weighted by IDF across the candidate set; empty query
+  falls back to recency (later candidates = more recent). `memory.episode_digest`
+  and `memory.skills_digest` accept optional `query` and `budget_chars`; when
+  query is set they call `select()`, otherwise behavior is unchanged. Tests in
+  `tests/test_context.py`.
+- Rationale fallback (`loop._resolve_rationale`): when agent output lacks
+  `RATIONALE:`, the runner uses `(from commit) <subject>` from `git log -1
+  --format=%s` only if HEAD advanced during the iteration (after post-iteration
+  checkpoint). `_task_from_rationale` strips the prefix and parses task ids from
+  commit subjects like `T1: …`. Empty rationale after fallback → retrospective
+  lines use `no rationale — see transcript` (episodes still show
+  `(no rationale logged)`). Tests in `tests/test_loop.py`.
+- Context budget compiler (`prompt.compute_slot_budgets`, `assemble_prompt`):
+  `[memory].context_share` (default 0.5) times the sum of per-slot caps drives
+  the data-slot pool; state and phase_context allocate first, then episodes,
+  project_memory, skills, and mailbox by fixed weights. `relevance_query_for_task`
+  builds the query from the claimed/next ready task (title + details); loop
+  `_gather_context` passes it so episode/skills/project digests use `select()`.
+  Project memory is injected via `{{PROJECT_MEMORY}}` (`memory.project_memory_digest`).
+  `assemble_prompt` returns `(prompt, manifest)` where manifest lists each injected
+  item (slot, source path, chars, score). Runner writes
+  `.kelix/runs/<id>/context-<n>.json` (under RUNNER_BOOKKEEPING `.kelix/runs`).
+  Tests in `tests/test_prompt.py` (REQ-C4 relevance regression) and
+  `tests/test_loop.py` (manifest file written).
+- Adapter inactivity watchdog (`adapters._run_process`): uses Popen plus a reader
+  thread; `[agent].inactivity_timeout_seconds` (default 300, 0 disables) kills
+  the process when no stdout/stderr bytes arrive for that interval. Hard
+  `[agent].timeout_seconds` unchanged (exit 124, timed_out=True). Inactivity
+  timeout sets timed_out=True with the observed exit code. Tests in
+  `tests/test_adapters.py` use flush=True Python scripts because piped shell
+  stdout is block-buffered.
+- Backlog waves (`backlog.waves`): pure function returning
+  `(list[list[Task]], has_cycle)`. Wave 0 = tasks with no undone deps; wave N
+  = tasks whose deps are done or in earlier waves; cyclic/blocked remainder
+  lands in a final wave with `has_cycle=True`. Tests in `tests/test_backlog.py`
+  (chain, diamond, cycle).
+- Fleet wave gating (`fleet.make_claim_hook`, `render_status`): before
+  `select_next`, claim candidates are restricted to task ids in the earliest
+  wave containing any non-done task (`_wave_allowed_task_ids`). Agents cannot
+  claim wave N+1 work while wave N is unfinished (even if wave N is claimed but
+  not done). `render_status` prints a "Pending tasks (waves):" section with
+  each non-done task's wave index. Tests in `tests/test_fleet.py`.
+- Fleet role-match reporting (`fleet.infer_task_kind`, `_write_fleet_retrospective`):
+  task kind is inferred from title/phase heuristics (test/docs/fix/feature);
+  built-in roles map to preferred kinds (builder→feature, verifier→test,
+  fixer→fix, scribe→docs). Fleet retrospectives append per-iteration
+  `role-match: yes/no (role vs kind)` and a per-agent `role drift: N/M`
+  line. Selection unchanged — reporting only. Tests in `tests/test_fleet.py`.
+- Planning guide lives in `docs/planning.md` (plan-first flow, roadmap→phase→task
+  hierarchy, STATE.md schema, lint, phase gate, waves, flat-backlog quick path).
+  Linked from README Documentation and `docs/index.md`. `kelix init` writes
+  `.kelix/roadmap.md` from `ROADMAP_TEMPLATE` in `cli.py` when absent; never
+  overwrites an existing roadmap. Tests in `tests/test_prompt.py`.
 - OWNER PRINCIPLE (communication): good input in, good output out — slop in,
   slop out. All owner-facing text this project produces (backlog tasks, PRD
   templates, docs, prompts, retrospectives) must be precise and legible to
@@ -148,3 +207,6 @@ Durable facts about this repo for future iterations.
 
 ## Run 20260702-103424 (circuit_breaker)
 2 iterations, 0 verified. Failures: verification failed; verification failed.
+
+## Run 20260702-104227 (max_iterations)
+10 iterations, 10 verified. Failures: agent exit 124 (timeout).

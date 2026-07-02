@@ -176,6 +176,7 @@ diagnosis and surfaces it for you).
 ## Documentation
 
 - [Concept](docs/concept.md) · [Quickstart](docs/quickstart.md) ·
+  **[Planning](docs/planning.md)** (roadmap, phases, phase gate, waves) ·
   **[Writing for the loop](docs/writing-for-the-loop.md)** (how to write
   tasks and PRDs the agent gets right the first time) ·
   [Kiro guide](docs/kiro.md) · [Security model](docs/SECURITY.md) ·

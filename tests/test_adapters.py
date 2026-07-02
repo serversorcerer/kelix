@@ -97,3 +97,40 @@ def test_make_adapter_dispatch(tmp_path):
     )
     cfg = load_config(tmp_path)
     assert isinstance(make_adapter(cfg), MockAdapter)
+
+
+def test_cmd_adapter_inactivity_timeout(tmp_path):
+    script = tmp_path / "idle.py"
+    script.write_text("import time\nprint('started', flush=True)\ntime.sleep(10)\n")
+    (tmp_path / "kelix.toml").write_text(
+        "[agent]\nadapter = \"cmd\"\n"
+        f'command = "python3 {script}"\n'
+        "timeout_seconds = 30\n"
+        "inactivity_timeout_seconds = 1\n"
+    )
+    cfg = load_config(tmp_path)
+    result = CmdAdapter(cfg).run("x", tmp_path)
+    assert result.timed_out
+    assert not result.ok
+    assert "started" in result.output
+
+
+def test_cmd_adapter_chatty_script_survives_inactivity_window(tmp_path):
+    script = tmp_path / "chatty.py"
+    script.write_text(
+        "import time\n"
+        "for i in range(6):\n"
+        "    print(f'tick {i}', flush=True)\n"
+        "    time.sleep(0.3)\n"
+    )
+    (tmp_path / "kelix.toml").write_text(
+        "[agent]\nadapter = \"cmd\"\n"
+        f'command = "python3 {script}"\n'
+        "timeout_seconds = 30\n"
+        "inactivity_timeout_seconds = 2\n"
+    )
+    cfg = load_config(tmp_path)
+    result = CmdAdapter(cfg).run("x", tmp_path)
+    assert result.ok
+    assert not result.timed_out
+    assert "tick 5" in result.output

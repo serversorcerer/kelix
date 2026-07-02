@@ -58,6 +58,11 @@ def test_transcripts_and_run_state_written(repo):
     result = Runner(cfg).run(log=lambda *_: None)
     run_dir = cfg.kelix_dir / "runs" / result.run_id
     assert (run_dir / "iter-001.log").exists()
+    assert (run_dir / "context-001.json").exists()
+    context = json.loads((run_dir / "context-001.json").read_text())
+    assert context["iteration"] == 1
+    assert isinstance(context["items"], list)
+    assert any(item["slot"] == "state" for item in context["items"])
     state = json.loads((run_dir / "run.json").read_text())
     assert state["status"] == "completed"
     assert (run_dir / "retrospective.md").exists()
@@ -354,3 +359,30 @@ def test_phase_gate_noop_without_roadmap(repo):
     assert state.phase == "P-A"
     retrospective = (cfg.kelix_dir / "runs" / result.run_id / "retrospective.md").read_text()
     assert "## Phase gate" not in retrospective
+
+
+def test_rationale_fallback_from_commit_subject(repo):
+    write_mock_script(
+        repo / "mockdir",
+        "001.sh",
+        'echo work >> work.txt\ngit add -A && git commit -q -m "T1: forgot rationale"\n',
+    )
+    cfg = _config(repo)
+    result = Runner(cfg).run(max_iterations=1, log=lambda *_: None)
+    rec = result.iterations[0]
+    assert rec.rationale == "(from commit) T1: forgot rationale"
+    episodes = (cfg.kelix_dir / "memory" / "episodes.jsonl").read_text()
+    assert "(from commit) T1: forgot rationale" in episodes
+
+
+def test_no_rationale_no_commit_flags_transcript_in_retrospective(repo):
+    write_mock_script(
+        repo / "mockdir",
+        "001.sh",
+        'echo "thinking..."\n',
+    )
+    cfg = _config(repo)
+    result = Runner(cfg).run(max_iterations=1, log=lambda *_: None)
+    assert result.iterations[0].rationale == ""
+    retro = (cfg.kelix_dir / "runs" / result.run_id / "retrospective.md").read_text()
+    assert "no rationale — see transcript" in retro

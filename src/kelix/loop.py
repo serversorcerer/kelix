@@ -24,13 +24,15 @@ from .gitutil import (
     git,
     head_sha,
     is_repo,
+    last_commit_subject,
 )
-from .prompt import assemble_prompt, load_template
+from .prompt import assemble_prompt, load_template, relevance_query_for_task
 from .state import State, load_state, write_state
 
 RATIONALE_RE = re.compile(r"^RATIONALE:\s*(.+)$", re.MULTILINE)
+FROM_COMMIT_RATIONALE_PREFIX = "(from commit) "
 TASK_FROM_ROLE_RE = re.compile(r"Your assigned task for this iteration:\s*(\S+)")
-TASK_FROM_RATIONALE_RE = re.compile(r"^(\S+)")
+TASK_FROM_RATIONALE_RE = re.compile(r"^(\S+?)(?:\s*[—\-:]|$)")
 STOP_FILE = "STOP"  # .kelix/STOP — global kill switch
 
 
@@ -65,6 +67,18 @@ class LoopError(Exception):
 def _extract_rationale(output: str) -> str:
     m = RATIONALE_RE.search(output)
     return m.group(1).strip() if m else ""
+
+
+def _resolve_rationale(rationale: str, workdir: Path, sha_before: str) -> str:
+    """Use the iteration commit subject when the agent omitted RATIONALE."""
+    if rationale:
+        return rationale
+    if head_sha(workdir) == sha_before:
+        return ""
+    subject = last_commit_subject(workdir)
+    if not subject:
+        return ""
+    return f"{FROM_COMMIT_RATIONALE_PREFIX}{subject}"
 
 
 class Runner:
@@ -112,6 +126,23 @@ class Runner:
             output = scrub(output)
         (run_dir / f"iter-{index:03d}.log").write_text(
             f"=== PROMPT ===\n{prompt}\n\n=== AGENT OUTPUT ===\n{output}\n",
+            encoding="utf-8",
+        )
+
+    def _write_context_manifest(
+        self,
+        run_dir: Path,
+        index: int,
+        manifest: list[dict],
+        relevance_query: str = "",
+    ) -> None:
+        payload = {
+            "iteration": index,
+            "relevance_query": relevance_query,
+            "items": manifest,
+        }
+        (run_dir / f"context-{index:03d}.json").write_text(
+            json.dumps(payload, indent=2) + "\n",
             encoding="utf-8",
         )
 
@@ -207,7 +238,10 @@ class Runner:
     def _task_from_rationale(rationale: str) -> str:
         if not rationale:
             return ""
-        match = TASK_FROM_RATIONALE_RE.match(rationale.strip())
+        text = rationale.strip()
+        if text.startswith(FROM_COMMIT_RATIONALE_PREFIX):
+            text = text[len(FROM_COMMIT_RATIONALE_PREFIX) :].strip()
+        match = TASK_FROM_RATIONALE_RE.match(text)
         return match.group(1).rstrip("—") if match else ""
 
     def _update_run_state_after_iteration(
@@ -229,8 +263,7 @@ class Runner:
         if rec.verified is True:
             self._run_state.last_verified_commit = head_sha(workdir)
 
-    def _gather_context(self, workdir: Path) -> dict:
-        from .memory import episode_digest, skills_digest
+    def _gather_context(self, workdir: Path, current_task: str = "") -> dict:
         from .prompt import load_phase_context
         from .state import STATE_FILE, load_state
 
@@ -245,18 +278,28 @@ class Runner:
         kelix_dir = workdir / ".kelix"
         state = ""
         phase_context = ""
+        state_source = ".kelix/STATE.md"
+        phase_source = ""
         run_state = load_state(kelix_dir)
         if run_state is not None:
             state = (kelix_dir / STATE_FILE).read_text(encoding="utf-8")
+            if run_state.phase:
+                phase_source = f".kelix/phases/{run_state.phase}/CONTEXT.md"
             phase_context = load_phase_context(kelix_dir, run_state.phase)
 
+        mailbox_source = ".kelix/fleet/mailbox"
         return {
             "state": state,
             "phase_context": phase_context,
-            "memory_digest": episode_digest(self.cfg),
-            "skills": skills_digest(self.cfg, workdir),
             "mailbox": mailbox,
             "role": self.role,
+            "relevance_query": relevance_query_for_task(
+                self.cfg, workdir, current_task
+            ),
+            "workdir": workdir,
+            "state_source": state_source,
+            "phase_source": phase_source,
+            "mailbox_source": mailbox_source,
         }
 
     # -- the loop ------------------------------------------------------------
@@ -318,10 +361,16 @@ class Runner:
             checkpoint(workdir, f"kelix: pre-iteration {index} checkpoint")
             sha_before = head_sha(workdir)
 
-            context = self._gather_context(workdir)
+            context = self._gather_context(workdir, current_task)
             if role_extra:
                 context["role"] = (context["role"] or "") + "\n" + role_extra
-            prompt = assemble_prompt(template, cfg, **context)
+            prompt, manifest = assemble_prompt(template, cfg, **context)
+            self._write_context_manifest(
+                run_dir,
+                index,
+                manifest,
+                context.get("relevance_query", ""),
+            )
 
             try:
                 agent = adapter.run(prompt, workdir)
@@ -338,7 +387,6 @@ class Runner:
 
             rec.adapter_exit = agent.exit_code
             rec.timed_out = agent.timed_out
-            rec.rationale = _extract_rationale(agent.output)
             rec.sentinel = COMPLETION_SENTINEL in agent.output
             self._write_transcript(run_dir, index, prompt, agent.output)
 
@@ -346,6 +394,9 @@ class Runner:
                 workdir, f"kelix: post-iteration {index} auto-checkpoint"
             )
             rec.made_progress = committed or head_sha(workdir) != sha_before
+            rec.rationale = _resolve_rationale(
+                _extract_rationale(agent.output), workdir, sha_before
+            )
             rec.verified = self._verify(workdir)
             rec.duration_s = round(time.monotonic() - started, 1)
 

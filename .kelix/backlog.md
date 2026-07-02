@@ -164,7 +164,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   REQ. Never advance past an uncovered phase. Tests: covered -> advance,
   uncovered -> stay + retrospective section, no roadmap -> no-op.
 
-- [ ] PC9: kelix status renders the phase gate | priority: 78 | status: ready | by: owner | deps: PC7 | phase: P-GATE | req: REQ-G3
+- [x] PC9: kelix status renders the phase gate | priority: 78 | status: done | by: owner | deps: PC7 | phase: P-GATE | req: REQ-G3
   rationale: [P-GATE/REQ-G3] the owner steers from a one-screen view assembled from files alone
   details: extend render_status in src/kelix/fleet.py: when a roadmap
   exists, print active milestone/phase from STATE.md and a coverage table
@@ -173,7 +173,7 @@ Every task below names its phase and the REQ it covers in `details:`.
 
 ### Phase P-WAVES (safe parallelism)
 
-- [ ] PC10: wave computation from deps | priority: 72 | status: ready | by: owner | deps: PC5 | phase: P-WAVES | req: REQ-W1
+- [x] PC10: wave computation from deps | priority: 72 | status: done | by: owner | deps: PC5 | phase: P-WAVES | req: REQ-W1
   rationale: [P-WAVES/REQ-W1] parallel agents must not collide on dependent concerns; waves are derivable, no new syntax
   details: in src/kelix/backlog.py add waves(tasks) -> list[list[Task]]:
   wave 0 = tasks with no undone deps, wave N = tasks whose deps are all in
@@ -181,7 +181,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   warning flag returned alongside. Pure function. tests/test_backlog.py:
   chain, diamond, cycle.
 
-- [ ] PC11: fleet claims respect the earliest incomplete wave | priority: 70 | status: ready | by: owner | deps: PC10 | phase: P-WAVES | req: REQ-W2, REQ-W3
+- [x] PC11: fleet claims respect the earliest incomplete wave | priority: 70 | status: done | by: owner | deps: PC10 | phase: P-WAVES | req: REQ-W2, REQ-W3
   rationale: [P-WAVES/REQ-W2+W3] a fleet should finish wave N before starting wave N+1, like GSD execution waves
   details: in make_claim_hook (src/kelix/fleet.py), restrict candidate
   tasks to the earliest wave containing any non-done task before applying
@@ -191,7 +191,7 @@ Every task below names its phase and the REQ it covers in `details:`.
 
 ### Phase P-CONTEXT (the context compiler — 50% of the value, D16)
 
-- [ ] PC20: relevance scorer for memory and episodes | priority: 81 | status: ready | by: owner | phase: P-CONTEXT | req: REQ-C2
+- [x] PC20: relevance scorer for memory and episodes | priority: 81 | status: done | by: owner | phase: P-CONTEXT | req: REQ-C2
   rationale: [P-CONTEXT/REQ-C2] a fresh agent should get the context THIS task needs, not whatever happened most recently
   details: add src/kelix/context.py with score(text, query) -> float using
   stdlib only: lowercase token overlap weighted by inverse frequency across
@@ -202,7 +202,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   behavior without a query is unchanged. tests/test_context.py: relevant-
   but-old beats recent-but-noise; empty query falls back to recency.
 
-- [ ] PC21: 50% context budget split + compiler in the prompt | priority: 79 | status: ready | by: owner | deps: PC20, PC3 | phase: P-CONTEXT | req: REQ-C1
+- [x] PC21: 50% context budget split + compiler in the prompt | priority: 79 | status: done | by: owner | deps: PC20, PC3 | phase: P-CONTEXT | req: REQ-C1
   rationale: [P-CONTEXT/REQ-C1] context share is a policy, not an accident; default half the prompt
   details: add [memory] context_share (float, default 0.5) to config.py.
   prompt.assemble_prompt computes the char budget for the data slots
@@ -213,7 +213,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   Tests: share respected within tolerance, state slot never starved,
   query reaches the selector.
 
-- [ ] PC22: per-iteration context manifest | priority: 77 | status: ready | by: owner | deps: PC21 | phase: P-CONTEXT | req: REQ-C3, REQ-C4
+- [x] PC22: per-iteration context manifest | priority: 77 | status: done | by: owner | deps: PC21 | phase: P-CONTEXT | req: REQ-C3, REQ-C4
   rationale: [P-CONTEXT/REQ-C3+C4] context quality must be as auditable as decisions; prove relevance beats recency
   details: assemble_prompt returns (prompt, manifest) where manifest lists
   each injected item: slot, source path, chars, score. Runner writes
@@ -226,7 +226,7 @@ Every task below names its phase and the REQ it covers in `details:`.
 
 ### Phase P-HARDEN (lessons from the v0.1 proof runs)
 
-- [ ] PC17: rationale fallback from commit subject | priority: 76 | status: ready | by: owner | phase: P-HARDEN | req: REQ-H1
+- [x] PC17: rationale fallback from commit subject | priority: 76 | status: done | by: owner | phase: P-HARDEN | req: REQ-H1
   rationale: [P-HARDEN/REQ-H1] 4 proof-run iterations logged "(no rationale)" — legibility must not depend on the agent remembering a print
   details: in src/kelix/loop.py, when _extract_rationale finds nothing, set
   rec.rationale from the iteration's last commit subject (git log -1
@@ -236,7 +236,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   the retrospective. Tests: mock agent that commits without RATIONALE gets
   the commit subject; no-commit no-rationale iteration gets the flag.
 
-- [ ] PC18: output-inactivity watchdog in adapters | priority: 74 | status: ready | by: owner | phase: P-HARDEN | req: REQ-H2
+- [x] PC18: output-inactivity watchdog in adapters | priority: 74 | status: done | by: owner | phase: P-HARDEN | req: REQ-H2
   rationale: [P-HARDEN/REQ-H2] fleet session 2's agent sat idle ~20 min after finishing (D13); unattended means nobody is there to kill it
   details: in src/kelix/adapters.py, run the agent with Popen and a reader
   thread; if no stdout/stderr bytes arrive for
@@ -246,7 +246,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   prints then sleeps past the inactivity window is reaped and marked; a
   slow-but-chatty script survives.
 
-- [ ] PC19: role-match visibility in fleet retrospectives | priority: 68 | status: ready | by: owner | deps: PC5 | phase: P-HARDEN | req: REQ-H3
+- [x] PC19: role-match visibility in fleet retrospectives | priority: 68 | status: done | by: owner | deps: PC5 | phase: P-HARDEN | req: REQ-H3
   rationale: [P-HARDEN/REQ-H3] session 1's verifier built a feature — allowed, but the owner should see role drift, not archaeology it
   details: tag tasks with an optional kind derived from phase/title
   heuristics (test/docs/feature/fix) in fleet.py; _write_fleet_retrospective
@@ -256,7 +256,7 @@ Every task below names its phase and the REQ it covers in `details:`.
 
 ### Phase P-PROOF (docs + self-referential proof)
 
-- [ ] PC12: docs/planning.md + init template | priority: 62 | status: ready | by: owner | deps: PC8, PC11 | phase: P-PROOF | req: REQ-P1, REQ-P2
+- [x] PC12: docs/planning.md + init template | priority: 62 | status: done | by: owner | deps: PC8, PC11 | phase: P-PROOF | req: REQ-P1, REQ-P2
   rationale: [P-PROOF/REQ-P1+P2] the hierarchy is only real if a stranger can adopt it tonight
   details: write docs/planning.md — the plan-first flow (GOAL.md ->
   kelix plan -> review/promote -> kelix run), roadmap -> phase -> task
