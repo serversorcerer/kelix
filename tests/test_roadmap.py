@@ -1,6 +1,13 @@
 from pathlib import Path
 
-from kelix.roadmap import Milestone, Req, load_roadmap, parse_roadmap
+from kelix.backlog import Task
+from kelix.roadmap import (
+    Milestone,
+    Req,
+    coverage,
+    load_roadmap,
+    parse_roadmap,
+)
 
 REAL_ROADMAP = Path(__file__).resolve().parents[1] / ".kelix" / "roadmap.md"
 
@@ -114,3 +121,82 @@ Not an outcome line.
     assert len(roadmap.reqs) == 1
     assert roadmap.reqs[0].id == "REQ-X1"
     assert roadmap.phases[0].outcome == ""
+
+
+def _mini_roadmap() -> str:
+    return """\
+## Milestone v1 — test
+
+### Phase P-GATE — gate
+
+Outcome: coverage gate.
+
+- REQ-G1: compute coverage
+- REQ-G2: enforce gate
+- REQ-G3: status view
+"""
+
+
+def _task(task_id: str, req: str, status: str = "ready") -> Task:
+    return Task(id=task_id, title="t", priority=50, status=status, by="owner", req=req)
+
+
+def test_coverage_all_states():
+    roadmap = parse_roadmap(_mini_roadmap())
+    tasks = [
+        _task("PC7", "REQ-G1", "done"),
+        _task("PC8", "REQ-G2", "ready"),
+    ]
+    result = coverage(roadmap, tasks, "P-GATE")
+    by_req = {e.req_id: e.status for e in result if e.status != "warning"}
+
+    assert by_req["REQ-G1"] == "covered"
+    assert by_req["REQ-G2"] == "in-progress"
+    assert by_req["REQ-G3"] == "uncovered"
+
+
+def test_coverage_done_wins_over_in_progress():
+    roadmap = parse_roadmap(_mini_roadmap())
+    tasks = [
+        _task("A", "REQ-G1", "ready"),
+        _task("B", "REQ-G1", "done"),
+    ]
+    result = coverage(roadmap, tasks, "P-GATE")
+    assert next(e for e in result if e.req_id == "REQ-G1").status == "covered"
+
+
+def test_coverage_comma_separated_req():
+    roadmap = parse_roadmap(_mini_roadmap())
+    tasks = [_task("PC7", "REQ-G1, REQ-G2", "done")]
+    result = coverage(roadmap, tasks, "P-GATE")
+    by_req = {e.req_id: e.status for e in result if e.status != "warning"}
+
+    assert by_req["REQ-G1"] == "covered"
+    assert by_req["REQ-G2"] == "covered"
+
+
+def test_coverage_unknown_req_warning():
+    roadmap = parse_roadmap(_mini_roadmap())
+    tasks = [_task("BAD", "REQ-UNKNOWN", "ready")]
+    result = coverage(roadmap, tasks, "P-GATE")
+    warnings = [e for e in result if e.status == "warning"]
+
+    assert len(warnings) == 1
+    assert warnings[0].req_id == "REQ-UNKNOWN"
+    assert "BAD" in warnings[0].message
+
+
+def test_coverage_real_p_gate():
+    text = REAL_ROADMAP.read_text(encoding="utf-8")
+    roadmap = parse_roadmap(text)
+    from kelix.backlog import parse_backlog
+
+    backlog = (Path(__file__).resolve().parents[1] / ".kelix" / "backlog.md").read_text(
+        encoding="utf-8"
+    )
+    tasks = parse_backlog(backlog)
+    result = coverage(roadmap, tasks, "P-GATE")
+    by_req = {e.req_id: e.status for e in result if e.status != "warning"}
+
+    assert set(by_req) == {"REQ-G1", "REQ-G2", "REQ-G3"}
+    assert all(by_req[req_id] == "in-progress" for req_id in by_req)

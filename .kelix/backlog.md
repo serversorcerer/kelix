@@ -146,7 +146,7 @@ Every task below names its phase and the REQ it covers in `details:`.
 
 ### Phase P-GATE (coverage-gated done)
 
-- [ ] PC7: phase gate — REQ coverage computation | priority: 82 | status: ready | by: owner | deps: PC5 | phase: P-GATE | req: REQ-G1
+- [x] PC7: phase gate — REQ coverage computation | priority: 82 | status: done | by: owner | deps: PC5 | phase: P-GATE | req: REQ-G1
   rationale: [P-GATE/REQ-G1] a phase is done when what was decided is built and verified, not when errors stop
   details: in src/kelix/roadmap.py add coverage(roadmap, tasks, phase_id) ->
   list of (req_id, status) where status is covered (some task with req=REQ

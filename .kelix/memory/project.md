@@ -105,6 +105,11 @@ Durable facts about this repo for future iterations.
   overwritten. Final message prints the plan-first path: GOAL.md ->
   `kelix plan --goal-file GOAL.md` -> review/promote -> `kelix run`.
   Tests in `tests/test_prompt.py`.
+- Phase gate REQ coverage lives in `src/kelix/roadmap.py` (`CoverageEntry`,
+  `coverage(roadmap, tasks, phase_id)`). Per phase REQ: `covered` (done task
+  references it), `in-progress` (non-done task), `uncovered` (no task). Tasks
+  with unknown REQ-IDs get `warning` entries. Comma-separated `req:` on tasks
+  matches lint.py. Tests in `tests/test_roadmap.py`.
 - OWNER PRINCIPLE (communication): good input in, good output out — slop in,
   slop out. All owner-facing text this project produces (backlog tasks, PRD
   templates, docs, prompts, retrospectives) must be precise and legible to

@@ -5,6 +5,10 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .backlog import Task
 
 MILESTONE_LINE = re.compile(r"^## Milestone (.+?) — (.+)$")
 PHASE_LINE = re.compile(r"^### Phase (\S+) — (.+)$")
@@ -42,6 +46,11 @@ class Roadmap:
     def reqs_for(self, phase_id: str) -> list[Req]:
         """Return all REQs belonging to *phase_id*."""
         return [req for req in self.reqs if req.phase_id == phase_id]
+
+    @property
+    def req_ids(self) -> set[str]:
+        """All REQ-IDs declared in the roadmap."""
+        return {req.id for req in self.reqs}
 
 
 def parse_roadmap(text: str) -> Roadmap:
@@ -109,3 +118,54 @@ def load_roadmap(kelix_dir: Path | str) -> Roadmap | None:
     if not path.is_file():
         return None
     return parse_roadmap(path.read_text(encoding="utf-8"))
+
+
+@dataclass(frozen=True)
+class CoverageEntry:
+    req_id: str
+    status: str  # covered | in-progress | uncovered | warning
+    message: str = ""
+
+
+def _req_ids_on_task(task: Task) -> list[str]:
+    if not task.req:
+        return []
+    return [part.strip() for part in task.req.split(",") if part.strip()]
+
+
+def coverage(roadmap: Roadmap, tasks: list[Task], phase_id: str) -> list[CoverageEntry]:
+    """Report REQ coverage for *phase_id* against *tasks*.
+
+    Each phase REQ yields ``covered`` (a done task references it),
+    ``in-progress`` (a non-done task references it), or ``uncovered`` (no task).
+    Tasks referencing REQ-IDs absent from the roadmap produce ``warning`` entries.
+    """
+    known = roadmap.req_ids
+    req_tasks: dict[str, list[Task]] = {}
+    warnings: list[CoverageEntry] = []
+
+    for task in tasks:
+        for req_id in _req_ids_on_task(task):
+            if req_id not in known:
+                warnings.append(
+                    CoverageEntry(
+                        req_id=req_id,
+                        status="warning",
+                        message=f"unknown REQ {req_id!r} on task {task.id}",
+                    )
+                )
+                continue
+            req_tasks.setdefault(req_id, []).append(task)
+
+    entries: list[CoverageEntry] = []
+    for req in roadmap.reqs_for(phase_id):
+        covering = req_tasks.get(req.id, [])
+        if any(t.status == "done" for t in covering):
+            status = "covered"
+        elif covering:
+            status = "in-progress"
+        else:
+            status = "uncovered"
+        entries.append(CoverageEntry(req_id=req.id, status=status))
+
+    return entries + warnings
