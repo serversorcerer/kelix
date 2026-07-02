@@ -311,6 +311,35 @@ def cmd_diagnose(args) -> int:
     return 1 if result.status == "validation_failed" else 2
 
 
+def cmd_propose(args) -> int:
+    from .config import ConfigError
+    from .loop import LoopError
+    from .propose import ProposeError, ProposeRunner
+
+    root = Path(args.path).resolve()
+    try:
+        cfg = load_config(root)
+        result = ProposeRunner(cfg).run(
+            diagnosis_file=args.diagnosis_file or "",
+        )
+    except (ConfigError, ProposeError, LoopError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
+    from .art import say
+
+    if result.status == "completed":
+        print(say(f"proposal ready: branch {result.branch}", "ok"))
+        print(say(f"sidecar written: {result.sidecar_path}", "ok"))
+        if result.iteration and result.iteration.predicted_improvement:
+            print(f"predicted improvement: {result.iteration.predicted_improvement}")
+        return 0
+
+    for finding in result.findings:
+        print(f"error: {finding}", file=sys.stderr)
+    return 1 if result.status == "validation_failed" else 2
+
+
 def cmd_sync(args) -> int:
     """Mirror tracker issues into the backlog. Non-fatal: tracker problems are
     logged and skipped, never fatal to the loop."""
@@ -420,6 +449,18 @@ def main(argv: list[str] | None = None) -> int:
         help="output path (default: .kelix/memory/diagnosis-<timestamp>.md)",
     )
     p.set_defaults(func=cmd_diagnose)
+
+    p = sub.add_parser(
+        "propose",
+        help="propose a policy-surface tuning change (owner-invoked)",
+    )
+    p.add_argument("--path", default=".")
+    p.add_argument(
+        "--diagnosis-file",
+        default="",
+        help="optional diagnosis markdown to include as evidence",
+    )
+    p.set_defaults(func=cmd_propose)
 
     args = parser.parse_args(argv)
     return args.func(args)
