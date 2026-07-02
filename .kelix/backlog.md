@@ -838,7 +838,7 @@ Owner decisions: `.kelix/phases/V-CUT/CONTEXT.md`. All tasks below are
   count template lines ≤ 25; init on bare repo writes template; load_config
   round-trip on template succeeds.
 
-- [ ] KV13: docs index intent routing | priority: 43 | status: ready | by: owner | deps: KV4, KV5 | phase: V-SIMPLE | req: REQ-VM3
+- [x] KV13: docs index intent routing | priority: 43 | status: done | by: owner | deps: KV4, KV5 | phase: V-SIMPLE | req: REQ-VM3
   details: rewrite docs/index.md top section to route by intent ("I want to ship
   X unattended") with ≤ 5 links (quickstart, planning or writing-for-the-loop,
   concept, SECURITY, compare or proof). Delete or merge doc pages for SCRAP
