@@ -245,3 +245,6 @@ Durable facts about this repo for future iterations.
   `transcript-<n>.txt`); sections are headed by run/iteration/task; char budget
   from `[loop].diagnose_transcript_chars` with `[... truncated to N chars]`
   marker when exceeded; missing files skipped.
+
+## Run 20260702-120914 (max_iterations)
+10 iterations, 9 verified. Failures: agent exit 143 (timeout); verification failed.
