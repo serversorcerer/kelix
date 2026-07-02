@@ -226,7 +226,7 @@ Every task below names its phase and the REQ it covers in `details:`.
 
 ### Phase P-HARDEN (lessons from the v0.1 proof runs)
 
-- [ ] PC17: rationale fallback from commit subject | priority: 76 | status: ready | by: owner | phase: P-HARDEN | req: REQ-H1
+- [x] PC17: rationale fallback from commit subject | priority: 76 | status: done | by: owner | phase: P-HARDEN | req: REQ-H1
   rationale: [P-HARDEN/REQ-H1] 4 proof-run iterations logged "(no rationale)" — legibility must not depend on the agent remembering a print
   details: in src/kelix/loop.py, when _extract_rationale finds nothing, set
   rec.rationale from the iteration's last commit subject (git log -1

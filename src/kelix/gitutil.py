@@ -43,6 +43,11 @@ def head_sha(cwd: Path) -> str:
     return git(["rev-parse", "HEAD"], cwd).strip()
 
 
+def last_commit_subject(cwd: Path) -> str:
+    """Most recent commit subject on HEAD, or empty when unavailable."""
+    return git(["log", "-1", "--format=%s"], cwd, check=False).strip()
+
+
 def current_branch(cwd: Path) -> str:
     return git(["rev-parse", "--abbrev-ref", "HEAD"], cwd).strip()
 

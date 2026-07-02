@@ -24,13 +24,15 @@ from .gitutil import (
     git,
     head_sha,
     is_repo,
+    last_commit_subject,
 )
 from .prompt import assemble_prompt, load_template, relevance_query_for_task
 from .state import State, load_state, write_state
 
 RATIONALE_RE = re.compile(r"^RATIONALE:\s*(.+)$", re.MULTILINE)
+FROM_COMMIT_RATIONALE_PREFIX = "(from commit) "
 TASK_FROM_ROLE_RE = re.compile(r"Your assigned task for this iteration:\s*(\S+)")
-TASK_FROM_RATIONALE_RE = re.compile(r"^(\S+)")
+TASK_FROM_RATIONALE_RE = re.compile(r"^(\S+?)(?:\s*[—\-:]|$)")
 STOP_FILE = "STOP"  # .kelix/STOP — global kill switch
 
 
@@ -65,6 +67,18 @@ class LoopError(Exception):
 def _extract_rationale(output: str) -> str:
     m = RATIONALE_RE.search(output)
     return m.group(1).strip() if m else ""
+
+
+def _resolve_rationale(rationale: str, workdir: Path, sha_before: str) -> str:
+    """Use the iteration commit subject when the agent omitted RATIONALE."""
+    if rationale:
+        return rationale
+    if head_sha(workdir) == sha_before:
+        return ""
+    subject = last_commit_subject(workdir)
+    if not subject:
+        return ""
+    return f"{FROM_COMMIT_RATIONALE_PREFIX}{subject}"
 
 
 class Runner:
@@ -224,7 +238,10 @@ class Runner:
     def _task_from_rationale(rationale: str) -> str:
         if not rationale:
             return ""
-        match = TASK_FROM_RATIONALE_RE.match(rationale.strip())
+        text = rationale.strip()
+        if text.startswith(FROM_COMMIT_RATIONALE_PREFIX):
+            text = text[len(FROM_COMMIT_RATIONALE_PREFIX) :].strip()
+        match = TASK_FROM_RATIONALE_RE.match(text)
         return match.group(1).rstrip("—") if match else ""
 
     def _update_run_state_after_iteration(
@@ -370,7 +387,6 @@ class Runner:
 
             rec.adapter_exit = agent.exit_code
             rec.timed_out = agent.timed_out
-            rec.rationale = _extract_rationale(agent.output)
             rec.sentinel = COMPLETION_SENTINEL in agent.output
             self._write_transcript(run_dir, index, prompt, agent.output)
 
@@ -378,6 +394,9 @@ class Runner:
                 workdir, f"kelix: post-iteration {index} auto-checkpoint"
             )
             rec.made_progress = committed or head_sha(workdir) != sha_before
+            rec.rationale = _resolve_rationale(
+                _extract_rationale(agent.output), workdir, sha_before
+            )
             rec.verified = self._verify(workdir)
             rec.duration_s = round(time.monotonic() - started, 1)
 

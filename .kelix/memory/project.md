@@ -129,6 +129,13 @@ Durable facts about this repo for future iterations.
   and `memory.skills_digest` accept optional `query` and `budget_chars`; when
   query is set they call `select()`, otherwise behavior is unchanged. Tests in
   `tests/test_context.py`.
+- Rationale fallback (`loop._resolve_rationale`): when agent output lacks
+  `RATIONALE:`, the runner uses `(from commit) <subject>` from `git log -1
+  --format=%s` only if HEAD advanced during the iteration (after post-iteration
+  checkpoint). `_task_from_rationale` strips the prefix and parses task ids from
+  commit subjects like `T1: …`. Empty rationale after fallback → retrospective
+  lines use `no rationale — see transcript` (episodes still show
+  `(no rationale logged)`). Tests in `tests/test_loop.py`.
 - Context budget compiler (`prompt.compute_slot_budgets`, `assemble_prompt`):
   `[memory].context_share` (default 0.5) times the sum of per-slot caps drives
   the data-slot pool; state and phase_context allocate first, then episodes,

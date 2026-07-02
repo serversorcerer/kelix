@@ -317,7 +317,8 @@ def write_retrospective(
         outcome = f"FAIL ({r.failure})" if r.failure else (
             "verified" if r.verified else "ok"
         )
-        lines.append(f"- {r.index}: {r.rationale or '(no rationale)'} -> {outcome}")
+        rationale = r.rationale or "no rationale — see transcript"
+        lines.append(f"- {r.index}: {rationale} -> {outcome}")
     if failures:
         lines += ["", "## For the owner", ""]
         lines += [
