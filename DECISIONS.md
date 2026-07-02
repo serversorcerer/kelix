@@ -172,24 +172,36 @@ the bottom. Format: `D<N> (<phase>): decision — rationale`.
   "(no rationale)" — PC17's fallback was built in this very run and only
   takes effect after merge; also the runner's buffered stdout hid live
   progress from a piped run (fixed same day: flush per log line).
-- D22 (v0.3 planning — PC23, closes v0.2): Milestone v0.3 was decomposed by
-  `kelix plan` interviewing the owner (14 decisions, binding copies in
-  `.kelix/phases/T-*/CONTEXT.md`). Ship gate: one full self-tuning cycle
-  (ledger → diagnose → propose → grade); T-SKILLS ships in-milestone but is
-  not the gate. Strict waterfall T-METRICS → T-DIAGNOSE → T-PROPOSE →
-  T-SKILLS. Dual memory: episodes.jsonl stays the raw stream,
-  loop-metrics.json is the runner rollup at retrospective; both gitignored.
-  No token fields in v0.3 (tokens: null + documented adapter hook).
-  `kelix diagnose` is owner-invoked only; `kelix propose` works the policy
-  surface only (prompt templates, denylist, config defaults) and opens PRs
-  via pr.py — which hands pr.py a live receipt and obliges KV1 to re-judge
-  its predetermined SCRAP at ledger time. Grading: last-5 vs next-5 run
-  windows, inconclusive under 3 post-merge runs. Skills: `_proposed/`
-  distillation (1–3 candidates/run), per-skill efficacy in the ledger.
-  Draft tasks ST1–ST20 landed proposed and lint-clean. Bootstrap note: the
-  draft agent also tried to write this very entry into DECISIONS.md and the
-  non_planning_change guard rejected the iteration — correct behavior; the
-  owner writes the decision log, the planner writes the plan.
+- D22 (v0.3 planning + ship gate — PC23 closes v0.2, ST19 closes v0.3):
+  Milestone v0.3 was decomposed by `kelix plan` interviewing the owner (14
+  decisions, binding copies in `.kelix/phases/T-*/CONTEXT.md`). Ship gate:
+  one full self-tuning cycle (ledger → diagnose → propose → grade); T-SKILLS
+  ships in-milestone but is not the gate. Strict waterfall T-METRICS →
+  T-DIAGNOSE → T-PROPOSE → T-SKILLS. Dual memory: episodes.jsonl stays the
+  raw stream, loop-metrics.json is the runner rollup at retrospective; both
+  gitignored. No token fields in v0.3 (tokens: null + documented adapter
+  hook). `kelix diagnose` is owner-invoked only; `kelix propose` works the
+  policy surface only (prompt templates, denylist, config defaults) and opens
+  PRs via pr.py — which hands pr.py a live receipt and obliges KV1 to
+  re-judge its predetermined SCRAP at ledger time. Grading: last-5 vs
+  next-5 run windows, inconclusive under 3 post-merge runs. Skills:
+  `_proposed/` distillation (1–3 candidates/run), per-skill efficacy in the
+  ledger. Draft tasks ST1–ST20 landed proposed and lint-clean. Bootstrap
+  note: the draft agent also tried to write this very entry into DECISIONS.md
+  and the non_planning_change guard rejected the iteration — correct
+  behavior; the owner writes the decision log, the planner writes the plan.
+  **Execution proof (ST19, REQ-TP2 + REQ-TP3):** seed run `20260702-133736`
+  (mock `.kelix/st19a-mock/`, 3 verified ledger rows, transcripts
+  `.kelix/runs/20260702-133736/`); diagnose →
+  `.kelix/memory/diagnosis-st19b.md` (`## Findings`, cites seed run);
+  propose id `20260702-134659` (branch `kelix/propose-20260702-134659`,
+  merge sha `a6fe858`, sidecar `.kelix/memory/proposal-20260702-134659.json`,
+  touched `.kelix/prompts/iteration.md` only, `validate_propose_diff` clean);
+  merge recorded in `loop-metrics.json` `proposal_outcomes[]` with prediction
+  preserved; post-merge run `20260702-135224` (3 verified rows, distinct
+  run_id, transcripts `.kelix/runs/20260702-135224/`); grade
+  `inconclusive` (1 post-merge run — need ≥3 for improved/regressed).
+  ST19 closes the v0.3 ship gate.
 - D23 (kelix watch — owner-directed, built outside the loop): live
   observability for running agents. The adapter's reader thread now streams
   chunks to `.kelix/runs/<id>/iter-NNN.live.log` (flushed per chunk); the
@@ -203,31 +215,3 @@ the bottom. Format: `D<N> (<phase>): decision — rationale`.
   activity clock only ticked per full 4KB buffer). Built directly by the
   owner-side assistant for immediate use on the next runs; recorded here
   per the bootstrap-intervention rule.
-
-## D22 execution evidence (pending)
-
-- **ST19a seed run:** `20260702-133736` — mock adapter
-  (`.kelix/st19a-mock/`, `distill_skills=false`), `--max-iterations 3`,
-  `max_iterations` exit with 3 verified ledger rows in
-  `.kelix/memory/loop-metrics.json` (task_id ST20, retry_count 0–2).
-  Transcripts: `.kelix/runs/20260702-133736/`.
-- **ST19b diagnose:** `kelix diagnose --run-id 20260702-133736` →
-  `.kelix/memory/diagnosis-st19b.md` (mock adapter at `.kelix/st19b-mock/`,
-  `## Findings` cites run 20260702-133736; zero failed ledger rows in scope).
-- **ST19c propose:** `kelix propose --no-pr --diagnosis-file
-  .kelix/memory/diagnosis-st19b.md` → proposal id `20260702-134659`, branch
-  `kelix/propose-20260702-134659` (HEAD `a6fe858`), sidecar
-  `.kelix/memory/proposal-20260702-134659.json`; `validate_propose_diff` clean;
-  touched `.kelix/prompts/iteration.md` only; prediction: reduce retry_count
-  inflation on repeated ready tasks (mock adapter `.kelix/st19c-mock/`).
-- **ST19d record merge:** `kelix propose --record-merge a6fe858 --proposal-id
-  20260702-134659` → `loop-metrics.json` `proposal_outcomes[]` entry with
-  prediction preserved, `merged_at_run_id` `20260702-133736`, grade
-  `inconclusive` (no post-merge runs yet).
-- **ST19e post-merge run:** `20260702-135224` — mock adapter
-  (`.kelix/st19e-mock/`, `distill_skills=false`), post-merge tree includes
-  ST19c policy (`.kelix/prompts/iteration.md` from `a6fe858`), `--max-iterations 3`,
-  3 verified ledger rows with `run_id` distinct from ST19a; transcripts:
-  `.kelix/runs/20260702-135224/`. `kelix metrics grade-proposal --proposal-id
-  20260702-134659` → `inconclusive` (1 post-merge run, need ≥3 for
-  improved/regressed).

@@ -2,9 +2,9 @@
 
 - milestone: v0.3
 - phase: T-SKILLS
-- current_task: ST19
-- last_task: ST19e
-- last_verified_commit: ff09437e99328f7d3a4f039728b705ca09a71f7c
-- done: 54
+- current_task: ST20
+- last_task: ST19
+- last_verified_commit: 58f288593ead7f2b6efd1cc81c5d2ef86e5cd6a9
+- done: 55
 - total: 106
 - blockers:

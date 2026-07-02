@@ -496,7 +496,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   document `inconclusive` explicitly — do not mark done without grade output.
   Acceptance: `pytest -q` pass.
 
-- [ ] ST19: v0.3 self-tuning cycle proof | priority: 39 | status: ready | by: owner | deps: ST19e | phase: T-PROPOSE | req: REQ-TP2, REQ-TP3
+- [x] ST19: v0.3 self-tuning cycle proof | priority: 39 | status: done | by: owner | deps: ST19e | phase: T-PROPOSE | req: REQ-TP2, REQ-TP3
   rationale: [T-PROPOSE] close the v0.3 ship gate — consolidate D22 execution evidence
   details: merge the pending `## D22 execution evidence` section in DECISIONS.md
   into a single D22 proof entry (run ids, diagnosis path, proposal id, merge/close,
