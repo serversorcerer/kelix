@@ -3,8 +3,8 @@
 - milestone: V
 - phase: V-LEDGER
 - current_task: selecting
-- last_task: KV1
-- last_verified_commit: a33884f
-- done: 89
+- last_task: KV2
+- last_verified_commit: pending
+- done: 90
 - total: 106
 - blockers:

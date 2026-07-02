@@ -85,3 +85,36 @@ class CommandPolicy:
             if not any(stripped.startswith(prefix) for prefix in self._allow_only):
                 return False, "not in allowlist (allow_only mode)"
         return True, ""
+
+
+# --- inbound text sanitization -----------------------------------------------
+
+# Patterns that look like attempts to hijack the loop from inside untrusted text.
+_INJECTION_MARKERS = [
+    re.compile(r"(?i)ignore (all|any|previous|your) (instructions|rules)"),
+    re.compile(r"(?i)disregard (the )?(loop )?(contract|rules)"),
+    re.compile(r"(?i)push (directly )?to (main|master)"),
+    re.compile(r"(?i)force[- ]push"),
+    re.compile(r"(?i)(reveal|print|exfiltrate|leak).{0,20}(secret|token|key|credential)"),
+    re.compile(r"(?i)system prompt"),
+    re.compile(r"(?i)you are now"),
+]
+
+
+def sanitize_inbound(text: str, max_len: int = 4000) -> str:
+    """Neutralize untrusted repo text so it is safe to embed as data.
+
+    Injection-shaped spans are annotated; pipe and backtick fencing is removed
+    so the text cannot forge backlog fields or fenced commands.
+    """
+    if not text:
+        return ""
+    text = text.replace("\r\n", "\n")
+    text = text.replace("|", "/").replace("`", "'")
+    for marker in _INJECTION_MARKERS:
+        text = marker.sub(lambda m: f"[flagged-untrusted: {m.group(0)}]", text)
+    text = re.sub(r"[ \t]+", " ", text)
+    text = re.sub(r"\n{3,}", "\n\n", text).strip()
+    if len(text) > max_len:
+        text = text[:max_len] + " [...truncated]"
+    return text

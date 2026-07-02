@@ -162,16 +162,12 @@ isolation = "worktree"     # worktree (safest) | branch | none
 
 [autonomy]
 level = "normal"           # normal: proposed tasks rank below owner tasks
-
-[tracker]
-provider = "linear"        # optional; "" disables sync
-team = "KAL"
 ```
 
 ## Safety
 
 Kelix treats "unattended agent + shell + prompt-injected repo content" as its
-threat model. Repo/tracker text is data, never instructions; a command denylist
+threat model. Repo-sourced text is data, never instructions; a command denylist
 blocks `curl|sh`, force-push, package publish, and credential reads; secrets are
 scrubbed from transcripts and comments; runs happen in isolated worktrees and
 land as PRs (never direct to main). Full model: [`docs/SECURITY.md`](docs/SECURITY.md).

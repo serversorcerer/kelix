@@ -34,7 +34,7 @@ Line counts from `wc -l` on cited paths (2026-07-02 worktree).
 | kiro | 80 (`src/kelix/kiro.py`) | `tests/test_kiro.py` with substituted binary; **no live Kiro CLI run** ([final-report § Unverified](proof/final-report.md#unverified--deferred--stated-plainly)) | KEEP |
 | security | 87 (`src/kelix/security.py`) | `tests/test_security.py`, `tests/test_injection_drill.py`; injection drill backlog diff ([proof/injection-drill-backlog.diff](proof/injection-drill-backlog.diff)) | KEEP |
 | art | 133 (`src/kelix/art.py`) | `tests/test_ci_integration.py` run-complete theming (KE25) | KEEP |
-| sync/ | 304 (`src/kelix/sync/`) | Mocked transport only — no live Linear API ([final-report line 132](proof/final-report.md#unverified--deferred--stated-plainly)) | SCRAP → **KV2** |
+| sync/ (removed KV2) | — | Mocked transport only — no live Linear API ([final-report line 132](proof/final-report.md#unverified--deferred--stated-plainly)) | SCRAP (done **KV2**) |
 | pr | 214 (`src/kelix/pr.py`) | Stubbed `gh` in tests only; dogfood value path is verified commits on run branch ([final-report line 134](proof/final-report.md#unverified--deferred--stated-plainly), [V-CUT CONTEXT](../.kelix/phases/V-CUT/CONTEXT.md)) | SCRAP → **KV3** |
 
 ## Owner veto
@@ -42,4 +42,4 @@ Line counts from `wc -l` on cited paths (2026-07-02 worktree).
 Edits to this file **before** V-SHARPEN / V-SIMPLE execution phases run are
 binding. Change any row's verdict or receipt column, commit, and downstream
 KV2–KV5 tasks read the updated ledger — they do not re-litigate. Predetermined
-owner SCRAPs (`sync/`, `pr.py`) are documented above pending KV2/KV3 deletion.
+owner SCRAPs (`sync/` removed KV2, `pr.py` pending KV3) are documented above.

@@ -73,7 +73,6 @@ def test_default_config_is_safe():
     cfg = Config()
     assert cfg.loop.max_iterations <= 25
     assert cfg.git.isolation == "worktree"
-    assert cfg.tracker.provider == ""
     assert cfg.memory.context_share == 0.5
 
 

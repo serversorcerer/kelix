@@ -44,7 +44,6 @@ src/kelix/
   claims.py        # atomic task claims for fleets
   kiro.py          # Kiro integration (steering, spec import)
   mcp_server.py    # MCP server so Kiro can drive Kelix by tool call
-  sync/            # tracker sync (Linear), inbound sanitization
   cli.py, config.py
 tests/             # one test module per source module, plus drills
 docs/              # concept, security model, fleet, prioritization, ...

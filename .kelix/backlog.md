@@ -747,7 +747,7 @@ Owner decisions: `.kelix/phases/V-CUT/CONTEXT.md`. All tasks below are
 
 ### Phase V-SHARPEN — Double down (execution after ledger + scrap)
 
-- [ ] KV2: delete sync/ module and kelix sync | priority: 54 | status: ready | by: owner | deps: KV1 | phase: V-LEDGER | req: REQ-VL3
+- [x] KV2: delete sync/ module and kelix sync | priority: 54 | status: done | by: owner | deps: KV1 | phase: V-LEDGER | req: REQ-VL3
   details: per owner decision and ledger SCRAP row for sync/: delete
   src/kelix/sync/ (all files), remove cmd_sync and sync subparser from
   src/kelix/cli.py, remove sync imports/tests (tests/test_sync*.py if present),

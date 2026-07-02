@@ -609,23 +609,6 @@ def cmd_metrics_grade_proposal(args) -> int:
     return 0
 
 
-def cmd_sync(args) -> int:
-    """Mirror tracker issues into the backlog. Non-fatal: tracker problems are
-    logged and skipped, never fatal to the loop."""
-    from .sync import make_tracker
-    from .sync.mirror import mirror_inbound
-
-    cfg = load_config(Path(args.path))
-    tracker = make_tracker(cfg)
-    if tracker is None:
-        print("tracker sync disabled ([tracker].provider unset in kelix.toml)")
-        return 0
-    issues = tracker.fetch_issues()
-    added = mirror_inbound(cfg.root / cfg.loop.plan_file, issues)
-    print(f"synced {len(issues)} issue(s) from {tracker.name}; {added} new backlog task(s)")
-    return 0
-
-
 def main(argv: list[str] | None = None) -> int:
     from .art import banner
 
@@ -720,10 +703,6 @@ def main(argv: list[str] | None = None) -> int:
     )
     p.add_argument("--path", default=".")
     p.set_defaults(func=cmd_mcp)
-
-    p = sub.add_parser("sync", help="mirror tracker issues into the backlog")
-    p.add_argument("--path", default=".")
-    p.set_defaults(func=cmd_sync)
 
     p = sub.add_parser(
         "diagnose",

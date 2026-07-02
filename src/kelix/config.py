@@ -104,13 +104,6 @@ class GitConfig:
 
 
 @dataclass
-class TrackerConfig:
-    # Issue-tracker sync. Disabled unless explicitly configured.
-    provider: str = ""  # "" | "linear"
-    team: str = ""
-
-
-@dataclass
 class Config:
     root: Path = field(default_factory=Path.cwd)
     agent: AgentConfig = field(default_factory=AgentConfig)
@@ -120,7 +113,6 @@ class Config:
     autonomy: AutonomyConfig = field(default_factory=AutonomyConfig)
     security: SecurityConfig = field(default_factory=SecurityConfig)
     git: GitConfig = field(default_factory=GitConfig)
-    tracker: TrackerConfig = field(default_factory=TrackerConfig)
 
     @property
     def kelix_dir(self) -> Path:
@@ -135,7 +127,6 @@ _SECTIONS = {
     "autonomy": AutonomyConfig,
     "security": SecurityConfig,
     "git": GitConfig,
-    "tracker": TrackerConfig,
 }
 
 
