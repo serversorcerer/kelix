@@ -899,7 +899,7 @@ Owner context: `.kelix/phases/DRIFT-FIX/CONTEXT.md`. Fleet config:
 
 ### Phase DRIFT-FIX — Steak (accuracy)
 
-- [ ] DR1: README Safety and Will/Will-not | priority: 95 | status: ready | by: owner | phase: DRIFT-FIX | req: REQ-DR1
+- [x] DR1: README Safety and Will/Will-not | priority: 95 | status: done | by: owner | phase: DRIFT-FIX | req: REQ-DR1
   details: edit README.md sections "## Safety" and "## What Kelix will and will
   not do unattended". Replace "land as PRs" and "open PRs" with language from
   DRIFT-FIX CONTEXT: verified commits on kelix/run-* branches, owner merges

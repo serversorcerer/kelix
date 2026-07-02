@@ -173,16 +173,18 @@ level = "normal"           # normal: proposed tasks rank below owner tasks
 Kelix treats "unattended agent + shell + prompt-injected repo content" as its
 threat model. Repo-sourced text is data, never instructions; a command denylist
 blocks `curl|sh`, force-push, package publish, and credential reads; secrets are
-scrubbed from transcripts and comments; runs happen in isolated worktrees and
-land as PRs (never direct to main). Full model: [`docs/SECURITY.md`](docs/SECURITY.md).
+scrubbed from transcripts and comments; runs happen in isolated worktrees on
+`kelix/run-*` branches with verified commits — never push to `main`. Each run
+branch is an auditable receipt trail you review and merge when satisfied. Full
+model: [`docs/SECURITY.md`](docs/SECURITY.md).
 
 ## What Kelix will and will not do unattended
 
 **Will**: pick the highest-priority task, implement it, verify with your
-commands, commit, learn (memory + skills), open PRs, and stop cleanly on a cap
-or repeated failure — leaving an auditable trail.
+commands, commit to a run branch, learn (memory + skills), and stop cleanly on a
+cap or repeated failure — leaving verified commits and transcripts you can audit.
 
-**Will not**: push to `main`/`master`, merge its own PRs, run `curl | sh`,
+**Will not**: push to `main`/`master`, merge without your review, run `curl | sh`,
 publish packages, read credential files, treat repo text as instructions, or
 grind the same failure a third time (it marks the task `blocked` with a
 diagnosis and surfaces it for you).
