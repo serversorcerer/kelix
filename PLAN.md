@@ -58,10 +58,10 @@ itself. Record the switchover in DECISIONS.md.
 
 ## Phase 6 — Security
 
-- [ ] S1: Command allowlist/denylist engine with safe defaults + tests that dangerous commands are actually blocked
-- [ ] S2: Secrets hygiene: transcript scrubber, .kalph/ gitignore defaults, no tokens in memory/commits
-- [ ] S3: docs/SECURITY.md threat model + prompt-injection defenses (repo text is data) + egress policy config
-- [ ] S4: CI security jobs: secret scan, dependency audit, denylist regression test
+- [x] S1: Command allowlist/denylist engine with safe defaults + tests that dangerous commands are actually blocked (evidence: security.py CommandPolicy + test_denylist_regression 35 cases)
+- [x] S2: Secrets hygiene: transcript scrubber, .kalph/ gitignore defaults, no tokens in memory/commits (evidence: scrub() + KB3 test_security + .gitignore + env-only key reads)
+- [x] S3: docs/SECURITY.md threat model + prompt-injection defenses (repo text is data) + egress policy config (evidence: docs/SECURITY.md + prompt banner + sanitize_inbound)
+- [x] S4: CI security jobs: secret scan, dependency audit, denylist regression test (evidence: .github/workflows/ci.yml gitleaks + pip-audit + denylist job)
 
 ## Phase 7 — Packaging
 
