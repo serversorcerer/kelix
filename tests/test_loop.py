@@ -593,6 +593,7 @@ def test_spec_gate_blocks_vague_ready_task(repo, capsys):
     assert "T1:" in err
     assert "bad:" in err
     assert "good:" in err
+    assert "  fix:" in err
 
 
 def test_spec_gate_allows_well_specified_ready_task(repo):

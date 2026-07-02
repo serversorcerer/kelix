@@ -807,7 +807,7 @@ Owner decisions: `.kelix/phases/V-CUT/CONTEXT.md`. All tasks below are
   in path Y"). Test: fixture triggering no-diff breaker → output contains task
   id and the string "fix" or actionable path; run stops before next iteration.
 
-- [ ] KV9: lint and spec-gate actionable findings | priority: 47 | status: ready | by: owner | deps: KV6 | phase: V-SHARPEN | req: REQ-VS4
+- [x] KV9: lint and spec-gate actionable findings | priority: 47 | status: done | by: owner | deps: KV6 | phase: V-SHARPEN | req: REQ-VS4
   details: extend src/kelix/lint.py formatters and run spec-gate (KE29 if
   shipped, else loop preflight lint) so each Finding prints: task id, rule id,
   message, and fix line ("add details: with a test path" / "remove unfalsifiable

@@ -48,6 +48,45 @@ def format_finding(finding: Finding) -> str:
     return f"{prefix}{finding.rule}: {finding.message}"
 
 
+def finding_fix(finding: Finding) -> str:
+    """One-line actionable fix for a lint finding (REQ-VS4)."""
+    rule = finding.rule
+    if rule == "missing_details":
+        return "add details: with a test path"
+    if rule == "no_acceptance_signal":
+        return "add a test path, assert, or exit-code evidence to details:"
+    if rule == "unfalsifiable_wording":
+        match = re.search(r"use '([^']+)'", finding.message)
+        word = match.group(1) if match else "banned word"
+        return f"remove unfalsifiable word {word} in details"
+    if rule == "multiple_deliverables":
+        return "split into separate tasks — remove ' and then ' from details:"
+    if rule == "title_too_long":
+        return "shorten title to 80 characters or fewer"
+    if rule == "dangling_dep":
+        return "fix deps: to reference an existing task id"
+    if rule == "cyclic_deps":
+        return "break the dependency cycle in deps:"
+    if rule == "backlog_missing":
+        return "create .kelix/backlog.md with parseable tasks"
+    if rule == "roadmap_missing":
+        return "create .kelix/roadmap.md with milestones, phases, and REQs"
+    if rule == "roadmap_empty":
+        return "add milestones, phases, and REQ bullets to .kelix/roadmap.md"
+    if rule == "not_proposed":
+        return "set status: proposed on kelix-authored draft tasks"
+    if rule == "uncovered_req":
+        return "add a backlog task with req: covering the uncovered REQ"
+    if rule == "non_planning_change":
+        return "limit plan iteration edits to roadmap, backlog, and phase files"
+    return "edit the backlog task to satisfy the lint rule"
+
+
+def format_actionable_finding(finding: Finding) -> str:
+    """Task id, rule, message, and one-line fix (REQ-VS4)."""
+    return f"{format_finding(finding)}\n  fix: {finding_fix(finding)}"
+
+
 # Inline good/bad examples for the run spec-gate (REQ-GD1).
 SPEC_GATE_EXAMPLES: dict[str, tuple[str, str]] = {
     "missing_details": (
@@ -93,7 +132,7 @@ def format_spec_gate_findings(findings: list[Finding]) -> list[str]:
     ]
     seen_rules: set[str] = set()
     for finding in findings:
-        lines.append(format_finding(finding))
+        lines.append(format_actionable_finding(finding))
         if finding.rule in seen_rules:
             continue
         seen_rules.add(finding.rule)

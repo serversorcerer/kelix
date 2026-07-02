@@ -244,7 +244,7 @@ def cmd_init(
 
 def cmd_lint(args) -> int:
     from .art import say
-    from .lint import INPUT_QUALITY_TAGLINE, format_finding, lint_repo
+    from .lint import INPUT_QUALITY_TAGLINE, format_actionable_finding, lint_repo
 
     root = Path(args.path).resolve()
     findings = lint_repo(root)
@@ -252,7 +252,7 @@ def cmd_lint(args) -> int:
         print(say("lint: clean", "ok"))
         return 0
     for finding in findings:
-        print(say(f"lint: {format_finding(finding)}", "warn"), file=sys.stderr)
+        print(say(f"lint: {format_actionable_finding(finding)}", "warn"), file=sys.stderr)
     print(
         say(f"{len(findings)} finding(s) — {INPUT_QUALITY_TAGLINE}", "fail"),
         file=sys.stderr,

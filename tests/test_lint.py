@@ -4,7 +4,14 @@ from pathlib import Path
 
 from kelix.backlog import Task
 from kelix.cli import cmd_lint
-from kelix.lint import Finding, format_finding, lint_backlog, lint_repo
+from kelix.lint import (
+    Finding,
+    finding_fix,
+    format_actionable_finding,
+    format_finding,
+    lint_backlog,
+    lint_repo,
+)
 
 
 def _task(**kwargs) -> Task:
@@ -29,6 +36,47 @@ def test_format_finding_includes_task_id():
     assert format_finding(Finding("", "backlog_missing", "missing file")) == (
         "backlog_missing: missing file"
     )
+
+
+def test_finding_fix_per_rule():
+    assert finding_fix(Finding("T1", "missing_details", "")) == (
+        "add details: with a test path"
+    )
+    assert finding_fix(
+        Finding("T1", "unfalsifiable_wording", "details use 'improve' without a metric")
+    ) == "remove unfalsifiable word improve in details"
+
+
+def test_format_actionable_finding_includes_fix():
+    text = format_actionable_finding(
+        Finding("T1", "missing_details", "task has no details: note with testable acceptance")
+    )
+    assert "T1: missing_details:" in text
+    assert "  fix: add details: with a test path" in text
+
+
+def test_lint_slop_fixture_actionable_findings(capsys):
+    """Every finding on a slop backlog includes task id, rule, and fix (REQ-VS4)."""
+    findings = lint_backlog(
+        [
+            _task(
+                id="SLOP",
+                notes={"details": "improve everything"},
+            ),
+            _task(
+                id="NODET",
+                notes={"rationale": "why"},
+            ),
+        ],
+        scope="ready",
+    )
+    assert findings
+    for finding in findings:
+        block = format_actionable_finding(finding)
+        assert finding.task_id in block
+        assert finding.rule in block
+        assert "  fix:" in block
+        assert finding_fix(finding) in block
 
 
 def test_lint_ready_scope_ignores_proposed():
@@ -63,6 +111,7 @@ def test_format_spec_gate_findings_includes_examples():
     assert "bad:" in text
     assert "good:" in text
     assert "T1:" in text
+    assert "  fix:" in text
 
 
 def test_missing_details():
@@ -201,6 +250,10 @@ def test_cmd_lint_reports_findings(repo, capsys):
     err = capsys.readouterr().err
     assert "lint:" in err
     assert "no_acceptance_signal" in err or "unfalsifiable_wording" in err
+    assert "  fix:" in err
+    assert "remove unfalsifiable word improve in details" in err or (
+        "add a test path" in err
+    )
     assert err.count("Gold in, diamonds out.") == 1
 
 
