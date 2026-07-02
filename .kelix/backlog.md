@@ -395,7 +395,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   blocked paths (backlog, STATE, roadmap). tests/test_propose.py: allowed vs
   forbidden paths.
 
-- [ ] ST12: kelix propose command | priority: 46 | status: ready | by: owner | deps: ST11, ST10 | phase: T-PROPOSE | req: REQ-TP1
+- [x] ST12: kelix propose command | priority: 46 | status: done | by: owner | deps: ST11, ST10 | phase: T-PROPOSE | req: REQ-TP1
   details: cmd_propose in cli.py: create branch kelix/propose-<run_id>, one
   adapter iteration with PROPOSE_TEMPLATE in prompt.py (inputs: loop-metrics
   excerpt, optional --diagnosis-file, predicted improvement line required in

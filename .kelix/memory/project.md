@@ -250,6 +250,12 @@ Durable facts about this repo for future iterations.
   transcripts; agent writes only the diagnosis path; `validate_diagnosis`
   requires `## Findings` and a scoped run_id citation; never imported from
   `loop.py` (owner-invoked only).
+- `kelix propose` (`propose.ProposeRunner`) creates branch
+  `{branch_prefix}propose-<run_id>`, one adapter iteration with
+  `assemble_propose_prompt` (loop-metrics excerpt + optional diagnosis);
+  agent must print `PREDICTED_IMPROVEMENT:`; post-iteration
+  `validate_propose_diff` on git diff vs pre-iteration checkpoint; sidecar at
+  `.kelix/memory/proposal-<id>.json`; never imported from `loop.py`.
 
 ## Run 20260702-120914 (max_iterations)
 10 iterations, 9 verified. Failures: agent exit 143 (timeout); verification failed.
