@@ -73,3 +73,12 @@ the bottom. Format: `D<N> (<phase>): decision — rationale`.
   iteration honestly as `agent exit 143` while keeping the verified commit —
   exactly the intended failure accounting. No code change needed: the
   timeout rail already covers this unattended.
+- D14 (publish): First CI run on GitHub caught a real bug the dev machine
+  masked: auto-checkpoint used `git add -A`, which swept runner bookkeeping
+  (transcripts under `.kalph/runs/`, `episodes.jsonl`) into commits on
+  machines without a global gitignore — making every iteration look like
+  progress and blinding the no-diff circuit breaker
+  (test_circuit_breaker_on_no_diff failed on CI, passed locally).
+  Fix: checkpoint() excludes runner-owned paths via pathspec and commits
+  only agent work; regression test added. Kept `.kalph/*` gitignore
+  defaults as a second layer, not the only layer.

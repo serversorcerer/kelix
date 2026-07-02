@@ -51,16 +51,31 @@ def is_dirty(cwd: Path) -> bool:
     return bool(git(["status", "--porcelain"], cwd).strip())
 
 
+# Files the runner itself writes every iteration (transcripts, run state,
+# episode records, claims). They must never be auto-checkpointed: committing
+# them would make every iteration look like agent progress and blind the
+# no-diff circuit breaker.
+RUNNER_BOOKKEEPING = (
+    ".kalph/runs",
+    ".kalph/memory/episodes.jsonl",
+    ".kalph/fleet/claims",
+)
+
+
 def checkpoint(cwd: Path, message: str) -> bool:
-    """Commit any uncommitted changes. Returns True if a commit was made.
+    """Commit any uncommitted agent changes. Returns True if a commit was made.
 
     This is the no-lost-work rail: it runs before and after every iteration,
     so an agent that edited files but forgot to commit cannot lose them, and a
-    broken half-edit is always recoverable via git history.
+    broken half-edit is always recoverable via git history. Runner-owned
+    bookkeeping files are excluded — only agent work counts.
     """
     if not is_dirty(cwd):
         return False
-    git(["add", "-A"], cwd)
+    pathspec = ["--", "."] + [f":(exclude){p}" for p in RUNNER_BOOKKEEPING]
+    git(["add", "-A", *pathspec], cwd)
+    if not git(["diff", "--cached", "--name-only"], cwd).strip():
+        return False
     git(["commit", "-m", message, "--no-verify"], cwd)
     return True
 

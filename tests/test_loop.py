@@ -134,6 +134,27 @@ def test_verification_green_allows_completion(repo):
     assert result.iterations[0].verified is True
 
 
+def test_checkpoint_ignores_runner_bookkeeping(repo):
+    # Transcripts/run-state/episodes are runner-owned; committing them would
+    # make every iteration look like progress and blind the no-diff breaker.
+    # (Regression: CI machines without a global gitignore hit exactly this.)
+    from kalph.gitutil import checkpoint
+
+    run_dir = repo / ".kalph" / "runs" / "x"
+    run_dir.mkdir(parents=True)
+    (run_dir / "iter-001.log").write_text("transcript")
+    (run_dir / "run.json").write_text("{}")
+    (repo / ".kalph" / "memory" / "episodes.jsonl").write_text("{}\n")
+    assert checkpoint(repo, "bookkeeping only") is False
+
+    (repo / "real-work.txt").write_text("agent output")
+    assert checkpoint(repo, "agent work") is True
+    tracked = _git_out(repo, "ls-tree", "-r", "--name-only", "HEAD")
+    assert "real-work.txt" in tracked
+    assert "iter-001.log" not in tracked
+    assert "episodes.jsonl" not in tracked
+
+
 def test_circuit_breaker_on_no_diff(repo):
     for i in (1, 2, 3):
         write_mock_script(repo / "mockdir", f"{i:03d}.sh", 'echo "did nothing"\n')
