@@ -240,3 +240,8 @@ Durable facts about this repo for future iterations.
 
 ## Run 20260702-104227 (max_iterations)
 10 iterations, 10 verified. Failures: agent exit 124 (timeout).
+- `kelix diagnose` transcript loader (`diagnose.load_failed_transcripts`) reads
+  loop runner files at `.kelix/runs/<run_id>/iter-<n>.log` (not
+  `transcript-<n>.txt`); sections are headed by run/iteration/task; char budget
+  from `[loop].diagnose_transcript_chars` with `[... truncated to N chars]`
+  marker when exceeded; missing files skipped.

@@ -10,7 +10,9 @@ from kelix.diagnose import (
     DiagnoseRunner,
     default_diagnosis_path,
     iteration_failed,
+    load_failed_transcripts,
     select_diagnose_runs,
+    transcript_path,
 )
 from kelix.metrics import IterationLedgerRow, save_metrics
 
@@ -196,6 +198,103 @@ def test_cmd_diagnose_prints_selection(tmp_path: Path, capsys):
     out = capsys.readouterr().out
     assert "20260702-040000" in out
     assert "diagnosis-" in out
+
+
+def test_transcript_path_matches_loop_naming(tmp_path: Path):
+    cfg = load_config(tmp_path)
+    path = transcript_path(cfg, "20260702-040000", 2)
+    assert path == tmp_path / ".kelix" / "runs" / "20260702-040000" / "iter-002.log"
+
+
+def test_load_failed_transcripts_concatenates_with_headers(tmp_path: Path):
+    kelix = tmp_path / ".kelix"
+    run_id = "20260702-040000"
+    run_dir = kelix / "runs" / run_id
+    run_dir.mkdir(parents=True)
+    (run_dir / "iter-001.log").write_text("first failure output", encoding="utf-8")
+    (run_dir / "iter-002.log").write_text("second failure output", encoding="utf-8")
+
+    rows = [
+        IterationLedgerRow(
+            run_id=run_id,
+            iteration=1,
+            task_id="ST1",
+            verified=False,
+            failure="fail",
+        ),
+        IterationLedgerRow(
+            run_id=run_id,
+            iteration=2,
+            task_id="ST2",
+            verified=False,
+            failure="fail",
+        ),
+    ]
+    cfg = load_config(tmp_path)
+    text = load_failed_transcripts(cfg, [run_id], rows)
+
+    assert "## Run 20260702-040000 / iteration 1 / task ST1" in text
+    assert "first failure output" in text
+    assert "## Run 20260702-040000 / iteration 2 / task ST2" in text
+    assert "second failure output" in text
+    assert "[... truncated" not in text
+
+
+def test_load_failed_transcripts_truncates_at_budget(tmp_path: Path):
+    kelix = tmp_path / ".kelix"
+    run_id = "20260702-040000"
+    run_dir = kelix / "runs" / run_id
+    run_dir.mkdir(parents=True)
+
+    rows: list[IterationLedgerRow] = []
+    for i in range(1, 4):
+        (run_dir / f"iter-{i:03d}.log").write_text("x" * 200, encoding="utf-8")
+        rows.append(
+            IterationLedgerRow(
+                run_id=run_id,
+                iteration=i,
+                task_id=f"T{i}",
+                verified=False,
+                failure="fail",
+            )
+        )
+
+    cfg = load_config(tmp_path)
+    cfg.loop.diagnose_transcript_chars = 500
+    text = load_failed_transcripts(cfg, [run_id], rows)
+
+    assert "[... truncated to 500 chars]" in text
+    assert text.index("[... truncated to 500 chars]") > 0
+
+
+def test_load_failed_transcripts_skips_missing_files(tmp_path: Path):
+    kelix = tmp_path / ".kelix"
+    run_id = "20260702-040000"
+    run_dir = kelix / "runs" / run_id
+    run_dir.mkdir(parents=True)
+    (run_dir / "iter-001.log").write_text("present", encoding="utf-8")
+
+    rows = [
+        IterationLedgerRow(
+            run_id=run_id,
+            iteration=1,
+            task_id="T1",
+            verified=False,
+            failure="fail",
+        ),
+        IterationLedgerRow(
+            run_id=run_id,
+            iteration=2,
+            task_id="T2",
+            verified=False,
+            failure="fail",
+        ),
+    ]
+    cfg = load_config(tmp_path)
+    text = load_failed_transcripts(cfg, [run_id], rows)
+
+    assert "present" in text
+    assert "iteration 2" not in text
 
 
 def test_loop_does_not_import_diagnose():

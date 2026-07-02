@@ -1,8 +1,8 @@
 """``kelix diagnose`` — select failed runs for periodic self-review.
 
 Owner-invoked only; never called from the loop runner (see T-DIAGNOSE CONTEXT).
-ST8: run selection and CLI skeleton. Transcript loading (ST9) and the adapter
-iteration (ST10) build on this module.
+ST8: run selection and CLI skeleton. ST9: failed-transcript loader with budget.
+The adapter iteration (ST10) builds on this module.
 """
 
 from __future__ import annotations
@@ -17,6 +17,68 @@ from .metrics import IterationLedgerRow, load_metrics, metrics_path
 
 class DiagnoseError(Exception):
     pass
+
+
+_TRUNCATION_MARKER = "[... truncated to {n} chars]"
+
+
+def transcript_path(cfg: Config, run_id: str, iteration: int) -> Path:
+    """Return the loop runner's transcript path for *run_id* / *iteration*."""
+    return cfg.kelix_dir / "runs" / run_id / f"iter-{iteration:03d}.log"
+
+
+def load_failed_transcripts(
+    cfg: Config,
+    run_ids: list[str],
+    ledger_rows: list[IterationLedgerRow],
+) -> str:
+    """Load failed-iteration transcripts up to ``diagnose_transcript_chars``.
+
+    For each failed row in scope (ordered by *run_ids* then iteration), read
+    ``.kelix/runs/<run_id>/iter-<n>.log`` when present. Sections are prefixed
+    with a markdown header naming run, iteration, and task id. Missing files are
+    skipped. When the char budget is exceeded, output is cut and a truncation
+    marker naming the budget is appended.
+    """
+    budget = cfg.loop.diagnose_transcript_chars
+    if budget < 1 or not ledger_rows:
+        return ""
+
+    run_order = {run_id: idx for idx, run_id in enumerate(run_ids)}
+    ordered = sorted(
+        ledger_rows,
+        key=lambda row: (run_order.get(row.run_id, len(run_ids)), row.iteration),
+    )
+
+    parts: list[str] = []
+    used = 0
+    marker = _TRUNCATION_MARKER.format(n=budget)
+
+    for row in ordered:
+        path = transcript_path(cfg, row.run_id, row.iteration)
+        if not path.is_file():
+            continue
+
+        header = f"## Run {row.run_id} / iteration {row.iteration}"
+        if row.task_id:
+            header += f" / task {row.task_id}"
+        section = f"{header}\n\n{path.read_text(encoding='utf-8')}"
+
+        remaining = budget - used
+        if remaining <= 0:
+            parts.append(marker)
+            break
+
+        if len(section) <= remaining:
+            parts.append(section)
+            used += len(section)
+            continue
+
+        parts.append(section[:remaining])
+        parts.append(marker)
+        break
+
+    return "\n\n".join(parts)
 
 
 def iteration_failed(row: IterationLedgerRow) -> bool:

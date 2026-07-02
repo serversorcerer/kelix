@@ -367,7 +367,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   joined to run ids), default N=diagnose_default_runs. Never import from loop.py
   run path. tests/test_diagnose.py: run selection fixture with 5 runs, 2 failed.
 
-- [ ] ST9: failed-transcript loader with budget | priority: 49 | status: ready | by: owner | deps: ST8 | phase: T-DIAGNOSE | req: REQ-TD2
+- [x] ST9: failed-transcript loader with budget | priority: 49 | status: done | by: owner | deps: ST8 | phase: T-DIAGNOSE | req: REQ-TD2
   details: in diagnose.py load_failed_transcripts(cfg, run_ids, ledger_rows) →
   str: for each failed iteration in scope read
   .kelix/runs/<run_id>/transcript-<n>.txt (or actual transcript naming from
