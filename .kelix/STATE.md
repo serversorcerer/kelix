@@ -8,7 +8,7 @@ run onward — PC2 landed in run 20260702-022639.)
 - phase: P-GATE
 - current_task: (none — next selection: PC9)
 - last_task: PC8 (runner enforces phase gate at boundaries)
-- last_verified_commit: (pending — run 20260702-103424)
+- last_verified_commit: 75a5dba (run 20260702-103424)
 - done: 11
 - total: 24
 - blockers:
