@@ -3,8 +3,8 @@
 - milestone: v0.4
 - phase: P-AGENT
 - current_task: selecting
-- last_task: KE14
-- last_verified_commit: 037aa90c2c7c6114dcb40cc7b413a001396f3227
-- done: 70
+- last_task: KE15
+- last_verified_commit: fe4f31827e3e7ec50ca306948a398d683bf7fff1
+- done: 71
 - total: 106
 - blockers:
