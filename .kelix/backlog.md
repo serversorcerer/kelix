@@ -581,7 +581,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   TOML block in guide parses via load_config; heading list matches kiro.md
   loop sections (diff script or manual checklist in test).
 
-- [ ] KE9: claude agent guide (upstream-sourced) | priority: 84 | status: ready | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A2
+- [x] KE9: claude agent guide (upstream-sourced) | priority: 84 | status: done | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A2
   details: create docs/agents/claude.md — same heading parity as KE8; invocation
   from Claude Code CLI upstream docs; prominent **Not Kelix CI-tested — community
   corrections welcome** banner. Acceptance: TOML parses via load_config.
