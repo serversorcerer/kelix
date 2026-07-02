@@ -44,9 +44,9 @@ itself. Record the switchover in DECISIONS.md.
 
 ## Phase 4 — Kiro integration
 
-- [ ] K1: .kiro/ package: steering file, agent config (kalph agent), example hooks, spec->backlog import (kalph init --from-spec)
-- [ ] K2: kalph mcp: stdio MCP server (start run, status, memory inspect, stop); documented tool schema
-- [ ] K3: README quickstart: spec written -> overnight run in one command
+- [x] K1: .kiro/ package: steering file, agent config (kalph agent), example hooks, spec->backlog import (kalph init --from-spec) (evidence: integrations/kiro/ + test_kiro.py)
+- [x] K2: kalph mcp: stdio MCP server (start run, status, memory inspect, stop); documented tool schema (evidence: mcp_server.py + test_mcp_server.py)
+- [x] K3: README quickstart: spec written -> overnight run in one command (evidence: integrations/kiro/README.md)
 
 ## Phase 5 — Fleet
 
