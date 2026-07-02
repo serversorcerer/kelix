@@ -462,7 +462,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   `## D22 execution evidence (pending)` section in DECISIONS.md. Acceptance:
   `pytest -q` and `ruff check src tests` pass unchanged.
 
-- [ ] ST19b: self-tuning proof — diagnose on seed run | priority: 43 | status: ready | by: owner | deps: ST19a | phase: T-PROPOSE | req: REQ-TP2
+- [x] ST19b: self-tuning proof — diagnose on seed run | priority: 43 | status: done | by: owner | deps: ST19a | phase: T-PROPOSE | req: REQ-TP2
   rationale: [ST19] ship gate step 2 — diagnosis file from ledger + transcripts
   details: run `kelix diagnose --run-id <ST19a run_id>` (or `--last 1` if no
   failed rows); assert a `.kelix/memory/diagnosis-*.md` file exists containing

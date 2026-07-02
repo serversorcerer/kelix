@@ -211,3 +211,6 @@ the bottom. Format: `D<N> (<phase>): decision — rationale`.
   `max_iterations` exit with 3 verified ledger rows in
   `.kelix/memory/loop-metrics.json` (task_id ST20, retry_count 0–2).
   Transcripts: `.kelix/runs/20260702-133736/`.
+- **ST19b diagnose:** `kelix diagnose --run-id 20260702-133736` →
+  `.kelix/memory/diagnosis-st19b.md` (mock adapter at `.kelix/st19b-mock/`,
+  `## Findings` cites run 20260702-133736; zero failed ledger rows in scope).
