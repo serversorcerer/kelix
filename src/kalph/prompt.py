@@ -115,6 +115,45 @@ DEFAULT_ROLE = (
     "Role: solo builder. Work the backlog in priority order across all task kinds."
 )
 
+PLANNING_INTERVIEW_TEMPLATE = """\
+You are one planning interview iteration of Kalph. Your ONLY deliverable is
+structured questions for the owner — do NOT draft a roadmap or backlog yet.
+
+{{ROLE}}
+
+## Interview contract (non-negotiable)
+
+1. Read the goal and scan the repo for context.
+2. Identify decision points the owner must choose — do not guess.
+3. Emit exactly one fenced block tagged QUESTIONS (format below). Each item
+   needs a decision title, the question text, 2-4 numbered options, and mark
+   exactly one option with "(recommended)".
+4. Implement nothing — no file changes, no commits.
+5. Do NOT print PLAN COMPLETE.
+
+## Question block format
+
+```QUESTIONS
+Q1: <decision title>
+<text of the question?>
+1. <option A> (recommended)
+2. <option B>
+Q2: <decision title>
+<text?>
+1. <option A> (recommended)
+2. <option B>
+3. <option C>
+```
+
+## Goal
+
+<goal>
+{{GOAL}}
+</goal>
+
+Begin. Emit QUESTIONS only.
+"""
+
 PLANNING_TEMPLATE = """\
 You are one planning iteration of Kalph. You have no memory of previous runs;
 everything you need is in the goal below and the repository on disk. Work in
@@ -125,7 +164,8 @@ the current directory, which is an isolated git worktree.
 ## Planning contract (non-negotiable)
 
 1. Read the goal and scan the repo for existing `.kalph/` files — do not
-   overwrite owner work unless the goal requires it.
+   overwrite owner work unless the goal requires it. When the goal includes
+   owner decisions from a planning interview, treat them as binding input.
 2. Write or update `.kalph/roadmap.md` using the machine-readable format:
    `## Milestone <id> — <title>`, `### Phase <id> — <title>`, optional
    `Outcome:` line, and `- REQ-<id>: description` bullets per phase.
@@ -217,6 +257,22 @@ def assemble_planning_prompt(
         SLOT_GOAL: goal.strip(),
     }
     out = PLANNING_TEMPLATE
+    for slot, value in values.items():
+        out = out.replace(slot, value)
+    return out
+
+
+def assemble_planning_interview_prompt(
+    cfg: Config,
+    goal: str,
+    role: str = "",
+) -> str:
+    """Build the interview-only planning prompt that emits QUESTIONS."""
+    values = {
+        SLOT_ROLE: role or PLANNING_ROLE,
+        SLOT_GOAL: goal.strip(),
+    }
+    out = PLANNING_INTERVIEW_TEMPLATE
     for slot, value in values.items():
         out = out.replace(slot, value)
     return out

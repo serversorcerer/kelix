@@ -108,7 +108,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   ready — review .kalph/roadmap.md and promote tasks to ready". Tests with
   the mock adapter: draft written, all tasks proposed, nothing else changed.
 
-- [ ] PC14b: planning interviews the owner before drafting | priority: 88 | status: ready | by: owner | deps: PC14
+- [x] PC14b: planning interviews the owner before drafting | priority: 88 | status: done | by: owner | deps: PC14
   rationale: [P-ONRAMP/REQ-O1b] a planner that guesses produces plausible-but-wrong plans; ask, then draft (D16 directive 1)
   details: extend plan.py with a question step. The planning prompt's first
   phase instructs the agent to emit QUESTIONS as a fenced block: each item =

@@ -117,6 +117,14 @@ def cmd_plan(args) -> int:
         )
         return 0
 
+    if result.status == "awaiting_answers":
+        if result.questions_path:
+            print(
+                f"planning questions written — answer them in {result.questions_path}, "
+                "then re-run kalph plan with the same goal"
+            )
+        return 0
+
     if result.findings:
         for line in result.findings:
             print(f"lint: {line}", file=sys.stderr)

@@ -76,14 +76,20 @@ Durable facts about this repo for future iterations.
   decisions)". `kalph init` writes `.kalph/phases/README.md` explaining the
   CONTEXT.md convention. Tests in `tests/test_prompt.py`.
 - `kalph plan` lives in `src/kalph/plan.py` (`PlanRunner`) with CLI in
-  `cli.py` (`cmd_plan`). Accepts a goal string or `--goal-file`. Runs one
-  adapter iteration using `PLANNING_TEMPLATE` in `prompt.py` (not the loop
-  template); verify is replaced by `validate_plan()` in `lint.py` which checks
-  roadmap parse, proposed-only kalph tasks, REQ coverage, and planning-only file
-  changes. Pre-plan checkpoint establishes the diff baseline (same pattern as
-  loop pre-iteration checkpoint). Success prints "draft plan ready — review
+  `cli.py` (`cmd_plan`). Accepts a goal string or `--goal-file`. Runs an
+  interview step first (unless `.kalph/phases/<goal-slug>/QUESTIONS.md` is
+  fully answered): one adapter iteration emits a `` ```QUESTIONS `` block;
+  with a TTY, `present_questions_tty` asks live and defaults to the
+  recommended option; without a TTY, writes QUESTIONS.md and exits 0 with
+  status `awaiting_answers`. Answered interviews land in the phase dir's
+  CONTEXT.md (`## Decisions from planning interview`) and are appended to the
+  draft goal. Then one draft iteration using `PLANNING_TEMPLATE` in
+  `prompt.py`; verify is replaced by `validate_plan()` in `lint.py`. Pre-plan
+  checkpoint establishes the diff baseline. Success prints "draft plan ready — review
   `.kalph/roadmap.md` and promote tasks to ready". Agent must emit
-  `PLAN COMPLETE` sentinel. Tests in `tests/test_plan.py`.
+  `PLAN COMPLETE` sentinel on draft. Interview uses `PLANNING_INTERVIEW_TEMPLATE`.
+  Phase files (QUESTIONS.md, CONTEXT.md) live on `cfg.root`, not ephemeral
+  worktrees. Tests in `tests/test_plan.py`.
 - OWNER PRINCIPLE (communication): good input in, good output out — slop in,
   slop out. All owner-facing text this project produces (backlog tasks, PRD
   templates, docs, prompts, retrospectives) must be precise and legible to
