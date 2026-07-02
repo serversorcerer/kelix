@@ -345,7 +345,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   agent mock fleet → ledger rows have distinct agent_id, same fleet_id, plus
   one fleet_summaries[] entry.
 
-- [ ] ST6: loop-metrics documentation | priority: 52 | status: ready | by: owner | deps: ST5 | phase: T-METRICS | req: REQ-TM2, REQ-TM4
+- [x] ST6: loop-metrics documentation | priority: 52 | status: done | by: owner | deps: ST5 | phase: T-METRICS | req: REQ-TM2, REQ-TM4
   details: add "Outcome ledger" section to docs/memory-and-skills.md documenting
   loop-metrics.json schema, episodes.jsonl vs rollup distinction, backlog_lint
   field, tokens:null hook, fleet_summaries and proposal_outcomes arrays.
