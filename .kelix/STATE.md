@@ -4,7 +4,7 @@
 - phase: T-SKILLS
 - current_task: ST19
 - last_task: ST19e
-- last_verified_commit: 6f00aa62cc9d53fbd2b7a68b99627be771d7c363
+- last_verified_commit: ff09437e99328f7d3a4f039728b705ca09a71f7c
 - done: 54
 - total: 106
 - blockers:
