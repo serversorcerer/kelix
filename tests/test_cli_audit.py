@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import io
-import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 
 from kelix.cli import main
+
+_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 SCRAPPED_SUBCOMMANDS = ("sync",)
 HAPPY_PATH_SUBCOMMANDS = ("init", "plan", "run")
@@ -53,10 +55,6 @@ def test_kelix_help_subcommand_order_puts_happy_path_first():
 
 
 def test_cli_has_no_sync_references():
-    result = subprocess.run(
-        ["rg", "-i", "kelix sync|cmd_sync|add_parser\\(\"sync", "src/kelix/cli.py"],
-        capture_output=True,
-        text=True,
-    )
-    assert result.returncode == 1
-    assert result.stdout.strip() == ""
+    cli_src = (_REPO_ROOT / "src/kelix/cli.py").read_text(encoding="utf-8").lower()
+    for needle in ("kelix sync", "cmd_sync", 'add_parser("sync'):
+        assert needle not in cli_src, f"scrapped sync reference {needle!r} still in cli.py"
