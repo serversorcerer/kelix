@@ -140,6 +140,7 @@ def test_init_writes_phases_readme(tmp_path):
     class Args:
         path = str(tmp_path)
         from_spec = ""
+        agent = "kiro"
 
     cmd_init(Args())
     readme = tmp_path / ".kelix" / "phases" / "README.md"
@@ -155,6 +156,7 @@ def test_init_writes_goal_md(tmp_path):
     class Args:
         path = str(tmp_path)
         from_spec = ""
+        agent = "kiro"
 
     cmd_init(Args())
     goal = tmp_path / "GOAL.md"
@@ -171,6 +173,7 @@ def test_init_does_not_overwrite_existing_goal_md(tmp_path):
     class Args:
         path = str(tmp_path)
         from_spec = ""
+        agent = "kiro"
 
     goal = tmp_path / "GOAL.md"
     goal.write_text("custom goal\n", encoding="utf-8")
@@ -184,6 +187,7 @@ def test_init_writes_roadmap_template(tmp_path):
     class Args:
         path = str(tmp_path)
         from_spec = ""
+        agent = "kiro"
 
     cmd_init(Args())
     roadmap = tmp_path / ".kelix" / "roadmap.md"
@@ -200,6 +204,7 @@ def test_init_does_not_overwrite_existing_roadmap(tmp_path):
     class Args:
         path = str(tmp_path)
         from_spec = ""
+        agent = "kiro"
 
     kelix = tmp_path / ".kelix"
     kelix.mkdir()

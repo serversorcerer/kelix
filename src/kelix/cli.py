@@ -9,6 +9,8 @@ from pathlib import Path
 from . import __version__
 from .config import ConfigError, load_config
 
+INIT_AGENTS = ("kiro", "claude", "codex", "cursor", "gemini", "cmd", "mock")
+
 BACKLOG_TEMPLATE = """\
 # Kelix backlog
 
@@ -36,12 +38,18 @@ CLI_DESCRIPTION = (
     "files and git; every iteration is a fresh agent, one task, verified-done."
 )
 
-CONFIG_TEMPLATE = """\
+def render_config_template(adapter: str = "kiro") -> str:
+    if adapter not in INIT_AGENTS:
+        raise ValueError(f"unknown adapter {adapter!r}")
+    cmd_line = ""
+    if adapter == "cmd":
+        cmd_line = 'command = "your-cli {prompt}"  # required when adapter = cmd\n'
+    return f"""\
 # Kelix configuration. Every field is optional; defaults are safe.
 
 [agent]
-adapter = "kiro"          # kiro | claude | codex | cursor | gemini | cmd | mock
-
+adapter = "{adapter}"          # kiro | claude | codex | cursor | gemini | cmd | mock
+{cmd_line}\
 [loop]
 max_iterations = 25
 circuit_breaker_threshold = 3
@@ -58,6 +66,49 @@ isolation = "worktree"    # worktree | branch | none
 # [memory]
 # distill_skills = true     # post-retrospective skill distillation pass
 """
+
+
+CONFIG_TEMPLATE = render_config_template("kiro")
+
+
+def resolve_init_agent(
+    args,
+    *,
+    is_tty: bool | None = None,
+    input_fn=input,
+    print_fn=print,
+) -> str | None:
+    """Return adapter name for a new kelix.toml, or None when init should abort."""
+    chosen = getattr(args, "agent", "") or ""
+    if chosen:
+        if chosen not in INIT_AGENTS:
+            print(f"error: unknown agent {chosen!r}", file=sys.stderr)
+            return None
+        return chosen
+    if is_tty is None:
+        is_tty = sys.stdin.isatty()
+    if not is_tty:
+        print(
+            "error: non-interactive init requires --agent "
+            f"<{'|'.join(INIT_AGENTS)}>",
+            file=sys.stderr,
+        )
+        return None
+    print_fn("Choose your default coding agent:")
+    for index, name in enumerate(INIT_AGENTS, start=1):
+        print_fn(f"  {index}) {name}")
+    default = INIT_AGENTS[0]
+    while True:
+        raw = input_fn(f"Agent [1={default}]: ").strip()
+        if not raw:
+            return default
+        if raw.isdigit():
+            choice = int(raw)
+            if 1 <= choice <= len(INIT_AGENTS):
+                return INIT_AGENTS[choice - 1]
+        if raw in INIT_AGENTS:
+            return raw
+        print_fn(f"Enter 1–{len(INIT_AGENTS)} or an agent name.")
 
 PHASES_README_TEMPLATE = """\
 # Phase decision files
@@ -111,14 +162,32 @@ Outcome: (next phase outcome)
 """
 
 
-def cmd_init(args) -> int:
+def cmd_init(
+    args,
+    *,
+    is_tty: bool | None = None,
+    input_fn=input,
+    print_fn=print,
+) -> int:
     root = Path(args.path).resolve()
     kelix = root / ".kelix"
+    kelix_toml = kelix / "kelix.toml"
+    kelix_toml_content = CONFIG_TEMPLATE
+    if not kelix_toml.exists():
+        agent = resolve_init_agent(
+            args,
+            is_tty=is_tty,
+            input_fn=input_fn,
+            print_fn=print_fn,
+        )
+        if agent is None:
+            return 2
+        kelix_toml_content = render_config_template(agent)
     created = []
     for rel, content in [
         ("backlog.md", BACKLOG_TEMPLATE),
         ("memory/project.md", PROJECT_MEMORY_TEMPLATE),
-        ("kelix.toml", CONFIG_TEMPLATE),
+        ("kelix.toml", kelix_toml_content),
     ]:
         path = kelix / rel
         if not path.exists():
@@ -545,6 +614,15 @@ def main(argv: list[str] | None = None) -> int:
 
     p = sub.add_parser("init", help="initialize .kelix/ in a repository")
     p.add_argument("--path", default=".")
+    p.add_argument(
+        "--agent",
+        choices=INIT_AGENTS,
+        default="",
+        help=(
+            "default coding agent adapter written to kelix.toml "
+            "(required when stdin is not a TTY)"
+        ),
+    )
     p.add_argument("--from-spec", default="", help="seed backlog from .kiro/specs/<name>/tasks.md")
     p.set_defaults(func=cmd_init)
 

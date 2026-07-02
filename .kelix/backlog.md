@@ -594,7 +594,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   details: create docs/agents/gemini.md — same structure as KE9 for Gemini CLI;
   upstream-sourced banner. Acceptance: TOML parses via load_config.
 
-- [ ] KE12: init --agent wiring | priority: 81 | status: ready | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A3
+- [x] KE12: init --agent wiring | priority: 81 | status: done | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A3
   details: extend cmd_init: add `--agent <name>` argparse flag; when TTY and no
   flag, print numbered list (kiro, claude, codex, cursor, gemini, cmd, mock)
   and read choice; when non-TTY and no flag, exit 2 with error requiring
