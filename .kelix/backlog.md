@@ -706,7 +706,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   --help and docs/quickstart.md); git safety unchanged. Test: vague backlog +
   --force reaches adapter. Acceptance: help text states spec-gate scope explicitly.
 
-- [ ] KE31: plan interview acceptance questions | priority: 62 | status: ready | by: owner | phase: P-GOLD | req: REQ-GD2
+- [x] KE31: plan interview acceptance questions | priority: 62 | status: done | by: owner | phase: P-GOLD | req: REQ-GD2
   details: extend PLANNING_TEMPLATE / plan.py interview rubric so each emitted
   question block includes at least one acceptance-criteria probe per roadmap
   phase in the draft goal (reuse lint rules from docs/writing-for-the-loop.md).
