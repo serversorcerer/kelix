@@ -62,9 +62,11 @@ def test_empty_blockers_round_trip(tmp_path: Path):
 
 
 def test_load_real_repo_state():
+    # Structural only: STATE.md's values advance with every run (that is its
+    # purpose), so asserting today's phase/counts would rot immediately.
     root = Path(__file__).resolve().parents[1]
     loaded = load_state(root / ".kalph")
     assert loaded is not None
-    assert loaded.milestone == "v0.2 — Planning Core"
-    assert loaded.phase == "P-SPINE"
-    assert loaded.total == 24
+    assert loaded.milestone
+    assert loaded.phase
+    assert 0 <= loaded.done <= loaded.total
