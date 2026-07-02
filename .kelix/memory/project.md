@@ -155,6 +155,11 @@ Durable facts about this repo for future iterations.
   timeout sets timed_out=True with the observed exit code. Tests in
   `tests/test_adapters.py` use flush=True Python scripts because piped shell
   stdout is block-buffered.
+- Backlog waves (`backlog.waves`): pure function returning
+  `(list[list[Task]], has_cycle)`. Wave 0 = tasks with no undone deps; wave N
+  = tasks whose deps are done or in earlier waves; cyclic/blocked remainder
+  lands in a final wave with `has_cycle=True`. Tests in `tests/test_backlog.py`
+  (chain, diamond, cycle).
 - OWNER PRINCIPLE (communication): good input in, good output out — slop in,
   slop out. All owner-facing text this project produces (backlog tasks, PRD
   templates, docs, prompts, retrospectives) must be precise and legible to

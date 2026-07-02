@@ -165,3 +165,38 @@ def select_next(
         return (owner_rank, status_rank, phase_rank(task), -task.priority)
 
     return min(candidates, key=sort_key)
+
+
+def waves(tasks: list[Task]) -> tuple[list[list[Task]], bool]:
+    """Partition *tasks* into dependency waves.
+
+    Wave 0 contains tasks with no undone dependencies (deps are ``done`` or
+    absent). Wave *N* contains tasks whose deps are all ``done`` or already
+    placed in waves ``< N``. When a cycle (or permanently blocked deps) prevents
+    further progress, remaining tasks are placed in a final wave and the
+    second return value is ``True``.
+    """
+    done_ids = {task.id for task in tasks if task.status == "done"}
+    remaining = list(tasks)
+    result: list[list[Task]] = []
+    assigned_ids: set[str] = set()
+
+    while remaining:
+        wave: list[Task] = []
+        next_remaining: list[Task] = []
+
+        for task in remaining:
+            if all(dep in done_ids or dep in assigned_ids for dep in task.deps):
+                wave.append(task)
+            else:
+                next_remaining.append(task)
+
+        if not wave:
+            result.append(next_remaining)
+            return result, True
+
+        result.append(wave)
+        assigned_ids.update(task.id for task in wave)
+        remaining = next_remaining
+
+    return result, False

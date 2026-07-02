@@ -1,4 +1,4 @@
-from kelix.backlog import Task, parse_backlog, select_next, serialize_backlog
+from kelix.backlog import Task, parse_backlog, select_next, serialize_backlog, waves
 
 SAMPLE_BACKLOG = """\
 # Kelix backlog
@@ -224,3 +224,51 @@ def test_select_next_active_phase_owner_still_wins():
         Task("B", "owner other phase", 10, "ready", "owner", phase="P-ONRAMP"),
     ]
     assert select_next(tasks, active_phase="P-INTENT").id == "B"
+
+
+def _wave_ids(result: tuple[list[list[Task]], bool]) -> list[list[str]]:
+    wave_list, _ = result
+    return [[task.id for task in wave] for wave in wave_list]
+
+
+def test_waves_chain():
+    tasks = [
+        Task("A", "first", 90, "ready", "owner"),
+        Task("B", "second", 80, "ready", "owner", deps=["A"]),
+        Task("C", "third", 70, "ready", "owner", deps=["B"]),
+    ]
+    wave_list, has_cycle = waves(tasks)
+    assert _wave_ids((wave_list, has_cycle)) == [["A"], ["B"], ["C"]]
+    assert has_cycle is False
+
+
+def test_waves_diamond():
+    tasks = [
+        Task("A", "root", 90, "ready", "owner"),
+        Task("B", "left", 80, "ready", "owner", deps=["A"]),
+        Task("C", "right", 70, "ready", "owner", deps=["A"]),
+        Task("D", "join", 60, "ready", "owner", deps=["B", "C"]),
+    ]
+    wave_list, has_cycle = waves(tasks)
+    assert _wave_ids((wave_list, has_cycle)) == [["A"], ["B", "C"], ["D"]]
+    assert has_cycle is False
+
+
+def test_waves_cycle():
+    tasks = [
+        Task("A", "loop a", 90, "ready", "owner", deps=["B"]),
+        Task("B", "loop b", 80, "ready", "owner", deps=["A"]),
+    ]
+    wave_list, has_cycle = waves(tasks)
+    assert _wave_ids((wave_list, has_cycle)) == [["A", "B"]]
+    assert has_cycle is True
+
+
+def test_waves_done_dep_unlocks_early_wave():
+    tasks = [
+        Task("A", "finished", 90, "done", "owner"),
+        Task("B", "ready after done", 80, "ready", "owner", deps=["A"]),
+    ]
+    wave_list, has_cycle = waves(tasks)
+    assert _wave_ids((wave_list, has_cycle)) == [["A", "B"]]
+    assert has_cycle is False

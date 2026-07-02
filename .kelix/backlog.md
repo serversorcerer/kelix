@@ -173,7 +173,7 @@ Every task below names its phase and the REQ it covers in `details:`.
 
 ### Phase P-WAVES (safe parallelism)
 
-- [ ] PC10: wave computation from deps | priority: 72 | status: ready | by: owner | deps: PC5 | phase: P-WAVES | req: REQ-W1
+- [x] PC10: wave computation from deps | priority: 72 | status: done | by: owner | deps: PC5 | phase: P-WAVES | req: REQ-W1
   rationale: [P-WAVES/REQ-W1] parallel agents must not collide on dependent concerns; waves are derivable, no new syntax
   details: in src/kelix/backlog.py add waves(tasks) -> list[list[Task]]:
   wave 0 = tasks with no undone deps, wave N = tasks whose deps are all in
