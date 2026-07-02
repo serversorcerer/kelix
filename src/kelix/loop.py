@@ -641,9 +641,16 @@ class Runner:
                 run_distillation(self.cfg, result, run_dir, log=log)
             except Exception as exc:  # distillation must never mask run status
                 log(f"  (distillation failed: {exc})")
+        from .art import run_complete_receipt
+
+        verified_count = sum(1 for rec in result.iterations if rec.verified is True)
         log(
-            f"kelix run {result.run_id} finished: {result.status} "
-            f"({len(result.iterations)} iterations)"
+            run_complete_receipt(
+                run_id=result.run_id,
+                status=result.status,
+                iteration_count=len(result.iterations),
+                verified_count=verified_count,
+                verify_commands=list(self.cfg.verify.commands),
+                diagnosis=result.diagnosis,
+            )
         )
-        if result.diagnosis:
-            log(f"  diagnosis: {result.diagnosis}")

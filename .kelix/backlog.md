@@ -663,7 +663,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   as the one-line principle in the opening; demote good/slop pairing to body
   examples only. Acceptance: first mention of gold/diamonds is the canon line.
 
-- [ ] KE25: CLI art.say theming | priority: 68 | status: ready | by: owner | deps: KE17,KE18,KE19,KE21,KE22,KE23,KE24 | phase: P-AUDIT | req: REQ-U3
+- [x] KE25: CLI art.say theming | priority: 68 | status: done | by: owner | deps: KE17,KE18,KE19,KE21,KE22,KE23,KE24 | phase: P-AUDIT | req: REQ-U3
   details: retire flat print strings in src/kelix/cli.py (run complete, init,
   status summaries) in favor of art.say() with themes; run-complete message
   lists verify commands run and verified-done count, not bare "done." Tests in
