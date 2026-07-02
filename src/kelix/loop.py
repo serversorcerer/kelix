@@ -29,6 +29,7 @@ from .gitutil import (
 from .metrics import IterationLedgerRow
 from .prompt import assemble_prompt, load_template, relevance_query_for_task
 from .state import State, load_state, write_state
+from .verify import VerifyReport
 from .watch import write_heartbeat
 
 RATIONALE_RE = re.compile(r"^RATIONALE:\s*(.+)$", re.MULTILINE)
@@ -80,6 +81,8 @@ class RunResult:
     iterations: list[IterationRecord] = field(default_factory=list)
     ledger_rows: list[IterationLedgerRow] = field(default_factory=list)
     diagnosis: str = ""
+    verified_commits: list[str] = field(default_factory=list)
+    last_verify_report: VerifyReport | None = None
 
 
 class LoopError(Exception):
@@ -174,13 +177,13 @@ class Runner:
         payload = asdict(result)
         (run_dir / "run.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
-    def _verify(self, workdir: Path) -> bool | None:
+    def _verify(self, workdir: Path) -> tuple[bool | None, VerifyReport | None]:
         from .verify import run_verification
 
         report = run_verification(self.cfg, workdir)
         if report is None:
-            return None
-        return report.ok
+            return None, None
+        return report.ok, report
 
     def _init_run_state(self, workdir: Path) -> State:
         kelix_dir = workdir / ".kelix"
@@ -539,10 +542,19 @@ class Runner:
             rec.rationale = _resolve_rationale(
                 _extract_rationale(agent.output), workdir, sha_before
             )
-            rec.verified = self._verify(workdir)
+            rec.verified, verify_report = self._verify(workdir)
+            if verify_report is not None:
+                result.last_verify_report = verify_report
             rec.duration_s = round(time.monotonic() - started, 1)
 
             self._update_run_state_after_iteration(current_task, rec, workdir)
+            if rec.verified is True:
+                commit_sha = head_sha(workdir)
+                if commit_sha and (
+                    not result.verified_commits
+                    or result.verified_commits[-1] != commit_sha
+                ):
+                    result.verified_commits.append(commit_sha)
             self._record_episode(rec, workdir)
             if not rec.failure:
                 self._maybe_apply_phase_gate(workdir, at_run_end=False)
@@ -674,13 +686,19 @@ class Runner:
         from .art import run_complete_receipt
 
         verified_count = sum(1 for rec in result.iterations if rec.verified is True)
+        verify_results: list[tuple[str, int]] = []
+        if result.last_verify_report is not None:
+            verify_results = [
+                (r.command, r.exit_code) for r in result.last_verify_report.results
+            ]
         log(
             run_complete_receipt(
                 run_id=result.run_id,
                 status=result.status,
                 iteration_count=len(result.iterations),
                 verified_count=verified_count,
-                verify_commands=list(self.cfg.verify.commands),
+                verify_results=verify_results,
+                verified_commits=list(result.verified_commits),
                 diagnosis=result.diagnosis,
             )
         )

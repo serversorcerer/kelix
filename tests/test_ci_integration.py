@@ -105,18 +105,21 @@ def test_run_complete_receipt_names_verify_gate_and_verified_count(tmp_path):
     assert result.status == "max_iterations"
     assert "2 verified-done" not in output  # guard against bare "done"
     assert "1 verified-done" in output
-    assert "verify gate:" in output
-    assert 'python3 -c "import greet"' in output
+    assert 'verify: python3 -c "import greet" exit 0' in output
+    assert result.verified_commits
+    assert result.verified_commits[0] in output
 
     receipt = run_complete_receipt(
         run_id=result.run_id,
         status=result.status,
         iteration_count=len(result.iterations),
         verified_count=sum(1 for rec in result.iterations if rec.verified is True),
-        verify_commands=list(cfg.verify.commands),
+        verify_results=[(r.command, r.exit_code) for r in result.last_verify_report.results],
+        verified_commits=list(result.verified_commits),
     )
     assert "verified-done" in receipt
-    assert "verify gate:" in receipt
+    assert 'exit 0' in receipt
+    assert result.verified_commits[0] in receipt
 
 
 def test_init_and_status_use_themed_say_output(tmp_path, capsys):

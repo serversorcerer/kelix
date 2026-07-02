@@ -105,10 +105,11 @@ def run_complete_receipt(
     status: str,
     iteration_count: int,
     verified_count: int,
-    verify_commands: list[str],
+    verify_results: list[tuple[str, int]] | None = None,
+    verified_commits: list[str] | None = None,
     diagnosis: str = "",
 ) -> str:
-    """Themed run-end summary: status, verify gate, verified-done count."""
+    """Themed run-end receipt: status, per-command verify exits, blessed SHAs."""
     status_kind = {
         "completed": "ok",
         "max_iterations": "ok",
@@ -123,11 +124,17 @@ def run_complete_receipt(
             status_kind,
         ),
     ]
-    if verify_commands:
-        gate = "; ".join(verify_commands)
-        lines.append(say(f"verify gate: {gate}", "info"))
+    if verify_results:
+        for command, exit_code in verify_results:
+            kind = "ok" if exit_code == 0 else "fail"
+            lines.append(say(f"verify: {command} exit {exit_code}", kind))
     else:
-        lines.append(say("verify gate: none configured", "info"))
+        lines.append(say("verify: none configured", "info"))
+    commits = verified_commits or []
+    if commits:
+        lines.append(say(f"verified commits: {', '.join(commits)}", "ok"))
+    else:
+        lines.append(say("verified commits: none", "info"))
     if diagnosis:
         lines.append(say(f"diagnosis: {diagnosis}", "warn"))
     return "\n".join(lines)

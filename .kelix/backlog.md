@@ -784,7 +784,7 @@ Owner decisions: `.kelix/phases/V-CUT/CONTEXT.md`. All tasks below are
   tests. If KEEP/SHARPEN: no-op with ledger citation. Acceptance: pytest -q
   pass; behavior matches ledger verdict documented in commit message.
 
-- [ ] KV6: receipt-style run-complete message | priority: 50 | status: ready | by: owner | deps: KV2, KV3 | phase: V-SHARPEN | req: REQ-VS1
+- [x] KV6: receipt-style run-complete message | priority: 50 | status: done | by: owner | deps: KV2, KV3 | phase: V-SHARPEN | req: REQ-VS1
   details: in src/kelix/loop.py and cli.py run completion path, replace bare
   "done" output with a receipt block listing each [verify] command, its exit
   status, and SHAs of commits verified this run (or "none" if capped early).

@@ -1,10 +1,10 @@
 # Kelix state
 
 - milestone: V
-- phase: V-LEDGER
+- phase: V-SHARPEN
 - current_task: selecting
-- last_task: KV5
-- last_verified_commit: ad985a1
-- done: 93
+- last_task: KV6
+- last_verified_commit: 
+- done: 94
 - total: 106
 - blockers:
