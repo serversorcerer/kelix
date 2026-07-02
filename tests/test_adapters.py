@@ -1,10 +1,13 @@
+import os
 import stat
 
 import pytest
+from conftest import make_repo
 
 from kelix import COMPLETION_SENTINEL
 from kelix.adapters import AdapterError, CmdAdapter, MockAdapter, make_adapter
-from kelix.config import load_config
+from kelix.config import ADAPTER_PRESET_COMMANDS, load_config
+from kelix.loop import Runner
 
 
 def _write_script(path, body):
@@ -113,6 +116,41 @@ def test_cmd_adapter_inactivity_timeout(tmp_path):
     assert result.timed_out
     assert not result.ok
     assert "started" in result.output
+
+
+def test_claude_preset_run_integration(tmp_path, monkeypatch):
+    """KE13: claude preset resolves to CmdAdapter and runs one verified iteration."""
+    repo = make_repo(tmp_path / "fixture")
+    (repo / ".kelix" / "backlog.md").write_text(
+        "# Backlog\n\n"
+        "- [ ] C1: create artifact | priority: 90 | status: ready | by: owner\n"
+    )
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    stub = bin_dir / "claude"
+    _write_script(
+        stub,
+        'echo "RATIONALE: C1 — claude preset stub"\n'
+        'echo "stub" > artifact.txt\n'
+        "git add artifact.txt && git commit -q -m 'C1: artifact'\n",
+    )
+    monkeypatch.setenv("PATH", str(bin_dir) + os.pathsep + os.environ.get("PATH", ""))
+
+    (repo / "kelix.toml").write_text(
+        '[agent]\nadapter = "claude"\n'
+        '[verify]\ncommands = ["echo verified"]\n'
+        '[git]\nisolation = "none"\n'
+    )
+    cfg = load_config(repo)
+    assert cfg.agent.command == ADAPTER_PRESET_COMMANDS["claude"]
+    assert isinstance(make_adapter(cfg), CmdAdapter)
+
+    result = Runner(cfg).run(max_iterations=1, log=lambda *_: None)
+
+    assert len(result.iterations) == 1
+    assert result.iterations[0].verified
+    assert result.iterations[0].made_progress
+    assert (repo / "artifact.txt").read_text() == "stub\n"
 
 
 def test_cmd_adapter_chatty_script_survives_inactivity_window(tmp_path):

@@ -602,7 +602,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   CONFIG_TEMPLATE output. Tests: monkeypatch isatty for both paths in
   tests/test_config.py or new test_init_agent.py.
 
-- [ ] KE13: claude preset integration test | priority: 80 | status: ready | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A4
+- [x] KE13: claude preset integration test | priority: 80 | status: done | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A4
   details: tests/test_adapters.py: repo with adapter=claude and a stub script
   on PATH (via cmd override or sh -c) completes one mock-style iteration via
   kelix run --max-iterations 1 (mock backlog + verify echo). Proves preset
