@@ -207,3 +207,6 @@ Durable facts about this repo for future iterations.
 
 ## Run 20260702-103424 (circuit_breaker)
 2 iterations, 0 verified. Failures: verification failed; verification failed.
+
+## Run 20260702-104227 (max_iterations)
+10 iterations, 10 verified. Failures: agent exit 124 (timeout).
