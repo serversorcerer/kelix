@@ -145,3 +145,6 @@ Durable facts about this repo for future iterations.
 
 ## Run 20260702-022639 (max_iterations)
 10 iterations, 10 verified. Clean run.
+
+## Run 20260702-103424 (circuit_breaker)
+2 iterations, 0 verified. Failures: verification failed; verification failed.
