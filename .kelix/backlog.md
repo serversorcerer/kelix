@@ -648,7 +648,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   link to kelix plan/lint tests. If PC12 not done when task runs, seed minimal
   planning.md stub is out of scope — task blocked until PC12 done.
 
-- [ ] KE21: fleet audacity intro | priority: 72 | status: ready | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
+- [x] KE21: fleet audacity intro | priority: 72 | status: done | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
   details: same pattern for docs/fleet.md; proof link to docs/proof/fleet-session1-retrospective.md.
 
 - [ ] KE22: SECURITY audacity intro | priority: 71 | status: ready | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
