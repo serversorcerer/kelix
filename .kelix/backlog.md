@@ -940,7 +940,7 @@ Owner context: `.kelix/phases/DRIFT-FIX/CONTEXT.md`. Fleet config:
   integrations/kiro/steering/kelix.md line ~33 "arrives as PRs" → verified
   commits on kelix/* branches. Acceptance: `rg -i 'arrives as pr|PRs-only' docs/kiro.md integrations/kiro` → zero.
 
-- [ ] DR6: iteration prompt security rules | priority: 90 | status: ready | by: owner | phase: DRIFT-FIX | req: REQ-DR3
+- [x] DR6: iteration prompt security rules | priority: 90 | status: done | by: owner | phase: DRIFT-FIX | req: REQ-DR3
   details: src/kelix/prompt.py ITERATION_TEMPLATE security rules (~line 80-81):
   change "The runner handles branches and PRs" to "The runner works on
   kelix/* run branches with verified commits; never push to main." Acceptance:
