@@ -639,7 +639,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   details: same pattern for docs/memory-and-skills.md; proof link to dogfood
   retrospective or tests/test_memory.py reproducible command in doc.
 
-- [ ] KE19: prioritization audacity intro | priority: 74 | status: ready | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
+- [x] KE19: prioritization audacity intro | priority: 74 | status: done | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
   details: same pattern for docs/prioritization.md; proof link to backlog
   selection tests or proof run evidence.
 

@@ -1,8 +1,18 @@
 # Prioritization rubric
 
-How Kelix chooses work from `.kelix/backlog.md`. The runner and
-`select_next()` in `src/kelix/backlog.py` implement a subset of this rubric
-mechanically; the rest guides humans and agents when writing or proposing tasks.
+Every fresh agent that joins the loop picks the same task you would — owner
+intent before kelix suggestions, highest priority among ready work, dependencies
+respected — without a stand-up or a project manager in the room.
+
+That discipline is enforced in code, not hope. The dogfood run picked twelve
+tasks in strict priority-and-dependency order with zero mispicks — see the
+[dogfood retrospective](proof/dogfood-retrospective.md) (12/12 verified,
+[final build report](proof/final-report.md#d1--dogfood-run-docsproofdogfood-runlog-dogfood-retrospectivemd)).
+Reproduce selection rules with `pytest tests/test_backlog.py -q`.
+
+The runner and `select_next()` in `src/kelix/backlog.py` implement this
+rubric mechanically; the rest of this doc guides humans and agents when
+writing or proposing tasks.
 
 ## Backlog task format
 
