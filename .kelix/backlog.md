@@ -424,7 +424,7 @@ All tasks below are `status: proposed` until the owner promotes them.
 
 ### Phase T-SKILLS — skill distillation
 
-- [ ] ST15: exclude _proposed from skills digest | priority: 43 | status: ready | by: owner | deps: ST4 | phase: T-SKILLS | req: REQ-TS2
+- [x] ST15: exclude _proposed from skills digest | priority: 43 | status: done | by: owner | deps: ST4 | phase: T-SKILLS | req: REQ-TS2
   details: in memory.py list_skills skip any path under .kelix/skills/_proposed/.
   Promotion = owner moves folder to .kelix/skills/<name>/ (document in
   memory-and-skills.md one line). tests/test_memory.py: skill only under

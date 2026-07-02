@@ -132,6 +132,27 @@ def test_skills_digest_lists_name_description_and_path(tmp_path):
     assert str(skill_md) in digest
 
 
+def test_skills_digest_excludes_proposed_until_promoted(tmp_path):
+    cfg = _cfg(tmp_path)
+    skill_md = (
+        tmp_path / ".kelix" / "skills" / "_proposed" / "candidate-skill" / "SKILL.md"
+    )
+    skill_md.parent.mkdir(parents=True)
+    skill_md.write_text(
+        "---\nname: candidate-skill\ndescription: Awaiting promotion\n---\n"
+    )
+    assert skills_digest(cfg) == ""
+
+    promoted_dir = tmp_path / ".kelix" / "skills" / "candidate-skill"
+    promoted_dir.mkdir(parents=True)
+    skill_md.rename(promoted_dir / "SKILL.md")
+    skill_md.parent.rmdir()
+    (tmp_path / ".kelix" / "skills" / "_proposed").rmdir()
+
+    digest = skills_digest(cfg)
+    assert "candidate-skill: Awaiting promotion" in digest
+
+
 def test_write_retrospective_with_failures(tmp_path):
     cfg = _cfg(tmp_path)
     run_dir = tmp_path / "run"

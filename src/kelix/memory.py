@@ -30,6 +30,7 @@ if TYPE_CHECKING:
 EPISODES_FILE = "memory/episodes.jsonl"
 PROJECT_MEMORY_FILE = "memory/project.md"
 SKILLS_DIR = "skills"
+PROPOSED_SKILLS_DIR = "_proposed"
 
 
 # --- episodic memory ---------------------------------------------------------
@@ -224,18 +225,28 @@ def _parse_skill(path: Path) -> tuple[str, str] | None:
     return (name, desc) if name else None
 
 
+def _is_proposed_skill(skill_md: Path, skills_root: Path) -> bool:
+    try:
+        rel = skill_md.parent.relative_to(skills_root)
+    except ValueError:
+        return False
+    return bool(rel.parts) and rel.parts[0] == PROPOSED_SKILLS_DIR
+
+
 def list_skills(cfg: Config, workdir: Path | None = None) -> list[tuple[str, str, Path]]:
-    roots = []
+    roots: list[tuple[Path, bool]] = []
     base = workdir or cfg.root
-    roots.append(base / ".kelix" / SKILLS_DIR)
+    roots.append((base / ".kelix" / SKILLS_DIR, True))
     shared = cfg.kelix_dir / "fleet" / "skills"
     if shared.is_dir():
-        roots.append(shared)
+        roots.append((shared, False))
     seen: dict[str, tuple[str, str, Path]] = {}
-    for root in roots:
+    for root, skip_proposed in roots:
         if not root.is_dir():
             continue
-        for skill_md in sorted(root.glob("*/SKILL.md")):
+        for skill_md in sorted(root.rglob("SKILL.md")):
+            if skip_proposed and _is_proposed_skill(skill_md, root):
+                continue
             parsed = _parse_skill(skill_md)
             if parsed and parsed[0] not in seen:
                 seen[parsed[0]] = (parsed[0], parsed[1], skill_md)

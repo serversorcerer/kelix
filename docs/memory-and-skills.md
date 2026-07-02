@@ -46,7 +46,9 @@ description: How to regenerate the recorded API fixtures when the upstream schem
 ```
 
 `name` and `description` in the frontmatter are required for the skill to be
-discovered. In fleet mode there is a second location,
+discovered. Distillation candidates land under `.kelix/skills/_proposed/<name>/`
+and are excluded from the digest until the owner promotes them by moving the
+folder to `.kelix/skills/<name>/`. In fleet mode there is a second location,
 `.kelix/fleet/skills/<name>/SKILL.md` — a runner-side shared store so fleet
 agents see each other's discoveries before their branches merge (see
 [fleet.md](fleet.md)).

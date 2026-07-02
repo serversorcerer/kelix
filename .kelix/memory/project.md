@@ -261,6 +261,8 @@ Durable facts about this repo for future iterations.
   agent must print `PREDICTED_IMPROVEMENT:`; post-iteration
   `validate_propose_diff` on git diff vs pre-iteration checkpoint; sidecar at
   `.kelix/memory/proposal-<id>.json`; never imported from `loop.py`.
+- Distillation candidates live under `.kelix/skills/_proposed/<name>/`; `list_skills`
+  skips that subtree until the owner moves the folder to `.kelix/skills/<name>/`.
 
 ## Run 20260702-120914 (max_iterations)
 10 iterations, 9 verified. Failures: agent exit 143 (timeout); verification failed.
