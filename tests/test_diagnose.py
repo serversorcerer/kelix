@@ -4,7 +4,6 @@ import subprocess
 from pathlib import Path
 
 import pytest
-
 from conftest import write_mock_script
 
 from kelix.config import load_config
