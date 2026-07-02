@@ -15,9 +15,11 @@ circuit_breaker_threshold = 2
 [verify]
 # Same gate CI enforces. PYTHONPATH=src makes the worktree's code the code
 # under test (the venv's editable install points at the main checkout).
+# KALPH_VENV: set to the absolute path of the dev venv's bin dir, e.g.
+#   export KALPH_VENV=/path/to/Kalph/.venv/bin
 commands = [
-  "env PYTHONPATH=src /Users/leto/projects/Kalph/.venv/bin/pytest -q",
-  "/Users/leto/projects/Kalph/.venv/bin/ruff check src tests",
+  "env PYTHONPATH=src $KALPH_VENV/pytest -q",
+  "$KALPH_VENV/ruff check src tests",
 ]
 
 [git]

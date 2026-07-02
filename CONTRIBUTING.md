@@ -10,7 +10,7 @@ dependencies are `pytest` and `ruff`. No API keys are needed: tests run
 against a mock agent adapter.
 
 ```bash
-git clone https://github.com/kalph-dev/kalph.git
+git clone https://github.com/serversorcerer/kalph.git
 cd kalph
 python -m venv .venv
 source .venv/bin/activate

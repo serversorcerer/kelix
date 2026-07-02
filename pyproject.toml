@@ -30,8 +30,8 @@ dev = ["pytest>=8", "ruff>=0.4"]
 kalph = "kalph.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/kalph-dev/kalph"
-Documentation = "https://github.com/kalph-dev/kalph/tree/main/docs"
+Homepage = "https://github.com/serversorcerer/kalph"
+Documentation = "https://github.com/serversorcerer/kalph/tree/main/docs"
 
 [tool.setuptools.packages.find]
 where = ["src"]

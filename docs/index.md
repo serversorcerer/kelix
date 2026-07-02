@@ -23,6 +23,9 @@ kalph run --max-iterations 25 --pr
   orchestration.
 - **[Quickstart](quickstart.md)** — install, `kalph init`, the verification
   gate, writing backlog tasks, running overnight, and reading the results.
+- **[Writing for the loop](writing-for-the-loop.md)** — the input contract:
+  how to write backlog tasks and PRDs a fresh agent gets right the first
+  time. Good input in, good output out.
 - **[Kiro guide](kiro.md)** — the headless adapter, spec→backlog import, the
   `.kiro/` steering/agent/hooks package, and registering the MCP server.
 - **[Memory & skills](memory-and-skills.md)** — the three memory layers,
@@ -56,4 +59,4 @@ The design homework behind Kalph:
 
 Kalph is open source under Apache-2.0 and was built by its own loop. Source,
 issues, and contributing guide live in the repository — see the
-[README](https://github.com/kalph-dev/kalph) for the project overview.
+[README](https://github.com/serversorcerer/kalph) for the project overview.

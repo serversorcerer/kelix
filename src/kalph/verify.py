@@ -8,6 +8,7 @@ iteration counts as a failure.
 
 from __future__ import annotations
 
+import os
 import shlex
 import subprocess
 from dataclasses import dataclass, field
@@ -52,9 +53,12 @@ def run_verification(cfg: Config, workdir: Path) -> VerifyReport | None:
         return None
     report = VerifyReport()
     for command in cfg.verify.commands:
+        # Expand $VARS so configs can stay machine-portable (no hardcoded
+        # absolute paths); commands still run without a shell.
+        expanded = os.path.expandvars(command)
         try:
             proc = subprocess.run(
-                shlex.split(command),
+                shlex.split(expanded),
                 cwd=str(workdir),
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,

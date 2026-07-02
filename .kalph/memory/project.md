@@ -42,6 +42,14 @@ Durable facts about this repo for future iterations.
   than `stale_after_s`, default 900s) are reclaimable via temp-file + `os.replace`.
   Tests in `tests/test_claims.py` cover concurrent winners, stale reclaim, release,
   and wrong-agent guardrails.
+- OWNER PRINCIPLE (communication): good input in, good output out — slop in,
+  slop out. All owner-facing text this project produces (backlog tasks, PRD
+  templates, docs, prompts, retrospectives) must be precise and legible to
+  both a fresh agent and a human on first read, without bloating what gets
+  re-read every iteration. The input contract is codified in
+  `docs/writing-for-the-loop.md`; when writing or revising tasks/docs,
+  follow it — concrete nouns, stated acceptance, one iteration per task, no
+  unfalsifiable adjectives.
 
 ## Run 20260702-002215 (completed)
 4 iterations, 4 verified. Clean run.

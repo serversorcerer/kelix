@@ -6,7 +6,7 @@ description: The Kalph autonomous loop contract for this repository. Use when wo
 
 # Kalph loop contract (steering for Kiro)
 
-This repository uses [Kalph](https://github.com/kalph-dev/kalph), a stateless
+This repository uses [Kalph](https://github.com/serversorcerer/kalph), a stateless
 agent loop. When you touch anything under `.kalph/`, follow these rules — they
 are the same rules Kalph's own iterations follow.
 

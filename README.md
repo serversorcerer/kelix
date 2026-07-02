@@ -155,6 +155,8 @@ diagnosis and surfaces it for you).
 ## Documentation
 
 - [Concept](docs/concept.md) · [Quickstart](docs/quickstart.md) ·
+  **[Writing for the loop](docs/writing-for-the-loop.md)** (how to write
+  tasks and PRDs the agent gets right the first time) ·
   [Kiro guide](docs/kiro.md) · [Security model](docs/SECURITY.md) ·
   [Memory & skills](docs/memory-and-skills.md) · [Fleet](docs/fleet.md) ·
   [Prioritization](docs/prioritization.md) · [MCP](docs/mcp.md)

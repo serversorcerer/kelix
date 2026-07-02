@@ -39,5 +39,5 @@ Nothing yet.
 - **CI**: test suite (mock agent, no API keys) and lint run on every commit,
   including denylist regression and prompt-injection drill tests.
 
-[Unreleased]: https://github.com/kalph-dev/kalph/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/kalph-dev/kalph/releases/tag/v0.1.0
+[Unreleased]: https://github.com/serversorcerer/kalph/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/serversorcerer/kalph/releases/tag/v0.1.0

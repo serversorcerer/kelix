@@ -10,7 +10,7 @@ threat model and mitigations live in [docs/SECURITY.md](docs/SECURITY.md).
 
 Report privately via GitHub Security Advisories on this repository:
 **Security → Report a vulnerability**
-(or https://github.com/kalph-dev/kalph/security/advisories/new).
+(or https://github.com/serversorcerer/kalph/security/advisories/new).
 
 Include what you can: affected version, reproduction steps, and impact
 (e.g. denylist bypass, prompt-injection escape, secret leakage into
