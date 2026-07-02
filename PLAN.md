@@ -20,10 +20,10 @@ itself. Record the switchover in DECISIONS.md.
 - [x] C1: Repo scaffold: pyproject.toml, package layout, LICENSE (Apache-2.0), .gitignore, stub README (evidence: pip install -e . succeeds)
 - [x] C2: Config loader (kalph.toml): agent adapter cmd, verify commands, caps, budgets; defaults safe (evidence: 8 tests green)
 - [x] C3: Agent adapter interface + `kiro` adapter (headless kiro-cli) + `mock` adapter (scripted) + `cmd` adapter (arbitrary CLI) (evidence: 16 tests green, lint clean)
-- [ ] C4: Iteration engine: fresh process, static prompt assembly (template + data slots), transcript capture per iteration
-- [ ] C5: Loop runner `kalph run`: sentinel detection, --max-iterations, per-run worktree+branch isolation, auto-checkpoint
-- [ ] C6: Verification gate: run config verify commands after each iteration; verified-done rule; failed task stays on top
-- [ ] C7: Circuit breaker: N consecutive errors/no-diff -> stop + diagnosis file
+- [x] C4: Iteration engine: fresh process, static prompt assembly (template + data slots), transcript capture per iteration (evidence: prompt tests green)
+- [x] C5: Loop runner `kalph run`: sentinel detection, --max-iterations, per-run worktree+branch isolation, auto-checkpoint (evidence: test_loop.py green incl. worktree isolation + checkpoint tests)
+- [x] C6: Verification gate: run config verify commands after each iteration; verified-done rule; failed task stays on top (evidence: sentinel-lie test proves red verification blocks completion)
+- [x] C7: Circuit breaker: N consecutive errors/no-diff -> stop + diagnosis file (evidence: no-diff breaker + reset-after-success tests)
 - [ ] C8: Parity demo: toy repo fixture with 5-task plan, mock agent, end-to-end green (this is the regression baseline test)
 
 ## Phase 2 — Memory
