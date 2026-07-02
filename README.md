@@ -11,15 +11,13 @@
 
 **The loop that climbs.** Ralph runs in circles; Kelix comes back higher.
 
-**The [Ralph loop](https://ghuntley.com/ralph/), rebuilt for [Kiro](https://kiro.dev)** —
-formerly known as Kalph.
-
-Kelix runs a coding agent in a loop against a static prompt: every iteration is
-a fresh, stateless agent process; all state lives in files and git history; the
-loop wins through repetition, not cleverness. Kelix keeps that core and adds
-what plain Ralph lacks — **persistent memory**, **self-improvement from loop
-outcomes**, **legible prioritization**, **first-class Kiro integration**, and a
-file-coordinated **fleet mode**.
+Kelix runs any headless coding agent in a loop against a static prompt: every
+iteration is a fresh, stateless process; all state lives in files and git
+history; the loop wins through repetition, not cleverness. Use **Claude Code**,
+**Codex CLI**, **Cursor**, **Gemini CLI**, or your own CLI adapter — Kelix
+keeps [Ralph's](https://ghuntley.com/ralph/) core and adds what plain Ralph
+lacks — **persistent memory**, **self-improvement from loop outcomes**,
+**legible prioritization**, and a file-coordinated **fleet mode**.
 
 Write a spec or a goal once. A fleet of loops decomposes it, prioritizes, cuts
 feature branches, builds, verifies, reviews each other's PRs, and leaves an

@@ -518,7 +518,7 @@ All tasks below are `status: proposed` until the owner promotes them.
 
 ### Phase P-REPOS — Reposition
 
-- [ ] KE1: README agent-agnostic lead | priority: 92 | status: proposed | by: kelix | phase: P-REPOS | req: REQ-R1
+- [x] KE1: README agent-agnostic lead | priority: 92 | status: done | by: kelix | phase: P-REPOS | req: REQ-R1
   details: rewrite README.md lines 1–20 (through the first substantive body
   paragraph): lead with "the loop that climbs" and agent-agnostic framing
   (Claude Code, Codex CLI, Cursor, Gemini CLI, Kiro as deepest integration).
