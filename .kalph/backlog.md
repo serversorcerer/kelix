@@ -9,7 +9,7 @@ tasks regardless of score. Only mark done after `pytest -q` and
 
 ## Tasks
 
-- [ ] KB1: backlog parser module | priority: 90 | status: ready | by: owner
+- [x] KB1: backlog parser module | priority: 90 | status: done | by: owner
   rationale: the runner, fleet claims, and status view all need structured backlog access
   details: create src/kalph/backlog.py with a Task dataclass (id, title, priority int,
   status, by, deps list, notes) and functions parse_backlog(text) -> list[Task],

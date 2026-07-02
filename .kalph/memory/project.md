@@ -8,6 +8,9 @@ Durable facts about this repo for future iterations.
   security.py, gitutil.py, cli.py.
 - Verification gate: `pytest -q` and `ruff check src tests` must both pass.
   Run them before claiming any task done.
+- Backlog tasks are parsed by `src/kalph/backlog.py` (`parse_backlog`,
+  `serialize_backlog`, `select_next`). Task lines use pipe-separated fields;
+  owner tasks outrank kalph at equal selection time regardless of priority number.
 - Design invariants live in docs/research/ralph-invariants.md — static prompt,
   fresh context per iteration, deterministic stop, state in files. Never add a
   feature that violates them (e.g. no long-lived sessions, no RPC between
