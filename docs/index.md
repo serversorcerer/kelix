@@ -19,12 +19,12 @@ history; the loop wins through repetition, not cleverness. Use **Claude Code**,
 keeps [Ralph's](https://ghuntley.com/ralph/) core and adds persistent memory,
 self-improvement from loop outcomes, legible prioritization, and a
 file-coordinated fleet mode — so you can write a spec once and wake up to
-reviewable PRs.
+verified commits on a run branch.
 
 ```bash
 pipx install kelix
 cd your-repo && kelix init
-kelix run --max-iterations 25 --pr
+kelix run --max-iterations 25
 ```
 
 ## Agents

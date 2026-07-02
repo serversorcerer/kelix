@@ -33,15 +33,10 @@ Durable facts about this repo for future iterations.
   PYTHONPATH=src; that is sufficient. (Learned from run 20260702-002215.)
 - Prioritization rubric for backlog authoring and selection lives in
   `docs/prioritization.md` (owner-first, priority bands, decomposition/blocked rules).
-- PR flow lives in `src/kelix/pr.py` (`open_pr`, `build_pr_title`, `build_pr_body`,
-  `open_propose_pr`, `build_propose_pr_body`). `kelix propose` opens a PR after
-  validation unless `--no-pr`; body sections: Metric evidence, Diagnosis,
-  Predicted improvement, Changed policy surface. Owner records merge/close via
+- `kelix propose` writes policy-surface edits on a dedicated branch plus a
+  `.kelix/memory/proposal-<id>.json` sidecar. Owner records merge/close via
   `--record-merge` / `--record-close`; `kelix metrics grade-proposal` re-grades
   from loop-metrics windows (last 5 runs before vs next 5 after merge run id).
-  `kelix run --pr` opens a GitHub PR after `completed` or `max_iterations` runs;
-  refuses main/master/empty branches, pushes with `git push -u origin <branch>`,
-  never `--force`. Returns None (log-and-skip) on any subprocess failure.
 - Fleet claims live in `src/kelix/claims.py` (`.kelix/fleet/claims/<task-id>.json`).
   `claim_task` uses `O_CREAT|O_EXCL` for new claims; stale claims (heartbeat older
   than `stale_after_s`, default 900s) are reclaimable via temp-file + `os.replace`.

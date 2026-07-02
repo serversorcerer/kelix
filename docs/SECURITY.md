@@ -80,13 +80,11 @@ commands are allowed; CI runs it on every commit.
 - Credentials are read from the environment only (`KIRO_API_KEY`) and never
   written to any file or log.
 
-### Branch protection — PRs only, never main
+### Branch protection — worktrees only, never main
 
-Kelix works on `kelix/*` branches in isolated worktrees and opens PRs via `gh`
-(`src/kelix/pr.py`). It refuses to open a PR from `main`/`master`, never
-force-pushes, and never pushes to a protected branch.
-`gitutil.assert_not_protected` refuses to run in-place on `main`/`master`.
-**Kelix opens PRs; humans merge.** There is no auto-merge.
+Kelix works on `kelix/*` branches in isolated worktrees and never pushes to
+`main`/`master`. `gitutil.assert_not_protected` refuses to run in-place on
+`main`/`master`. **Humans merge** verified commits from the run branch.
 
 ### Isolation and blast radius
 

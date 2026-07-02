@@ -49,7 +49,7 @@ Write a Kiro spec the usual way, producing
 
 ```bash
 kelix init --from-spec <name>       # import .kiro/specs/<name>/tasks.md
-kelix run --max-iterations 25 --pr  # execute it overnight
+kelix run --max-iterations 25  # execute it overnight
 ```
 
 Import behavior (from `src/kelix/kiro.py`):

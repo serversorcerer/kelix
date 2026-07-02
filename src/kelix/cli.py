@@ -330,14 +330,6 @@ def cmd_run(args) -> int:
     except (ConfigError, LoopError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
-    if args.pr and result.status in ("completed", "max_iterations"):
-        from .art import say
-        from .pr import open_pr
-
-        run_dir = cfg.kelix_dir / "runs" / result.run_id
-        pr_url = open_pr(cfg, result, run_dir)
-        if pr_url:
-            print(say(f"PR opened: {pr_url}", "ok"))
     return 0 if result.status in ("completed", "max_iterations") else 1
 
 
@@ -469,7 +461,7 @@ def cmd_diagnose(args) -> int:
 def cmd_propose(args) -> int:
     from .config import ConfigError
     from .loop import LoopError
-    from .propose import ProposeError, ProposeRunner, metrics_excerpt
+    from .propose import ProposeError, ProposeRunner
 
     root = Path(args.path).resolve()
     try:
@@ -510,17 +502,6 @@ def cmd_propose(args) -> int:
         print(say(f"sidecar written: {result.sidecar_path}", "ok"))
         if result.iteration and result.iteration.predicted_improvement:
             print(f"predicted improvement: {result.iteration.predicted_improvement}")
-        if not getattr(args, "no_pr", False):
-            from .pr import open_propose_pr
-
-            pr_url = open_propose_pr(
-                cfg,
-                result,
-                metrics_excerpt=metrics_excerpt(cfg),
-                diagnosis_file=result.diagnosis_file,
-            )
-            if pr_url:
-                print(say(f"PR opened: {pr_url}", "ok"))
         return 0
 
     for finding in result.findings:
@@ -664,11 +645,6 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--max-iterations", type=int, default=None)
     p.add_argument("--role", default="", help="role text to inject into the prompt")
     p.add_argument(
-        "--pr",
-        action="store_true",
-        help="open a GitHub PR after a completed or max-iterations run",
-    )
-    p.add_argument(
         "--force",
         action="store_true",
         help=(
@@ -738,11 +714,6 @@ def main(argv: list[str] | None = None) -> int:
         "--diagnosis-file",
         default="",
         help="optional diagnosis markdown to include as evidence",
-    )
-    p.add_argument(
-        "--no-pr",
-        action="store_true",
-        help="skip opening a GitHub PR after a successful proposal",
     )
     p.add_argument(
         "--record-merge",

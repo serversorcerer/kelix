@@ -56,8 +56,8 @@ $EDITOR .kelix/backlog.md   # change status: proposed -> ready
 # 4. Tell it what "done" means — the verification gate:
 $EDITOR .kelix/kelix.toml   # set [verify] commands = ["pytest -q", "ruff check ."]
 
-# 5. Run overnight, leaving reviewable PRs by morning:
-kelix run --max-iterations 25 --pr
+# 5. Run overnight — verified commits on a run branch:
+kelix run --max-iterations 25
 
 # ...and if you want to see it think, from another terminal:
 kelix watch                 # live stream of the agent working; ctrl-c detaches
@@ -80,7 +80,7 @@ circuit breaker — never because the agent "felt done."
 | No memory between iterations | **Layered memory** (project / episodic / skills) injected as budgeted data |
 | One loop | **Fleet mode**: many role-specialized loops, coordinating through files + git |
 | — | **Kiro integration**: steering, custom agent, spec→backlog, MCP server |
-| — | **Safety rails**: worktree isolation, command denylist, secret scrubbing, PRs-only |
+| — | **Safety rails**: worktree isolation, command denylist, secret scrubbing, branch protection |
 
 For an honest comparison with plain Ralph, single-agent CLIs, and GSD-style
 orchestrators — including where Kelix loses — see
@@ -99,7 +99,7 @@ flowchart LR
     F --> H{sentinel or cap?}
     G --> H
     H -->|no| A
-    H -->|yes| I[retrospective + PR]
+    H -->|yes| I[retrospective + run branch]
 ```
 
 - **Fresh context per iteration** — no context rot; a wrong turn costs one loop.
@@ -114,7 +114,7 @@ flowchart LR
 ```bash
 # Write a Kiro spec, then:
 kelix init --from-spec my-feature   # imports .kiro/specs/my-feature/tasks.md
-kelix run --max-iterations 25 --pr  # overnight run -> PRs by morning
+kelix run --max-iterations 25  # overnight run -> verified commits on run branch
 ```
 
 Register Kelix as an MCP server so Kiro can drive it by tool call:

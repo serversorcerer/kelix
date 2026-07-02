@@ -756,7 +756,7 @@ Owner decisions: `.kelix/phases/V-CUT/CONTEXT.md`. All tasks below are
   `rg -i 'kelix sync|from kelix.sync|kelix/sync' src tests docs` returns zero
   matches; `pytest -q` and `ruff check src tests` pass.
 
-- [ ] KV3: delete pr.py and --pr flag | priority: 53 | status: ready | by: owner | deps: KV1 | phase: V-LEDGER | req: REQ-VL3
+- [x] KV3: delete pr.py and --pr flag | priority: 53 | status: done | by: owner | deps: KV1 | phase: V-LEDGER | req: REQ-VL3
   details: per owner decision and ledger SCRAP row for pr: delete
   src/kelix/pr.py and tests/test_pr.py; remove --pr from kelix run argparse
   and any pr.open_pr calls in loop.py/cli.py; strip --pr from docs (README,

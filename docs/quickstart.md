@@ -1,6 +1,6 @@
 # Quickstart
 
-From zero to an overnight run that leaves reviewable PRs by morning.
+From zero to an overnight run that leaves verified commits on a run branch.
 
 ## 1. Install
 
@@ -105,7 +105,7 @@ you want and skip this section.
 ## 6. Run
 
 ```bash
-kelix run --max-iterations 25 --pr
+kelix run --max-iterations 25
 ```
 
 Each iteration: a fresh agent process reads the backlog and git log, picks the
@@ -115,8 +115,8 @@ Green: commit, record memory, next task. Red: the task stays on top. The run
 stops on the completion sentinel, the iteration cap, the circuit breaker
 (3 consecutive failures by default), or the kill switch.
 
-With `--pr`, a completed or capped run is pushed and opened as a GitHub PR via
-`gh` — never merged, never pushed to main. Humans merge.
+Each run works on an isolated `kelix/run-<id>` branch. Review the diff and
+merge when ready — Kelix never pushes to `main`/`master`.
 
 Useful flags:
 

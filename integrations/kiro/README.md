@@ -39,13 +39,13 @@ kiro_args = ["--agent", "kelix"]
 # 1. Write a Kiro spec the usual way -> .kiro/specs/<name>/{requirements,design,tasks}.md
 # 2. Seed the Kelix backlog from the spec's task list:
 kelix init --from-spec <name>
-# 3. Run it overnight, leaving reviewable PRs by morning:
-kelix run --max-iterations 25 --pr
+# 3. Run it overnight — verified commits on a run branch:
+kelix run --max-iterations 25
 ```
 
 Spec task titles import as owner-authored, top-band backlog tasks in spec
-order. Kelix writes results back as files Kiro reads naturally: PR links and
-retrospectives under `.kelix/runs/`, memory in `.kelix/memory/project.md`.
+order. Kelix writes results back as files Kiro reads naturally: retrospectives
+under `.kelix/runs/`, memory in `.kelix/memory/project.md`.
 
 ## Two enforcement layers
 

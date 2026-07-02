@@ -15,7 +15,7 @@ referenced here is committed in this repository or copied into `docs/proof/`.
   cd your-repo && kelix init
   $EDITOR .kelix/kelix.toml # set [verify] commands — your definition of done
   $EDITOR .kelix/backlog.md # write the work as tasks
-  kelix run --max-iterations 25 --pr
+  kelix run --max-iterations 25
   ```
 
 - Verification gate for this repo: `pytest -q` (74 tests) and
@@ -131,8 +131,9 @@ Two layers of proof:
   CLI is the top post-ship task.
 - **Linear sync ran against a mocked transport only** (no live API key was
   used); the adapter's GraphQL calls are tested with a stubbed HTTP layer.
-- **`--pr` used a stubbed `gh`** in tests; dogfood "PRs" are locally
-  mergeable run branches (D12) because the sample repo has no remote.
+- **PR automation was scrapped in Milestone V (KV3)**; dogfood value path is
+  verified commits on locally mergeable run branches (D12) because the sample
+  repo has no remote.
 - **CI has not executed on GitHub** (no remote configured yet); the
   workflow file runs the same commands that pass locally.
 - **GitHub Pages site** is prepared under `docs/` with `_config.yml` but

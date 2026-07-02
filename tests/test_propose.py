@@ -201,7 +201,6 @@ def test_cmd_propose_allowed_edit(repo, capsys):
     class Args:
         path = str(repo)
         diagnosis_file = ""
-        no_pr = True
 
     assert cmd_propose(Args()) == 0
     out = capsys.readouterr().out
@@ -220,7 +219,6 @@ def test_cmd_propose_rejects_backlog_edit(repo, capsys):
     class Args:
         path = str(repo)
         diagnosis_file = ""
-        no_pr = True
 
     assert cmd_propose(Args()) == 1
     err = capsys.readouterr().err
@@ -240,104 +238,12 @@ def test_cmd_propose_with_diagnosis_file(repo, capsys):
     class Args:
         path = str(repo)
         diagnosis_file = ".kelix/memory/diagnosis-fixture.md"
-        no_pr = True
 
     assert cmd_propose(Args()) == 0
     sidecars = list((kelix / "memory").glob("proposal-*.json"))
     assert sidecars
     sidecar = json.loads(sidecars[0].read_text(encoding="utf-8"))
     assert sidecar["diagnosis_file"] == ".kelix/memory/diagnosis-fixture.md"
-
-
-def test_cmd_propose_opens_pr_with_metric_evidence(repo, capsys, monkeypatch):
-    from kelix.cli import cmd_propose
-
-    kelix = repo / ".kelix"
-    _write_metrics(
-        kelix,
-        [
-            IterationLedgerRow(
-                run_id="20260702-040000",
-                iteration=1,
-                task_id="T2",
-                verified=False,
-                failure="fail",
-            ),
-        ],
-    )
-    write_mock_script(repo / "mockdir", "001.sh", ALLOWED_PROPOSE_SCRIPT)
-    _config(repo)
-
-    calls: list[dict] = []
-
-    def fake_open_propose_pr(cfg, result, *, metrics_excerpt, diagnosis_file=""):
-        calls.append(
-            {
-                "metrics_excerpt": metrics_excerpt,
-                "diagnosis_file": diagnosis_file,
-                "branch": result.branch,
-            }
-        )
-        return "https://github.com/org/repo/pull/99"
-
-    monkeypatch.setattr("kelix.pr.open_propose_pr", fake_open_propose_pr)
-
-    class Args:
-        path = str(repo)
-        diagnosis_file = ""
-        no_pr = False
-
-    assert cmd_propose(Args()) == 0
-    assert len(calls) == 1
-    assert "20260702-040000" in calls[0]["metrics_excerpt"]
-    out = capsys.readouterr().out
-    assert "PR opened" in out
-
-    from kelix.pr import build_propose_pr_body
-    from kelix.propose import ProposeIteration, ProposeResult
-
-    body = build_propose_pr_body(
-        load_config(repo),
-        ProposeResult(
-            proposal_id="test",
-            touched_files=[".kelix/prompts/iteration.md"],
-            iteration=ProposeIteration(
-                started_at="",
-                predicted_improvement="raise verified rate",
-            ),
-        ),
-        metrics_excerpt=calls[0]["metrics_excerpt"],
-    )
-    assert "## Metric evidence" in body
-    assert "## Diagnosis" in body
-    assert "## Predicted improvement" in body
-    assert "## Changed policy surface" in body
-    assert "raise verified rate" in body
-
-
-def test_cmd_propose_no_pr_skips_open(repo, capsys, monkeypatch):
-    from kelix.cli import cmd_propose
-
-    kelix = repo / ".kelix"
-    _write_metrics(kelix, [])
-    write_mock_script(repo / "mockdir", "001.sh", ALLOWED_PROPOSE_SCRIPT)
-    _config(repo)
-
-    called = {"value": False}
-
-    def fake_open_propose_pr(*args, **kwargs):
-        called["value"] = True
-        return None
-
-    monkeypatch.setattr("kelix.pr.open_propose_pr", fake_open_propose_pr)
-
-    class Args:
-        path = str(repo)
-        diagnosis_file = ""
-        no_pr = True
-
-    assert cmd_propose(Args()) == 0
-    assert called["value"] is False
 
 
 def test_loop_does_not_import_propose():

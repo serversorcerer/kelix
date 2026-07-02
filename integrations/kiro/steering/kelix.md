@@ -38,7 +38,6 @@ are the same rules Kelix's own iterations follow.
 
 - `kelix init` — set up `.kelix/` here
 - `kelix init --from-spec <name>` — seed the backlog from `.kiro/specs/<name>/tasks.md`
-- `kelix run --max-iterations 25` — run the loop (worktree-isolated)
-- `kelix run --pr` — open a PR from the run branch when finished
+- `kelix run --max-iterations 25` — run the loop (worktree-isolated; verified commits on run branch)
 - `kelix status` — what every agent is doing, from coordination files
 - `kelix fleet` — multi-loop mode (`.kelix/fleet.toml`)

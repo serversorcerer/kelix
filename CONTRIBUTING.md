@@ -39,7 +39,6 @@ src/kelix/
   verify.py        # verification gate (re-runs your commands)
   security.py      # command denylist, secret scrubbing
   gitutil.py       # worktree isolation, checkpoints, branch protection
-  pr.py            # PR creation via gh
   fleet.py         # fleet mode orchestration
   claims.py        # atomic task claims for fleets
   kiro.py          # Kiro integration (steering, spec import)
