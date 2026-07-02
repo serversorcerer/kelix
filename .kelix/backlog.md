@@ -328,7 +328,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   test_loop.py: fixture agent appends a slop kelix proposed task → row carries
   missing-details rule count ≥1.
 
-- [ ] ST4: metrics rollup at retrospective | priority: 54 | status: ready | by: owner | deps: ST2, ST3 | phase: T-METRICS | req: REQ-TM2, REQ-TM3
+- [x] ST4: metrics rollup at retrospective | priority: 54 | status: done | by: owner | deps: ST2, ST3 | phase: T-METRICS | req: REQ-TM2, REQ-TM3
   details: add append_run_metrics(cfg, rows, fleet_summary=None) in metrics.py;
   call from loop.py _finish immediately after write_retrospective merges this
   run's rows into .kelix/memory/loop-metrics.json (create if absent). Add

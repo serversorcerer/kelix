@@ -584,6 +584,13 @@ class Runner:
             )
         except Exception as exc:  # retrospective must never mask run status
             log(f"  (retrospective failed: {exc})")
+        if result.ledger_rows:
+            try:
+                from .metrics import append_run_metrics
+
+                append_run_metrics(self.cfg, result.ledger_rows)
+            except Exception as exc:  # metrics rollup must never mask run status
+                log(f"  (metrics rollup failed: {exc})")
         log(
             f"kelix run {result.run_id} finished: {result.status} "
             f"({len(result.iterations)} iterations)"

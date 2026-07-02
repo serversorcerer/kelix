@@ -9,6 +9,7 @@ from conftest import write_mock_script
 
 from kelix.config import load_config
 from kelix.loop import Runner
+from kelix.metrics import METRICS_FILE, load_metrics
 from kelix.state import State, load_state, write_state
 
 
@@ -151,6 +152,7 @@ def test_checkpoint_ignores_runner_bookkeeping(repo):
     (run_dir / "iter-001.log").write_text("transcript")
     (run_dir / "run.json").write_text("{}")
     (repo / ".kelix" / "memory" / "episodes.jsonl").write_text("{}\n")
+    (repo / ".kelix" / "memory" / "loop-metrics.json").write_text("{}\n")
     assert checkpoint(repo, "bookkeeping only") is False
 
     (repo / "real-work.txt").write_text("agent output")
@@ -159,6 +161,7 @@ def test_checkpoint_ignores_runner_bookkeeping(repo):
     assert "real-work.txt" in tracked
     assert "iter-001.log" not in tracked
     assert "episodes.jsonl" not in tracked
+    assert "loop-metrics.json" not in tracked
 
 
 def test_circuit_breaker_on_no_diff(repo):
@@ -442,3 +445,38 @@ git add -A && git commit -q -m "T1: append kelix proposed slop"
     result = Runner(cfg).run(max_iterations=1, log=lambda *_: None)
     assert len(result.ledger_rows) == 1
     assert result.ledger_rows[0].backlog_lint.get("missing_details", 0) >= 1
+
+
+def test_loop_metrics_rollup_after_run(repo):
+    write_mock_script(repo / "mockdir", "001.sh", COMMIT_TASK)
+    cfg = _config(repo, extra='[verify]\ncommands = ["true"]\n')
+    result = Runner(cfg).run(max_iterations=1, log=lambda *_: None)
+    metrics_path = cfg.kelix_dir / METRICS_FILE
+    assert metrics_path.is_file()
+    metrics = load_metrics(metrics_path)
+    assert len(metrics.iterations) == 1
+    assert metrics.iterations[0] == result.ledger_rows[0]
+
+
+def test_loop_metrics_rollup_appends_across_runs(repo):
+    write_mock_script(
+        repo / "mockdir",
+        "001.sh",
+        'echo "RATIONALE: T1 — first run"\necho one >> work.txt\n'
+        'git add -A && git commit -q -m "T1: first"\n',
+    )
+    cfg = _config(repo)
+    first = Runner(cfg).run(max_iterations=1, log=lambda *_: None)
+    write_mock_script(
+        repo / "mockdir",
+        "001.sh",
+        'echo "RATIONALE: T2 — second run"\necho two >> work.txt\n'
+        'git add -A && git commit -q -m "T2: second"\n',
+    )
+    second = Runner(cfg).run(max_iterations=1, log=lambda *_: None)
+    metrics = load_metrics(cfg.kelix_dir / METRICS_FILE)
+    assert len(metrics.iterations) == 2
+    assert metrics.iterations[0].run_id == first.run_id
+    assert metrics.iterations[0].task_id == "T1"
+    assert metrics.iterations[1].run_id == second.run_id
+    assert metrics.iterations[1].task_id == "T2"

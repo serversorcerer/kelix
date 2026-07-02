@@ -191,6 +191,11 @@ Durable facts about this repo for future iterations.
   or had details/rationale/deps changed; aggregate `{rule_id: count}` onto the
   iteration's `IterationLedgerRow.backlog_lint`. Tests in `tests/test_lint.py`
   and `tests/test_loop.py`.
+- Metrics rollup at retrospective (`metrics.append_run_metrics`, `metrics_path`):
+  after `write_retrospective` in `loop.Runner._finish`, merge `RunResult.ledger_rows`
+  into `.kelix/memory/loop-metrics.json` (append, never clobber prior runs).
+  Optional `fleet_summary` arg reserved for ST5. File is in `RUNNER_BOOKKEEPING`
+  alongside episodes.jsonl. Tests in `tests/test_loop.py` and `tests/test_metrics.py`.
 - Planning guide lives in `docs/planning.md` (plan-first flow, roadmap→phase→task
   hierarchy, STATE.md schema, lint, phase gate, waves, flat-backlog quick path).
   Linked from README Documentation and `docs/index.md`. `kelix init` writes

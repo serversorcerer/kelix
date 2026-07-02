@@ -63,6 +63,7 @@ def is_dirty(cwd: Path) -> bool:
 RUNNER_BOOKKEEPING = (
     ".kelix/runs",
     ".kelix/memory/episodes.jsonl",
+    ".kelix/memory/loop-metrics.json",
     ".kelix/fleet/claims",
 )
 

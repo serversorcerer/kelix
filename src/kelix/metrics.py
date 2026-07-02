@@ -23,7 +23,10 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from .config import Config
 
 SCHEMA_VERSION = 1
 METRICS_FILE = "memory/loop-metrics.json"
@@ -195,4 +198,25 @@ def save_metrics(path: Path | str, metrics: LoopMetrics) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = metrics_to_dict(metrics)
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
+def metrics_path(cfg: Config) -> Path:
+    """Return the loop-metrics.json path for *cfg*."""
+    return cfg.kelix_dir / METRICS_FILE
+
+
+def append_run_metrics(
+    cfg: Config,
+    rows: list[IterationLedgerRow],
+    *,
+    fleet_summary: FleetSummaryRow | None = None,
+) -> Path:
+    """Merge *rows* (and optional *fleet_summary*) into loop-metrics.json."""
+    path = metrics_path(cfg)
+    metrics = load_metrics(path)
+    metrics.iterations.extend(rows)
+    if fleet_summary is not None:
+        metrics.fleet_summaries.append(fleet_summary)
+    save_metrics(path, metrics)
     return path

@@ -6,6 +6,7 @@ from kelix.metrics import (
     IterationLedgerRow,
     LoopMetrics,
     ProposalOutcome,
+    append_run_metrics,
     empty_metrics,
     load_metrics,
     metrics_to_dict,
@@ -127,3 +128,26 @@ def test_save_writes_indented_json(tmp_path: Path):
     assert "\n  " in text
     parsed = json.loads(text)
     assert parsed["iterations"][0]["tokens"] is None
+
+
+def test_append_run_metrics_merges_rows(tmp_path: Path):
+    from kelix.config import Config
+
+    cfg = Config(root=tmp_path)
+    path = tmp_path / ".kelix" / "memory" / "loop-metrics.json"
+    save_metrics(
+        path,
+        LoopMetrics(iterations=[IterationLedgerRow(run_id="r0", iteration=1, task_id="T0")]),
+    )
+    rows = [
+        IterationLedgerRow(run_id="r1", iteration=1, task_id="T1", verified=True),
+        IterationLedgerRow(run_id="r1", iteration=2, task_id="T2", verified=False),
+    ]
+    fleet = FleetSummaryRow(fleet_id="fleet-a", run_ids=["r1"], verified_rate=0.5)
+    append_run_metrics(cfg, rows, fleet_summary=fleet)
+    loaded = load_metrics(path)
+    assert len(loaded.iterations) == 3
+    assert loaded.iterations[-2].task_id == "T1"
+    assert loaded.iterations[-1].task_id == "T2"
+    assert len(loaded.fleet_summaries) == 1
+    assert loaded.fleet_summaries[0].fleet_id == "fleet-a"
