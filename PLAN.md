@@ -30,15 +30,15 @@ itself. Record the switchover in DECISIONS.md.
 
 ## Phase 2 — Memory
 
-- [ ] M1: Memory store layout .kalph/memory/ (project.md, episodes.jsonl) + episode recording after every iteration
-- [ ] M2: Skills: .kalph/skills/<name>/SKILL.md (agentskills.io format), acquisition rule in prompt, loading into iterations
-- [ ] M3: Budgeted memory digest injection at iteration start + run retrospective updating project memory
+- [x] M1: Memory store layout .kalph/memory/ (project.md, episodes.jsonl) + episode recording after every iteration (evidence: loop commit + KB2 tests, run by Kalph itself)
+- [x] M2: Skills: .kalph/skills/<name>/SKILL.md (agentskills.io format), acquisition rule in prompt, loading into iterations (evidence: skills_digest + prompt rule + KB2 tests)
+- [x] M3: Budgeted memory digest injection at iteration start + run retrospective updating project memory (evidence: prompt budget test + retrospective tests)
 
 ## Phase 3 — Prioritization
 
-- [ ] B1: Backlog model .kalph/backlog.md: priority, rationale, status, deps; parser + writer; highest-priority-unblocked selection with logged one-line reason
-- [ ] B2: Scoring rubric doc + self-proposed tasks (marked proposed, ranked below owner tasks unless autonomy: high)
-- [ ] B3: Decomposition rule: oversized task -> checklist subtasks before execution
+- [x] B1: Backlog model .kalph/backlog.md: priority, rationale, status, deps; parser + writer; selection (evidence: KB1 by Kalph run 20260702-002215)
+- [x] B2: Scoring rubric doc (evidence: KB4 docs/prioritization.md by Kalph); autonomy-aware proposed-task selection -> KB5
+- [x] B3: Decomposition rule: oversized task -> checklist subtasks before execution (evidence: prompt contract step 3 + rubric doc)
 - [ ] B4: Branch-per-task + PR flow via gh (kalph/<slug>, PR with evidence; never direct to main)
 - [ ] B5: Tracker sync adapter interface + Linear reference adapter (inbound issues sanitized as data; outbound status/comments; non-fatal failures)
 
