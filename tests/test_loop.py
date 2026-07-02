@@ -386,3 +386,41 @@ def test_no_rationale_no_commit_flags_transcript_in_retrospective(repo):
     assert result.iterations[0].rationale == ""
     retro = (cfg.kelix_dir / "runs" / result.run_id / "retrospective.md").read_text()
     assert "no rationale — see transcript" in retro
+
+
+def test_ledger_row_retry_count_on_same_task(repo):
+    write_mock_script(
+        repo / "mockdir",
+        "001.sh",
+        'echo "RATIONALE: T1 — attempt 1"\necho "did nothing"\n',
+    )
+    write_mock_script(
+        repo / "mockdir",
+        "002.sh",
+        'echo "RATIONALE: T1 — attempt 2"\necho work >> work.txt\n'
+        'git add -A && git commit -q -m "T1: done"\n',
+    )
+    cfg = _config(repo)
+    result = Runner(cfg).run(max_iterations=2, log=lambda *_: None)
+    assert len(result.ledger_rows) == 2
+    first, second = result.ledger_rows
+    assert first.run_id == result.run_id
+    assert first.iteration == 1
+    assert first.task_id == "T1"
+    assert first.retry_count == 0
+    assert first.agent_id == "solo"
+    assert first.fleet_id == ""
+    assert first.failure
+    assert second.task_id == "T1"
+    assert second.retry_count == 1
+    assert second.failure == ""
+
+
+def test_ledger_row_circuit_breaker_cause(repo):
+    for i in (1, 2, 3):
+        write_mock_script(repo / "mockdir", f"{i:03d}.sh", 'echo "did nothing"\n')
+    cfg = _config(repo, extra="[loop]\ncircuit_breaker_threshold = 3\n")
+    result = Runner(cfg).run(log=lambda *_: None)
+    assert result.status == "circuit_breaker"
+    assert len(result.ledger_rows) == 3
+    assert all(row.circuit_breaker_cause == "consecutive_failures:3" for row in result.ledger_rows)

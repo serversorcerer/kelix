@@ -309,7 +309,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   write indented JSON. tests/test_metrics.py: round-trip, corrupt file tolerance,
   tokens field null on rows.
 
-- [ ] ST2: per-iteration ledger row capture | priority: 56 | status: ready | by: owner | deps: ST1 | phase: T-METRICS | req: REQ-TM1
+- [x] ST2: per-iteration ledger row capture | priority: 56 | status: done | by: owner | deps: ST1 | phase: T-METRICS | req: REQ-TM1
   details: extend src/kelix/loop.py Runner to accumulate IterationLedgerRow per
   iteration: run_id, rec.index, task_id parsed from rationale (reuse
   TASK_FROM_RATIONALE_RE), rec.verified, rec.duration_s, rec.failure,

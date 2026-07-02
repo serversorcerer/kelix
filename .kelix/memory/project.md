@@ -172,6 +172,19 @@ Durable facts about this repo for future iterations.
   fixer→fix, scribe→docs). Fleet retrospectives append per-iteration
   `role-match: yes/no (role vs kind)` and a per-agent `role drift: N/M`
   line. Selection unchanged — reporting only. Tests in `tests/test_fleet.py`.
+- Loop metrics schema (`src/kelix/metrics.py`): `LoopMetrics` with
+  `iterations[]`, `fleet_summaries[]`, `proposal_outcomes[]`; each
+  `IterationLedgerRow` carries run_id, iteration, task_id, verified,
+  retry_count, duration_s, failure, circuit_breaker_cause, agent_id,
+  fleet_id, backlog_lint, skills_injected, tokens always null. `load_metrics` /
+  `save_metrics` tolerate missing/corrupt JSON. Tests in `tests/test_metrics.py`.
+- Per-iteration ledger capture (`loop.Runner`): after each iteration appends an
+  `IterationLedgerRow` to `RunResult.ledger_rows`; task_id from
+  `_task_from_rationale` or current_task; retry_count = prior rows in this run
+  with the same task_id; on circuit breaker, last N rows get
+  `circuit_breaker_cause=consecutive_failures:N`. `Runner(..., fleet_id="")`
+  for solo runs (ST5 wires fleet). Rows held until ST4 retrospective rollup.
+  Tests in `tests/test_loop.py`.
 - Planning guide lives in `docs/planning.md` (plan-first flow, roadmap→phase→task
   hierarchy, STATE.md schema, lint, phase gate, waves, flat-backlog quick path).
   Linked from README Documentation and `docs/index.md`. `kelix init` writes
