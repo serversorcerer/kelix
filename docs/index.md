@@ -72,6 +72,9 @@ loop stays the same.
 
 ## Reference
 
+- **[Comparison](compare.md)** — honest comparison to plain Ralph, Claude Code
+  and Codex alone, and GSD-style orchestrators; cites proof artifacts or reads
+  "not measured — no receipt."
 - **[Security model](SECURITY.md)** — the threat model (unattended agent +
   shell + prompt-injected repo content) and the mitigations that live in code.
   Read this before an unattended run.

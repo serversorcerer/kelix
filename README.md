@@ -82,6 +82,10 @@ circuit breaker — never because the agent "felt done."
 | — | **Kiro integration**: steering, custom agent, spec→backlog, MCP server |
 | — | **Safety rails**: worktree isolation, command denylist, secret scrubbing, PRs-only |
 
+For an honest comparison with plain Ralph, single-agent CLIs, and GSD-style
+orchestrators — including where Kelix loses — see
+[docs/compare.md](docs/compare.md).
+
 ## How the loop works
 
 ```mermaid

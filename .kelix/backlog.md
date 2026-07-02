@@ -686,7 +686,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   single-iteration latency, IDE pairing affordances, adapter hang/timeout (D13).
   Acceptance: zero cells with bare numbers lacking source link or command.
 
-- [ ] KE28: compare.md site links | priority: 65 | status: ready | by: owner | deps: KE27 | phase: P-COMPARE | req: REQ-CM2
+- [x] KE28: compare.md site links | priority: 65 | status: done | by: owner | deps: KE27 | phase: P-COMPARE | req: REQ-CM2
   details: link docs/compare.md from README.md (Why Kelix or new section) and
   docs/index.md Reference. Acceptance: `rg compare.md README.md docs/index.md`
   finds both links.
