@@ -337,7 +337,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   with one iteration object matching the run; second run appends without
   clobbering.
 
-- [ ] ST5: fleet metrics aggregation | priority: 53 | status: ready | by: owner | deps: ST4 | phase: T-METRICS | req: REQ-TM6
+- [x] ST5: fleet metrics aggregation | priority: 53 | status: done | by: owner | deps: ST4 | phase: T-METRICS | req: REQ-TM6
   details: in src/kelix/fleet.py pass fleet_id into Runner (e.g. fleet.toml
   name or hash) and agent_id per agent. After fleet run completes, compute
   FleetSummaryRow (fleet_id, run_ids[], verified_rate, iteration_count,

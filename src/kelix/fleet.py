@@ -27,6 +27,7 @@ from .loop import (
     Runner,
     RunResult,
 )
+from .metrics import FleetSummaryRow, append_run_metrics
 from .roadmap import coverage, load_roadmap
 from .state import load_state
 
@@ -204,8 +205,43 @@ def make_claim_hook(cfg: Config, spec: FleetSpec, agent_id: str):
     return hook
 
 
+def fleet_id_from_config(config_file: str) -> str:
+    """Stable fleet identifier from the fleet config path (e.g. ``fleet.toml`` -> ``fleet``)."""
+    return Path(config_file).stem
+
+
+def compute_fleet_summary(fleet_id: str, results: dict[str, RunResult]) -> FleetSummaryRow:
+    """Aggregate per-agent run results into one fleet-level summary row."""
+    run_ids: list[str] = []
+    verified = 0
+    iteration_count = 0
+    breaker_trips = 0
+
+    for result in results.values():
+        if result.run_id:
+            run_ids.append(result.run_id)
+        if result.status == "circuit_breaker":
+            breaker_trips += 1
+        if result.ledger_rows:
+            iteration_count += len(result.ledger_rows)
+            verified += sum(1 for row in result.ledger_rows if row.verified)
+        else:
+            iteration_count += len(result.iterations)
+            verified += sum(1 for rec in result.iterations if rec.verified)
+
+    verified_rate = verified / iteration_count if iteration_count else 0.0
+    return FleetSummaryRow(
+        fleet_id=fleet_id,
+        run_ids=run_ids,
+        verified_rate=verified_rate,
+        iteration_count=iteration_count,
+        breaker_trips=breaker_trips,
+    )
+
+
 def run_fleet(cfg: Config, config_file: str, max_iterations: int | None = None) -> int:
     spec = load_fleet_spec(cfg, config_file)
+    fleet_id = fleet_id_from_config(config_file)
     cap = max_iterations or spec.max_iterations
     results: dict[str, RunResult] = {}
     errors: dict[str, str] = {}
@@ -215,6 +251,7 @@ def run_fleet(cfg: Config, config_file: str, max_iterations: int | None = None) 
             cfg,
             role=spec.role_prompt(agent.role),
             agent_id=agent.id,
+            fleet_id=fleet_id,
             pre_iteration=make_claim_hook(cfg, spec, agent.id),
         )
         try:
@@ -238,6 +275,12 @@ def run_fleet(cfg: Config, config_file: str, max_iterations: int | None = None) 
         t.join()
 
     _write_fleet_retrospective(cfg, spec, results, errors)
+    if results:
+        try:
+            summary = compute_fleet_summary(fleet_id, results)
+            append_run_metrics(cfg, [], fleet_summary=summary)
+        except Exception as exc:  # metrics rollup must never mask fleet status
+            print(f"fleet metrics rollup failed: {exc}")
     failed = bool(errors) or any(
         r.status not in ("completed", "max_iterations") for r in results.values()
     )

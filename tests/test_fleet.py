@@ -14,6 +14,7 @@ from kelix.fleet import (
     FleetError,
     FleetSpec,
     _write_fleet_retrospective,
+    fleet_id_from_config,
     infer_task_kind,
     load_fleet_spec,
     make_claim_hook,
@@ -21,6 +22,7 @@ from kelix.fleet import (
     run_fleet,
 )
 from kelix.loop import IterationRecord, RunResult
+from kelix.metrics import METRICS_FILE, load_metrics
 
 FLEET_TOML = """\
 [fleet]
@@ -207,6 +209,28 @@ def test_fleet_run_end_to_end_zero_collisions(tmp_path):
     assert retros
     body = retros[0].read_text()
     assert "builder-1" in body and "scribe-1" in body
+
+
+def test_fleet_metrics_aggregation(tmp_path):
+    repo = _fleet_repo(tmp_path)
+    cfg = load_config(repo)
+    rc = run_fleet(cfg, ".kelix/fleet.toml", max_iterations=2)
+    assert rc == 0
+
+    metrics = load_metrics(cfg.kelix_dir / METRICS_FILE)
+    assert metrics.iterations
+    agent_ids = {row.agent_id for row in metrics.iterations}
+    assert agent_ids == {"builder-1", "scribe-1"}
+    fleet_id = fleet_id_from_config(".kelix/fleet.toml")
+    assert all(row.fleet_id == fleet_id for row in metrics.iterations)
+
+    assert len(metrics.fleet_summaries) == 1
+    summary = metrics.fleet_summaries[0]
+    assert summary.fleet_id == "fleet"
+    assert len(summary.run_ids) == 2
+    assert summary.iteration_count == len(metrics.iterations)
+    assert 0.0 <= summary.verified_rate <= 1.0
+    assert summary.breaker_trips == 0
 
 
 def test_render_status_reads_coordination_files(tmp_path):

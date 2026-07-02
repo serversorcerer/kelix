@@ -196,6 +196,12 @@ Durable facts about this repo for future iterations.
   into `.kelix/memory/loop-metrics.json` (append, never clobber prior runs).
   Optional `fleet_summary` arg reserved for ST5. File is in `RUNNER_BOOKKEEPING`
   alongside episodes.jsonl. Tests in `tests/test_loop.py` and `tests/test_metrics.py`.
+- Fleet metrics aggregation (`fleet.fleet_id_from_config`, `compute_fleet_summary`,
+  `run_fleet`): `fleet_id` is the fleet config path stem (e.g. `.kelix/fleet.toml`
+  → `fleet`); passed into each agent's `Runner`. Per-agent iteration rows still
+  rollup in `Runner._finish`; at fleet completion `run_fleet` appends one
+  `FleetSummaryRow` (run_ids, verified_rate, iteration_count, breaker_trips) via
+  `append_run_metrics(cfg, [], fleet_summary=...)`. Tests in `tests/test_fleet.py`.
 - Planning guide lives in `docs/planning.md` (plan-first flow, roadmap→phase→task
   hierarchy, STATE.md schema, lint, phase gate, waves, flat-backlog quick path).
   Linked from README Documentation and `docs/index.md`. `kelix init` writes
