@@ -42,6 +42,10 @@ Durable facts about this repo for future iterations.
   than `stale_after_s`, default 900s) are reclaimable via temp-file + `os.replace`.
   Tests in `tests/test_claims.py` cover concurrent winners, stale reclaim, release,
   and wrong-agent guardrails.
+- STATE.md spine lives in `src/kalph/state.py` (`State` dataclass, `load_state`,
+  `write_state`). Parser is tolerant: missing file -> None, malformed lines skipped,
+  optional space after colon in field bullets, `(none)` blocker treated as empty.
+  Tests in `tests/test_state.py`.
 - OWNER PRINCIPLE (communication): good input in, good output out — slop in,
   slop out. All owner-facing text this project produces (backlog tasks, PRD
   templates, docs, prompts, retrospectives) must be precise and legible to

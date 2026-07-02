@@ -25,7 +25,7 @@ Every task below names its phase and the REQ it covers in `details:`.
 
 ### Phase P-SPINE (the state spine)
 
-- [ ] PC1: state module — read/write .kalph/STATE.md | priority: 95 | status: ready | by: owner
+- [x] PC1: state module — read/write .kalph/STATE.md | priority: 95 | status: done | by: owner
   rationale: [P-SPINE/REQ-S1] a fresh loop must orient in O(1) from one small file
   details: create src/kalph/state.py with a State dataclass (milestone: str,
   phase: str, current_task: str, last_task: str, last_verified_commit: str,
