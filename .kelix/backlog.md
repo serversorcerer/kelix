@@ -534,14 +534,14 @@ All tasks below are `status: proposed` until the owner promotes them.
   Acceptance: first H1-adjacent paragraph names ≥3 non-Kiro agents; docs/kiro.md
   link present.
 
-- [ ] KE3: pyproject + package metadata | priority: 90 | status: proposed | by: kelix | phase: P-REPOS | req: REQ-R2
+- [ ] KE3: pyproject + package metadata | priority: 90 | status: ready | by: owner | phase: P-REPOS | req: REQ-R2
   details: update pyproject.toml `[project].description` and `keywords` to
   agent-agnostic voice (loop for any coding agent; Kiro as flagship integration
   in description, not sole identity). Keep version unchanged. Acceptance:
   `rg -i 'rebuilt for kiro' pyproject.toml` returns no matches; `pip install -e .`
   metadata check via `python -c "import importlib.metadata as m; print(m.metadata('kelix')['Description'])"`.
 
-- [ ] KE4: CLI help + config template voice | priority: 89 | status: proposed | by: kelix | phase: P-REPOS | req: REQ-R2
+- [ ] KE4: CLI help + config template voice | priority: 89 | status: ready | by: owner | phase: P-REPOS | req: REQ-R2
   details: in src/kelix/cli.py update CONFIG_TEMPLATE adapter comment to list
   named presets (kiro | claude | codex | cursor | gemini | cmd | mock) and
   refresh argparse help strings / module docstrings that lead with Kiro-only
@@ -549,14 +549,14 @@ All tasks below are `status: proposed` until the owner promotes them.
   CONFIG_TEMPLATE comment lists presets (may precede KE5 implementation — comment
   documents intent).
 
-- [ ] KE5: MCP server description reposition | priority: 88 | status: proposed | by: kelix | phase: P-REPOS | req: REQ-R2
+- [ ] KE5: MCP server description reposition | priority: 88 | status: ready | by: owner | phase: P-REPOS | req: REQ-R2
   details: rewrite src/kelix/mcp_server.py module docstring and any tool
   descriptions that say "Kiro first" to "MCP-capable agents; Kiro is the
   reference integration" without removing Kiro registration example. Acceptance:
   module docstring names agent-agnostic use; `pytest tests/test_mcp_server.py -q`
   passes unchanged.
 
-- [ ] KE6: P-REPOS acceptance gate | priority: 87 | status: proposed | by: kelix | deps: KE1,KE2,KE3,KE4,KE5 | phase: P-REPOS | req: REQ-R3
+- [ ] KE6: P-REPOS acceptance gate | priority: 87 | status: ready | by: owner | deps: KE1,KE2,KE3,KE4,KE5 | phase: P-REPOS | req: REQ-R3
   details: add tests/test_reposition.py (or extend test_claims.py): assert
   `rg -i kiro README.md | head -1` line > 20; run full `pytest -q`; run
   docs/kiro.md example TOML blocks through load_config (smoke); no edits to
@@ -564,7 +564,7 @@ All tasks below are `status: proposed` until the owner promotes them.
 
 ### Phase P-AGENT — Named adapters + guides
 
-- [ ] KE7: named adapter presets in config | priority: 86 | status: proposed | by: kelix | phase: P-AGENT | req: REQ-A1
+- [ ] KE7: named adapter presets in config | priority: 86 | status: ready | by: owner | phase: P-AGENT | req: REQ-A1
   details: in src/kelix/config.py and adapters.py extend make_adapter/load validation
   so adapter names claude|codex|cursor|gemini resolve internally to CmdAdapter
   with preset command templates (stdlib only, no new subprocess machinery).
@@ -572,7 +572,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   unchanged. Acceptance: load_config accepts each preset name; unknown name
   still raises ConfigError; tests/test_config.py covers all four.
 
-- [ ] KE8: cursor agent guide (Kelix-verified) | priority: 85 | status: proposed | by: kelix | deps: KE7 | phase: P-AGENT | req: REQ-A2
+- [ ] KE8: cursor agent guide (Kelix-verified) | priority: 85 | status: ready | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A2
   details: create docs/agents/cursor.md with headings aligned to docs/kiro.md
   loop sections (# The headless adapter, ## Configure kelix.toml, install, auth,
   worked example init→plan→run, quirks, troubleshooting). Command template matches
@@ -581,20 +581,20 @@ All tasks below are `status: proposed` until the owner promotes them.
   TOML block in guide parses via load_config; heading list matches kiro.md
   loop sections (diff script or manual checklist in test).
 
-- [ ] KE9: claude agent guide (upstream-sourced) | priority: 84 | status: proposed | by: kelix | deps: KE7 | phase: P-AGENT | req: REQ-A2
+- [ ] KE9: claude agent guide (upstream-sourced) | priority: 84 | status: ready | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A2
   details: create docs/agents/claude.md — same heading parity as KE8; invocation
   from Claude Code CLI upstream docs; prominent **Not Kelix CI-tested — community
   corrections welcome** banner. Acceptance: TOML parses via load_config.
 
-- [ ] KE10: codex agent guide (upstream-sourced) | priority: 83 | status: proposed | by: kelix | deps: KE7 | phase: P-AGENT | req: REQ-A2
+- [ ] KE10: codex agent guide (upstream-sourced) | priority: 83 | status: ready | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A2
   details: create docs/agents/codex.md — same structure as KE9 for OpenAI Codex
   CLI; upstream-sourced banner. Acceptance: TOML parses via load_config.
 
-- [ ] KE11: gemini agent guide (upstream-sourced) | priority: 82 | status: proposed | by: kelix | deps: KE7 | phase: P-AGENT | req: REQ-A2
+- [ ] KE11: gemini agent guide (upstream-sourced) | priority: 82 | status: ready | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A2
   details: create docs/agents/gemini.md — same structure as KE9 for Gemini CLI;
   upstream-sourced banner. Acceptance: TOML parses via load_config.
 
-- [ ] KE12: init --agent wiring | priority: 81 | status: proposed | by: kelix | deps: KE7 | phase: P-AGENT | req: REQ-A3
+- [ ] KE12: init --agent wiring | priority: 81 | status: ready | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A3
   details: extend cmd_init: add `--agent <name>` argparse flag; when TTY and no
   flag, print numbered list (kiro, claude, codex, cursor, gemini, cmd, mock)
   and read choice; when non-TTY and no flag, exit 2 with error requiring
@@ -602,74 +602,74 @@ All tasks below are `status: proposed` until the owner promotes them.
   CONFIG_TEMPLATE output. Tests: monkeypatch isatty for both paths in
   tests/test_config.py or new test_init_agent.py.
 
-- [ ] KE13: claude preset integration test | priority: 80 | status: proposed | by: kelix | deps: KE7 | phase: P-AGENT | req: REQ-A4
+- [ ] KE13: claude preset integration test | priority: 80 | status: ready | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A4
   details: tests/test_adapters.py: repo with adapter=claude and a stub script
   on PATH (via cmd override or sh -c) completes one mock-style iteration via
   kelix run --max-iterations 1 (mock backlog + verify echo). Proves preset
   resolves and subprocess runs. Acceptance: test passes in CI without real CLI.
 
-- [ ] KE14: agent guide TOML CI check | priority: 79 | status: proposed | by: kelix | deps: KE8,KE9,KE10,KE11 | phase: P-AGENT | req: REQ-A4
+- [ ] KE14: agent guide TOML CI check | priority: 79 | status: ready | by: owner | deps: KE8,KE9,KE10,KE11 | phase: P-AGENT | req: REQ-A4
   details: add tests/test_agent_guides.py: extract fenced `[agent]` TOML from
   docs/agents/*.md and docs/kiro.md; each must parse via load_config into a
   temp dir without ConfigError. Wire into CI (pytest). Acceptance: test covers
   all five guide files.
 
-- [ ] KE15: index agents section links | priority: 78 | status: proposed | by: kelix | deps: KE8,KE9,KE10,KE11 | phase: P-AGENT | req: REQ-A2
+- [ ] KE15: index agents section links | priority: 78 | status: ready | by: owner | deps: KE8,KE9,KE10,KE11 | phase: P-AGENT | req: REQ-A2
   details: update docs/index.md Guides section with docs/agents/{cursor,claude,
   codex,gemini}.md links; kiro.md remains "deepest integration." Acceptance:
   all four agent guide paths linked from index.
 
 ### Phase P-AUDIT — Audacity audit
 
-- [ ] KE16: proof docs Kalph rename | priority: 77 | status: proposed | by: kelix | phase: P-AUDIT | req: REQ-U1
+- [ ] KE16: proof docs Kalph rename | priority: 77 | status: ready | by: owner | phase: P-AUDIT | req: REQ-U1
   details: rename Kalph→Kelix throughout docs/proof/* (final-report.md,
   dogfood-retrospective.md, fleet-*.md, injection-drill-backlog.diff prose).
   Add one-line provenance at top of docs/proof/final-report.md: notes former
   Kalph name during early dogfood runs. Acceptance: `rg -i kalph docs/proof`
   returns zero matches except the provenance line; pytest -q passes.
 
-- [ ] KE17: concept.md audacity intro | priority: 76 | status: proposed | by: kelix | deps: KE16 | phase: P-AUDIT | req: REQ-U2
+- [ ] KE17: concept.md audacity intro | priority: 76 | status: ready | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
   details: rewrite docs/concept.md opening: one audacity sentence (what one
   person can do overnight they couldn't before), then evidence link to
   docs/proof/final-report.md dogfood 12/12 stat. Remove plumbing-first lead.
   Acceptance: first paragraph contains capability claim; second paragraph or
   bullet links proof artifact.
 
-- [ ] KE18: memory-and-skills audacity intro | priority: 75 | status: proposed | by: kelix | deps: KE16 | phase: P-AUDIT | req: REQ-U2
+- [ ] KE18: memory-and-skills audacity intro | priority: 75 | status: ready | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
   details: same pattern for docs/memory-and-skills.md; proof link to dogfood
   retrospective or tests/test_memory.py reproducible command in doc.
 
-- [ ] KE19: prioritization audacity intro | priority: 74 | status: proposed | by: kelix | deps: KE16 | phase: P-AUDIT | req: REQ-U2
+- [ ] KE19: prioritization audacity intro | priority: 74 | status: ready | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
   details: same pattern for docs/prioritization.md; proof link to backlog
   selection tests or proof run evidence.
 
-- [ ] KE20: planning doc audacity intro | priority: 73 | status: proposed | by: kelix | deps: KE16,PC12 | phase: P-AUDIT | req: REQ-U2
+- [ ] KE20: planning doc audacity intro | priority: 73 | status: ready | by: owner | deps: KE16,PC12 | phase: P-AUDIT | req: REQ-U2
   details: same pattern for docs/planning.md (requires PC12 shipped); proof
   link to kelix plan/lint tests. If PC12 not done when task runs, seed minimal
   planning.md stub is out of scope — task blocked until PC12 done.
 
-- [ ] KE21: fleet audacity intro | priority: 72 | status: proposed | by: kelix | deps: KE16 | phase: P-AUDIT | req: REQ-U2
+- [ ] KE21: fleet audacity intro | priority: 72 | status: ready | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
   details: same pattern for docs/fleet.md; proof link to docs/proof/fleet-session1-retrospective.md.
 
-- [ ] KE22: SECURITY audacity intro | priority: 71 | status: proposed | by: kelix | deps: KE16 | phase: P-AUDIT | req: REQ-U2
+- [ ] KE22: SECURITY audacity intro | priority: 71 | status: ready | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
   details: same pattern for docs/SECURITY.md; proof link to
   tests/test_injection_drill.py or docs/proof/injection-drill-backlog.diff.
 
-- [ ] KE23: mcp audacity intro | priority: 70 | status: proposed | by: kelix | deps: KE16 | phase: P-AUDIT | req: REQ-U2
+- [ ] KE23: mcp audacity intro | priority: 70 | status: ready | by: owner | deps: KE16 | phase: P-AUDIT | req: REQ-U2
   details: same pattern for docs/mcp.md; proof link to tests/test_mcp_server.py.
 
-- [ ] KE24: writing-for-the-loop tagline | priority: 69 | status: proposed | by: kelix | phase: P-AUDIT | req: REQ-U2
+- [ ] KE24: writing-for-the-loop tagline | priority: 69 | status: ready | by: owner | phase: P-AUDIT | req: REQ-U2
   details: update docs/writing-for-the-loop.md: adopt "Gold in, diamonds out"
   as the one-line principle in the opening; demote good/slop pairing to body
   examples only. Acceptance: first mention of gold/diamonds is the canon line.
 
-- [ ] KE25: CLI art.say theming | priority: 68 | status: proposed | by: kelix | deps: KE17,KE18,KE19,KE21,KE22,KE23,KE24 | phase: P-AUDIT | req: REQ-U3
+- [ ] KE25: CLI art.say theming | priority: 68 | status: ready | by: owner | deps: KE17,KE18,KE19,KE21,KE22,KE23,KE24 | phase: P-AUDIT | req: REQ-U3
   details: retire flat print strings in src/kelix/cli.py (run complete, init,
   status summaries) in favor of art.say() with themes; run-complete message
   lists verify commands run and verified-done count, not bare "done." Tests in
   tests/test_ci_integration.py or cli capture updated substrings.
 
-- [ ] KE26: README/index audacity pass | priority: 67 | status: proposed | by: kelix | deps: KE25,KE1,KE2 | phase: P-AUDIT | req: REQ-U4
+- [ ] KE26: README/index audacity pass | priority: 67 | status: ready | by: owner | deps: KE25,KE1,KE2 | phase: P-AUDIT | req: REQ-U4
   details: final voice pass on README.md and docs/index.md: audacity + evidence
   links after structural reposition (KE1/KE2). Each opens with capability claim
   + proof link. Acceptance: reviewer can trace opening claim to docs/proof or
@@ -677,7 +677,7 @@ All tasks below are `status: proposed` until the owner promotes them.
 
 ### Phase P-COMPARE — Honest comparison
 
-- [ ] KE27: docs/compare.md draft | priority: 66 | status: proposed | by: kelix | deps: KE16 | phase: P-COMPARE | req: REQ-CM1
+- [ ] KE27: docs/compare.md draft | priority: 66 | status: ready | by: owner | deps: KE16 | phase: P-COMPARE | req: REQ-CM1
   details: create docs/compare.md comparing Kelix vs plain Ralph vs Claude Code
   alone vs Codex alone vs GSD-style orchestrators. Axes: state persistence,
   verified-done rate, unattended runtime, token cost per verified task,
@@ -686,14 +686,14 @@ All tasks below are `status: proposed` until the owner promotes them.
   single-iteration latency, IDE pairing affordances, adapter hang/timeout (D13).
   Acceptance: zero cells with bare numbers lacking source link or command.
 
-- [ ] KE28: compare.md site links | priority: 65 | status: proposed | by: kelix | deps: KE27 | phase: P-COMPARE | req: REQ-CM2
+- [ ] KE28: compare.md site links | priority: 65 | status: ready | by: owner | deps: KE27 | phase: P-COMPARE | req: REQ-CM2
   details: link docs/compare.md from README.md (Why Kelix or new section) and
   docs/index.md Reference. Acceptance: `rg compare.md README.md docs/index.md`
   finds both links.
 
 ### Phase P-GOLD — First-contact spec gate
 
-- [ ] KE29: run spec-gate for ready tasks | priority: 64 | status: proposed | by: kelix | phase: P-GOLD | req: REQ-GD1
+- [ ] KE29: run spec-gate for ready tasks | priority: 64 | status: ready | by: owner | phase: P-GOLD | req: REQ-GD1
   details: in src/kelix/loop.py Runner.run() before iteration 1: lint only
   tasks with status=ready via lint_backlog; on findings print actionable
   messages with inline good/bad task example (from lint.py or dedicated formatter);
@@ -701,19 +701,19 @@ All tasks below are `status: proposed` until the owner promotes them.
   tests/test_loop.py: vague ready task → exit 1 before adapter called; good
   task → proceeds.
 
-- [ ] KE30: run --force bypass | priority: 63 | status: proposed | by: kelix | deps: KE29 | phase: P-GOLD | req: REQ-GD1
+- [ ] KE30: run --force bypass | priority: 63 | status: ready | by: owner | deps: KE29 | phase: P-GOLD | req: REQ-GD1
   details: add `--force` to kelix run argparse; skips spec gate only (document in
   --help and docs/quickstart.md); git safety unchanged. Test: vague backlog +
   --force reaches adapter. Acceptance: help text states spec-gate scope explicitly.
 
-- [ ] KE31: plan interview acceptance questions | priority: 62 | status: proposed | by: kelix | phase: P-GOLD | req: REQ-GD2
+- [ ] KE31: plan interview acceptance questions | priority: 62 | status: ready | by: owner | phase: P-GOLD | req: REQ-GD2
   details: extend PLANNING_TEMPLATE / plan.py interview rubric so each emitted
   question block includes at least one acceptance-criteria probe per roadmap
   phase in the draft goal (reuse lint rules from docs/writing-for-the-loop.md).
   Test: mock adapter planning fixture goal with two phases → interview output
   contains ≥2 acceptance-themed questions.
 
-- [ ] KE32: GOAL template + lint tagline | priority: 61 | status: proposed | by: kelix | deps: KE24 | phase: P-GOLD | req: REQ-GD3
+- [ ] KE32: GOAL template + lint tagline | priority: 61 | status: ready | by: owner | deps: KE24 | phase: P-GOLD | req: REQ-GD3
   details: update GOAL_TEMPLATE in cli.py to include one-line "Gold in, diamonds
   out." principle; update run spec-gate and kelix lint stderr banner to use
   canon tagline once (retire slop pairing from gate message). Test: init creates
