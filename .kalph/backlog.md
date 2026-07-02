@@ -36,7 +36,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   tests/test_state.py: write -> load equality, partial file tolerance, empty
   blockers.
 
-- [ ] PC2: runner maintains STATE.md through the run | priority: 94 | status: ready | by: owner | deps: PC1
+- [x] PC2: runner maintains STATE.md through the run | priority: 94 | status: done | by: owner | deps: PC1
   rationale: [P-SPINE/REQ-S2] the runner owns the spine so it is never stale or hallucinated
   details: in src/kalph/loop.py, Runner.run() writes STATE.md at run start
   (current_task from the pre_iteration hook or "selecting"), after each

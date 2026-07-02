@@ -26,8 +26,11 @@ from .gitutil import (
     is_repo,
 )
 from .prompt import assemble_prompt, load_template
+from .state import State, load_state, write_state
 
 RATIONALE_RE = re.compile(r"^RATIONALE:\s*(.+)$", re.MULTILINE)
+TASK_FROM_ROLE_RE = re.compile(r"Your assigned task for this iteration:\s*(\S+)")
+TASK_FROM_RATIONALE_RE = re.compile(r"^(\S+)")
 STOP_FILE = "STOP"  # .kalph/STOP — global kill switch
 
 
@@ -79,6 +82,7 @@ class Runner:
         # for this iteration (fleet mode uses it to pin a claimed task), or
         # None to signal there is no eligible work left for this agent.
         self.pre_iteration = pre_iteration
+        self._run_state: State | None = None
 
     # -- setup ---------------------------------------------------------------
 
@@ -122,6 +126,52 @@ class Runner:
             return None
         return report.ok
 
+    def _init_run_state(self, workdir: Path) -> State:
+        kalph_dir = workdir / ".kalph"
+        existing = load_state(kalph_dir)
+        return existing if existing is not None else State()
+
+    def _backlog_counts(self, workdir: Path) -> tuple[int, int]:
+        from .backlog import parse_backlog
+
+        backlog_path = workdir / self.cfg.loop.plan_file
+        if not backlog_path.is_file():
+            return 0, 0
+        tasks = parse_backlog(backlog_path.read_text(encoding="utf-8"))
+        done = sum(1 for t in tasks if t.status == "done")
+        return done, len(tasks)
+
+    @staticmethod
+    def _current_task_from_role(role_extra: str) -> str:
+        match = TASK_FROM_ROLE_RE.search(role_extra)
+        return match.group(1) if match else ""
+
+    @staticmethod
+    def _task_from_rationale(rationale: str) -> str:
+        if not rationale:
+            return ""
+        match = TASK_FROM_RATIONALE_RE.match(rationale.strip())
+        return match.group(1).rstrip("—") if match else ""
+
+    def _update_run_state_after_iteration(
+        self,
+        current_task: str,
+        rec: IterationRecord,
+        workdir: Path,
+    ) -> None:
+        if self._run_state is None:
+            return
+        task_id = self._task_from_rationale(rec.rationale) or (
+            current_task if current_task != "selecting" else ""
+        )
+        if task_id:
+            self._run_state.last_task = task_id
+        done, total = self._backlog_counts(workdir)
+        self._run_state.done = done
+        self._run_state.total = total
+        if rec.verified is True:
+            self._run_state.last_verified_commit = head_sha(workdir)
+
     def _gather_context(self, workdir: Path) -> dict:
         from .memory import episode_digest, skills_digest
 
@@ -160,6 +210,8 @@ class Runner:
 
         workdir, branch = self._prepare_workdir(run_id)
         result = RunResult(run_id=run_id, branch=branch, workdir=str(workdir))
+        self._run_state = self._init_run_state(workdir)
+        self._run_state.current_task = "selecting"
         template = load_template(cfg)  # loaded once: static for the whole run
         adapter = make_adapter(cfg)
 
@@ -179,6 +231,14 @@ class Runner:
                     result.status = "completed"
                     result.diagnosis = "no eligible tasks left for this agent"
                     break
+
+            current_task = "selecting"
+            if role_extra:
+                from_role = self._current_task_from_role(role_extra)
+                if from_role:
+                    current_task = from_role
+            if self._run_state is not None:
+                self._run_state.current_task = current_task
 
             rec = IterationRecord(
                 index=index, started_at=time.strftime("%Y-%m-%dT%H:%M:%S")
@@ -219,6 +279,7 @@ class Runner:
             rec.verified = self._verify(workdir)
             rec.duration_s = round(time.monotonic() - started, 1)
 
+            self._update_run_state_after_iteration(current_task, rec, workdir)
             self._record_episode(rec, workdir)
 
             failed = (
@@ -299,6 +360,10 @@ class Runner:
 
     def _finish(self, result: RunResult, run_dir: Path, log):
         from .memory import write_retrospective
+
+        workdir = Path(result.workdir) if result.workdir else self.cfg.root
+        if self._run_state is not None:
+            write_state(workdir / ".kalph", self._run_state)
 
         try:
             write_retrospective(self.cfg, result, run_dir)

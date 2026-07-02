@@ -45,7 +45,12 @@ Durable facts about this repo for future iterations.
 - STATE.md spine lives in `src/kalph/state.py` (`State` dataclass, `load_state`,
   `write_state`). Parser is tolerant: missing file -> None, malformed lines skipped,
   optional space after colon in field bullets, `(none)` blocker treated as empty.
-  Tests in `tests/test_state.py`.
+  Tests in `tests/test_state.py`. The runner (`loop.py`) tracks state in memory
+  through a run (current_task from pre_iteration hook or "selecting", last_task
+  from rationale, done/total from parse_backlog, last_verified_commit on verified
+  iterations) and writes `.kalph/STATE.md` once in `_finish` before the
+  retrospective checkpoint — not mid-iteration. STATE.md is intentionally absent
+  from `RUNNER_BOOKKEEPING` excludes so the retrospective commit ships it.
 - OWNER PRINCIPLE (communication): good input in, good output out — slop in,
   slop out. All owner-facing text this project produces (backlog tasks, PRD
   templates, docs, prompts, retrospectives) must be precise and legible to
