@@ -74,7 +74,7 @@ under `.kelix/runs/`, durable notes in `.kelix/memory/project.md`.
 
 | File | Install to | Purpose |
 |---|---|---|
-| `steering/kelix.md` | `.kiro/steering/kelix.md` | Teaches Kiro's agent the loop contract (task format, verified-done, one task per change, PRs-only). `inclusion: auto`, keyed to mentions of Kelix, the backlog, or the loop — so interactive Kiro sessions cooperate with the loop instead of fighting it. |
+| `steering/kelix.md` | `.kiro/steering/kelix.md` | Teaches Kiro's agent the loop contract (task format, verified-done, one task per change, verified commits on `kelix/*` run branches — you merge when satisfied). `inclusion: auto`, keyed to mentions of Kelix, the backlog, or the loop — so interactive Kiro sessions cooperate with the loop instead of fighting it. |
 | `agents/kelix.json` | `.kiro/agents/kelix.json` | The custom agent that `kelix run` invokes headlessly (`kiro_args = ["--agent", "kelix"]`). Ships Kelix's command denylist as `toolsSettings.shell.deniedCommands` and a `preToolUse` shell-audit hook. |
 | `hooks/kelix-hooks.json` | `.kiro/hooks/kelix-hooks.json` | Optional, **disabled by default**: offer to seed the backlog when a spec's `tasks.md` is saved; block agent pushes to main from interactive Kiro sessions. |
 

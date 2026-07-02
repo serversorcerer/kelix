@@ -63,8 +63,8 @@ the bottom. Format: `D<N> (<phase>): decision — rationale`.
   GitHub remote (creating one would publish throwaway code and burn tokens on
   network flakes), so "mergeable PRs" is proven as run branches that merge
   cleanly into main with green tests via `git merge` — the exact operation a
-  PR merge performs. The `--pr` path itself is covered by test_pr.py against
-  a stubbed `gh`.
+  PR merge performs. *(KV3 removed `pr.py`, `test_pr.py`, and `--pr`; the live
+  path is verified commits on `kelix/run-*` branches plus owner `git merge`.)*
 - D13 (P8, bootstrap intervention): In fleet session 2 the verifier's
   cursor-agent process finished its work (R1 commit + mailbox review note
   present on its branch) but never exited; after ~20 minutes the session
@@ -226,3 +226,12 @@ the bottom. Format: `D<N> (<phase>): decision — rationale`.
   carries the value sentence and links the demo receipt (KV17); `kelix lint`,
   `pytest -q`, and `ruff check src tests` exit 0 on this repo post-cut.
   Milestone V closes; no further V-* backlog tasks remain.
+- D25 (DRIFT-FIX fleet, REQ-DR5): Doc-drift fleet run `20260702-191513`
+  (builder-1, builder-2, scribe-1, verifier-1 worktrees) aligned user-facing
+  copy with post-KV3 reality — verified commits on `kelix/run-*` branches, owner
+  merge, no automated PR opening. Twelve DR tasks closed; 16 files touched
+  (README, docs, integrations, prompt, gitutil, fleet roles, DECISIONS D12
+  footnote, value-demo header, CHANGELOG, SECURITY cross-check,
+  `tests/test_doc_drift.py`, `tests/test_value_demo.py`). Regression gate:
+  `pytest tests/test_doc_drift.py -q` green; full suite + `ruff check src tests`
+  + `kelix lint` exit 0. Backlog 118/118; phase DRIFT-FIX complete.

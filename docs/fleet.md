@@ -77,7 +77,8 @@ or an empty agent list are all fatal configuration errors.
 ## Roles
 
 A role is just extra prompt text steering which tasks an agent prefers — the
-loop contract (one task, verified-done, PRs only) is identical for everyone.
+loop contract (one task, verified-done, verified commits on `kelix/run-*`
+branches) is identical for everyone.
 Built-in roles:
 
 - **builder** — prefers feature and implementation tasks; avoids pure
@@ -170,6 +171,7 @@ denylist, for every agent.)
 - **Duplicated or conflicting work across branches.** The residual risk of
   parallel loops. Mitigations: claims prevent same-task overlap, mailbox notes
   broadcast breaking changes, the verifier reviews sibling branches, and
-  everything lands as separate human-reviewed PRs.
+  everything lands as verified commits on separate `kelix/run-*` branches for
+  you to merge when satisfied.
 - **A runaway fleet.** `kelix stop` is global; the per-agent iteration cap
   bounds cost even if you sleep through it.

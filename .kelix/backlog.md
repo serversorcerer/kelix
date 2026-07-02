@@ -899,7 +899,7 @@ Owner context: `.kelix/phases/DRIFT-FIX/CONTEXT.md`. Fleet config:
 
 ### Phase DRIFT-FIX — Steak (accuracy)
 
-- [ ] DR1: README Safety and Will/Will-not | priority: 95 | status: ready | by: owner | phase: DRIFT-FIX | req: REQ-DR1
+- [x] DR1: README Safety and Will/Will-not | priority: 95 | status: done | by: owner | phase: DRIFT-FIX | req: REQ-DR1
   details: edit README.md sections "## Safety" and "## What Kelix will and will
   not do unattended". Replace "land as PRs" and "open PRs" with language from
   DRIFT-FIX CONTEXT: verified commits on kelix/run-* branches, owner merges
@@ -910,7 +910,7 @@ Owner context: `.kelix/phases/DRIFT-FIX/CONTEXT.md`. Fleet config:
   PR}; still link docs/SECURITY.md; `pytest tests/test_value_demo.py -q` pass
   (README first-screen test unchanged).
 
-- [ ] DR2: README install block PR-free audit | priority: 94 | status: ready | by: owner | deps: DR1 | phase: DRIFT-FIX | req: REQ-DR1
+- [x] DR2: README install block PR-free audit | priority: 94 | status: done | by: owner | deps: DR1 | phase: DRIFT-FIX | req: REQ-DR1
   details: scan README.md full file for stale PR/sync/--pr claims outside
   historical compare table footnotes. Fix any found. Ensure "Why Kelix" table
   and fleet/Kiro sections describe run branches + owner review, not automated
@@ -918,7 +918,7 @@ Owner context: `.kelix/phases/DRIFT-FIX/CONTEXT.md`. Fleet config:
   case-insensitive for `open pr`, `land as pr`, `--pr`, `kelix sync` → zero
   matches; full file still contains value sentence in first 30 lines.
 
-- [ ] DR3: memory-and-skills propose and review path | priority: 93 | status: ready | by: owner | phase: DRIFT-FIX | req: REQ-DR2
+- [x] DR3: memory-and-skills propose and review path | priority: 93 | status: done | by: owner | phase: DRIFT-FIX | req: REQ-DR2
   details: edit docs/memory-and-skills.md. Update proposal_outcomes[] paragraph
   (~line 192): kelix propose creates a dedicated branch + sidecar JSON;
   owner merges manually (no pr.py since KV3). Update retrospective section
@@ -927,27 +927,27 @@ Owner context: `.kelix/phases/DRIFT-FIX/CONTEXT.md`. Fleet config:
   review skill commits on run branches. Acceptance: zero matches for `via pr.py`,
   `opening a PR`, `tuning PR` in that file; prose cites branch + owner merge.
 
-- [ ] DR4: fleet.md loop contract language | priority: 92 | status: ready | by: owner | phase: DRIFT-FIX | req: REQ-DR2
+- [x] DR4: fleet.md loop contract language | priority: 92 | status: done | by: owner | phase: DRIFT-FIX | req: REQ-DR2
   details: docs/fleet.md — replace "one task, verified-done, PRs only" (~line 80)
   and "everything lands as separate human-reviewed PRs" (~line 173) with
   verified commits on per-agent kelix/run-* branches; owner merges. Keep
   fleet receipt example block intact. Acceptance: zero `PRs only` or `human-reviewed PRs`
   in fleet.md; fleet proof links unchanged.
 
-- [ ] DR5: kiro docs and steering PR language | priority: 91 | status: ready | by: owner | phase: DRIFT-FIX | req: REQ-DR2
+- [x] DR5: kiro docs and steering PR language | priority: 91 | status: done | by: owner | phase: DRIFT-FIX | req: REQ-DR2
   details: update docs/kiro.md steering table row for kelix.md (verified-done,
   run branches, owner merge — not "PRs-only"). update
   integrations/kiro/steering/kelix.md line ~33 "arrives as PRs" → verified
   commits on kelix/* branches. Acceptance: `rg -i 'arrives as pr|PRs-only' docs/kiro.md integrations/kiro` → zero.
 
-- [ ] DR6: iteration prompt security rules | priority: 90 | status: ready | by: owner | phase: DRIFT-FIX | req: REQ-DR3
+- [x] DR6: iteration prompt security rules | priority: 90 | status: done | by: owner | phase: DRIFT-FIX | req: REQ-DR3
   details: src/kelix/prompt.py ITERATION_TEMPLATE security rules (~line 80-81):
   change "The runner handles branches and PRs" to "The runner works on
   kelix/* run branches with verified commits; never push to main." Acceptance:
   prompt.py contains no standalone "PRs" in security rules; tests/test_prompt.py
   or test_injection_drill still pass.
 
-- [ ] DR7: gitutil and fleet verifier role strings | priority: 89 | status: ready | by: owner | phase: DRIFT-FIX | req: REQ-DR3
+- [x] DR7: gitutil and fleet verifier role strings | priority: 89 | status: done | by: owner | phase: DRIFT-FIX | req: REQ-DR3
   details: src/kelix/gitutil.py assert_not_protected message (~line 113): replace
   "opens PRs" with "uses kelix/* run branches". src/kelix/fleet.py DEFAULT_ROLES
   verifier prompt (~line 42): replace "branches or PRs" and `gh pr list` optional
@@ -956,14 +956,14 @@ Owner context: `.kelix/phases/DRIFT-FIX/CONTEXT.md`. Fleet config:
   pytest tests/test_fleet.py tests/test_gitutil.py -q pass (add test_gitutil import
   if missing — use subprocess gitutil tests via existing suite).
 
-- [ ] DR8: DECISIONS D12 historical footnote | priority: 88 | status: ready | by: owner | phase: DRIFT-FIX | req: REQ-DR2
+- [x] DR8: DECISIONS D12 historical footnote | priority: 88 | status: done | by: owner | phase: DRIFT-FIX | req: REQ-DR2
   details: DECISIONS.md D12 (~lines 62-67): keep historical "mergeable PRs"
   narrative for dogfood but add footnote that pr.py and test_pr.py were SCRAP'd
   in KV3; live path is verified commits on run branches + owner git merge.
   Remove implication that test_pr.py still exists. Acceptance: DECISIONS.md
   contains "KV3" near D12; no bare reference to test_pr.py as current coverage.
 
-- [ ] DR9: value-demo and CHANGELOG honesty labels | priority: 87 | status: ready | by: owner | phase: DRIFT-FIX | req: REQ-DR4
+- [x] DR9: value-demo and CHANGELOG honesty labels | priority: 87 | status: done | by: owner | phase: DRIFT-FIX | req: REQ-DR4
   details: docs/proof/value-demo.md — add prominent **Mock adapter** label in
   the opening paragraph; add one-line pointer to dogfood live receipt
   (final-report § D1). CHANGELOG.md — if "branch-per-task PRs" appears without
@@ -974,7 +974,7 @@ Owner context: `.kelix/phases/DRIFT-FIX/CONTEXT.md`. Fleet config:
 
 ### Phase DRIFT-FIX — Sizzle + gate
 
-- [ ] DR10: quickstart and SECURITY cross-check | priority: 86 | status: ready | by: owner | deps: DR1,DR3,DR4 | phase: DRIFT-FIX | req: REQ-DR4
+- [x] DR10: quickstart and SECURITY cross-check | priority: 86 | status: done | by: owner | deps: DR1,DR3,DR4 | phase: DRIFT-FIX | req: REQ-DR4
   details: read docs/quickstart.md happy-path section (steps 1–6 only) and
   docs/SECURITY.md user-facing summary — ensure no --pr, kelix sync, or "Kelix
   opens PRs" claims. SECURITY may keep "merge its own PRs" under Will-not if
@@ -982,7 +982,7 @@ Owner context: `.kelix/phases/DRIFT-FIX/CONTEXT.md`. Fleet config:
   quickstart happy-path section grep for `--pr|kelix sync|open PR` → zero;
   SECURITY.md accurate for post-KV3.
 
-- [ ] DR11: test_doc_drift regression gate | priority: 85 | status: ready | by: owner | deps: DR1,DR2,DR3,DR4,DR5,DR6,DR7,DR8,DR9,DR10 | phase: DRIFT-FIX | req: REQ-DR5
+- [x] DR11: test_doc_drift regression gate | priority: 85 | status: done | by: owner | deps: DR1,DR2,DR3,DR4,DR5,DR6,DR7,DR8,DR9,DR10 | phase: DRIFT-FIX | req: REQ-DR5
   details: create tests/test_doc_drift.py. Pure-Python read of user-facing
   paths (no ripgrep subprocess — CI may lack rg): README.md, docs/quickstart.md,
   docs/memory-and-skills.md, docs/fleet.md, docs/kiro.md,
@@ -993,7 +993,7 @@ Owner context: `.kelix/phases/DRIFT-FIX/CONTEXT.md`. Fleet config:
   `.kelix/` and backlog archive paths to be excluded. At least 8 test functions.
   Acceptance: pytest tests/test_doc_drift.py -q pass.
 
-- [ ] DR12: doc-drift fleet closure gate | priority: 84 | status: ready | by: owner | deps: DR11 | phase: DRIFT-FIX | req: REQ-DR5
+- [x] DR12: doc-drift fleet closure gate | priority: 84 | status: done | by: owner | deps: DR11 | phase: DRIFT-FIX | req: REQ-DR5
   details: run full gate: env PYTHONPATH=src pytest -q; ruff check src tests;
   kelix lint --path . Mark all DR* done in backlog only if DR11 tests pass.
   Update .kelix/STATE.md: phase DRIFT-FIX complete, last_task DR12, done count

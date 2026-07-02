@@ -189,7 +189,7 @@ Top-level object (`schema_version: 1`):
 
 Per-iteration rows still carry `fleet_id` and distinct `agent_id` values; the summary row aggregates the whole fleet window.
 
-- **`proposal_outcomes[]`** — populated when the owner merges or closes a tuning PR (`kelix propose` / ST14). Each entry records `proposal_id`, `merge_sha` or `close_reason`, the agent's `prediction`, optional `merged_at_run_id` (last pre-merge run for windowing), and a post-merge `grade` (`improved`, `regressed`, or `inconclusive`). Record with `kelix propose --record-merge <sha>` (or `--record-close`); re-grade with `kelix metrics grade-proposal --proposal-id <id>`. Grade compares verified rate and retry/breaker counts in the last five runs before merge vs the next five after; inconclusive when fewer than three post-merge runs exist.
+- **`proposal_outcomes[]`** — populated when the owner merges or closes a tuning proposal (`kelix propose` / ST14). `kelix propose` creates a dedicated `kelix/propose-*` branch plus a `.kelix/memory/proposal-*.json` sidecar; you merge manually when satisfied (no `pr.py` since KV3). Each entry records `proposal_id`, `merge_sha` or `close_reason`, the agent's `prediction`, optional `merged_at_run_id` (last pre-merge run for windowing), and a post-merge `grade` (`improved`, `regressed`, or `inconclusive`). Record with `kelix propose --record-merge <sha>` (or `--record-close`); re-grade with `kelix metrics grade-proposal --proposal-id <id>`. Grade compares verified rate and retry/breaker counts in the last five runs before merge vs the next five after; inconclusive when fewer than three post-merge runs exist.
 
 - **`skill_efficacy{}`** — recomputed on every retrospective append from all `iterations[]` rows. Maps each skill basename (any name ever present in `skills_injected`) to `{with_rate, without_rate, matched_tasks}`: verified rate on rows where the skill was in the context manifest's skills slot vs rows where it was not (only rows with a non-empty `task_id` and a scored `verified` field count). See [Skill distillation](#skill-distillation) for how injection is recorded.
 
@@ -204,8 +204,8 @@ iterations that need attention.
 
 The retrospective also appends a short run summary to
 `.kelix/memory/project.md` **on the run branch** and checkpoints it, so the
-memory update arrives via the same PR as the code and gets reviewed like
-everything else.
+memory update lands on the same `kelix/run-*` branch as the code for you to
+review and merge when satisfied.
 
 Fleet runs additionally write a combined
 `.kelix/runs/fleet-<timestamp>.md` covering every agent.
@@ -224,7 +224,8 @@ iteration prompt instructs each agent, before exiting:
 The next iteration's skills digest picks the new skill up automatically. This
 is Ralph's "let Ralph take himself to university" made concrete: operational
 learnings are distilled to files that future iterations load, and because
-skills are committed, humans review them in PRs like any other change. Skills
+skills are committed on run branches, you review them when merging like any
+other change. Skills
 use the same format Kiro reads, so curated ones can be copied into
 `.kiro/skills/` for interactive sessions to benefit too.
 

@@ -1,5 +1,9 @@
 # Value demo — cold run receipt (REQ-VP2)
 
+**Mock adapter** — this receipt uses `[agent] adapter = "mock"` for a fast,
+CI-reproducible proof. For a live-agent dogfood run with the same verify gate,
+see [final-report § D1](final-report.md#d1--dogfood-run-docsproofdogfood-runlog-dogfood-retrospectivemd).
+
 Reproducible evidence that Kelix completes a well-specified goal unattended and
 returns verified commits. Captured from `samples/value-demo/` on 2026-07-02.
 

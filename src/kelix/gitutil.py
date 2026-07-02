@@ -110,5 +110,5 @@ def assert_not_protected(branch: str) -> None:
     if branch in PROTECTED_BRANCHES:
         raise GitError(
             f"refusing to run on protected branch {branch!r}; Kelix only works "
-            "on kelix/* branches (opens PRs, never writes to main)"
+            "Kelix only uses kelix/* run branches; never writes to main"
         )

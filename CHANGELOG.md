@@ -22,7 +22,8 @@ Nothing yet.
   iteration as budgeted data; skills use the agentskills.io format.
 - **Backlog and prioritization**: `.kelix/backlog.md` task queue, legible
   prioritization with a one-line `RATIONALE:` per pick, and
-  branch-per-task PRs (`kelix/*` branches; humans merge).
+  branch-per-task work on `kelix/*` run branches (owner merges when satisfied;
+  automated PR opening removed KV3).
 - **Tracker sync**: Linear integration with inbound sanitization of
   untrusted tracker text.
 - **Kiro integration**: steering files, a custom `kelix` agent, spec import
