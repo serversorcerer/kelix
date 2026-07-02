@@ -263,6 +263,13 @@ Durable facts about this repo for future iterations.
   `.kelix/memory/proposal-<id>.json`; never imported from `loop.py`.
 - Distillation candidates live under `.kelix/skills/_proposed/<name>/`; `list_skills`
   skips that subtree until the owner moves the folder to `.kelix/skills/<name>/`.
+- Post-retrospective distillation (`distill.run_distillation`): when
+  `[memory].distill_skills=true` (default), solo `Runner._finish` invokes one
+  adapter pass with `DISTILLATION_TEMPLATE` over run transcripts + episode
+  outcomes; only `.kelix/skills/_proposed/<name>/SKILL.md` allowed (cap 3,
+  agentskills.io frontmatter via `_parse_skill`); transcript at
+  `.kelix/runs/<id>/distill/distill.log`. Skipped when `fleet_id` set — fleet
+  calls `run_fleet_distillation` once after `_write_fleet_retrospective`.
 
 ## Run 20260702-120914 (max_iterations)
 10 iterations, 9 verified. Failures: agent exit 143 (timeout); verification failed.

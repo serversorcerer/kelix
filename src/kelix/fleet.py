@@ -281,6 +281,13 @@ def run_fleet(cfg: Config, config_file: str, max_iterations: int | None = None) 
             append_run_metrics(cfg, [], fleet_summary=summary)
         except Exception as exc:  # metrics rollup must never mask fleet status
             print(f"fleet metrics rollup failed: {exc}")
+    if results and cfg.memory.distill_skills:
+        try:
+            from .distill import run_fleet_distillation
+
+            run_fleet_distillation(cfg, results, log=print)
+        except Exception as exc:  # distillation must never mask fleet status
+            print(f"fleet distillation failed: {exc}")
     failed = bool(errors) or any(
         r.status not in ("completed", "max_iterations") for r in results.values()
     )

@@ -591,6 +591,13 @@ class Runner:
                 append_run_metrics(self.cfg, result.ledger_rows)
             except Exception as exc:  # metrics rollup must never mask run status
                 log(f"  (metrics rollup failed: {exc})")
+        if self.cfg.memory.distill_skills and not self.fleet_id:
+            try:
+                from .distill import run_distillation
+
+                run_distillation(self.cfg, result, run_dir, log=log)
+            except Exception as exc:  # distillation must never mask run status
+                log(f"  (distillation failed: {exc})")
         log(
             f"kelix run {result.run_id} finished: {result.status} "
             f"({len(result.iterations)} iterations)"

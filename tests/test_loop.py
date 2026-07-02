@@ -13,12 +13,15 @@ from kelix.metrics import METRICS_FILE, load_metrics
 from kelix.state import State, load_state, write_state
 
 
-def _config(repo, extra="", mock_dir="mockdir", isolation="none"):
+def _config(repo, extra="", mock_dir="mockdir", isolation="none", distill_skills=False):
     (repo / "kelix.toml").write_text(
         f"""
 [agent]
 adapter = "mock"
 mock_dir = "{mock_dir}"
+
+[memory]
+distill_skills = {"true" if distill_skills else "false"}
 
 [git]
 isolation = "{isolation}"
@@ -480,3 +483,46 @@ def test_loop_metrics_rollup_appends_across_runs(repo):
     assert metrics.iterations[0].task_id == "T1"
     assert metrics.iterations[1].run_id == second.run_id
     assert metrics.iterations[1].task_id == "T2"
+
+
+DISTILL_AND_COMMIT = """\
+prompt=$(cat)
+if echo "$prompt" | grep -q "Distillation contract"; then
+  mkdir -p .kelix/skills/_proposed/test-skill
+  cat > .kelix/skills/_proposed/test-skill/SKILL.md << 'EOF'
+---
+name: test-skill
+description: Distilled from run transcripts
+---
+1. Reuse this procedure when the same failure mode appears.
+EOF
+  git add .kelix/skills/_proposed/test-skill/SKILL.md
+  git commit -q -m "distill: propose test-skill"
+else
+  echo "RATIONALE: T1 — highest priority ready task"
+  echo "work" >> work.txt
+  git add -A && git commit -q -m "T1: do work"
+fi
+"""
+
+
+def test_distillation_writes_proposed_skill(repo):
+    write_mock_script(repo / "mockdir", "001.sh", DISTILL_AND_COMMIT)
+    cfg = _config(repo, distill_skills=True)
+    result = Runner(cfg).run(max_iterations=1, log=lambda *_: None)
+    skill_md = repo / ".kelix" / "skills" / "_proposed" / "test-skill" / "SKILL.md"
+    assert skill_md.is_file()
+    text = skill_md.read_text()
+    assert "name: test-skill" in text
+    assert "description: Distilled from run transcripts" in text
+    distill_log = cfg.kelix_dir / "runs" / result.run_id / "distill" / "distill.log"
+    assert distill_log.is_file()
+
+
+def test_distillation_skipped_when_disabled(repo):
+    write_mock_script(repo / "mockdir", "001.sh", DISTILL_AND_COMMIT)
+    cfg = _config(repo, distill_skills=False)
+    result = Runner(cfg).run(max_iterations=1, log=lambda *_: None)
+    skill_md = repo / ".kelix" / "skills" / "_proposed" / "test-skill" / "SKILL.md"
+    assert not skill_md.exists()
+    assert not (cfg.kelix_dir / "runs" / result.run_id / "distill").exists()

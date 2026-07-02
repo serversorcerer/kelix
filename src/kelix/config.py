@@ -59,6 +59,8 @@ class MemoryConfig:
     skills_max_chars: int = 6000
     mailbox_max_chars: int = 2000
     episodes_in_digest: int = 10
+    # Post-retrospective skill distillation pass (T-SKILLS).
+    distill_skills: bool = True
 
 
 @dataclass

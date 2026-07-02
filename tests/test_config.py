@@ -14,6 +14,7 @@ def test_defaults_when_no_file(tmp_path):
     assert cfg.autonomy.level == "normal"
     assert cfg.security.scrub_transcripts is True
     assert cfg.memory.context_share == 0.5
+    assert cfg.memory.distill_skills is True
     assert cfg.kelix_dir == tmp_path.resolve() / ".kelix"
 
 

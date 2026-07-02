@@ -1,10 +1,10 @@
 # Kelix state
 
 - milestone: v0.3
-- phase: T-PROPOSE
+- phase: T-SKILLS
 - current_task: selecting
-- last_task: ST15
-- last_verified_commit: b58fd29bf9d55348c455b45449d210b795eec85a
-- done: 43
+- last_task: ST16
+- last_verified_commit: (pending verification)
+- done: 44
 - total: 101
 - blockers:

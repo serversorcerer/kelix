@@ -430,7 +430,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   memory-and-skills.md one line). tests/test_memory.py: skill only under
   _proposed → skills_digest empty; after move → appears.
 
-- [ ] ST16: distillation pass after retrospective | priority: 42 | status: ready | by: owner | deps: ST15 | phase: T-SKILLS | req: REQ-TS1
+- [x] ST16: distillation pass after retrospective | priority: 42 | status: done | by: owner | deps: ST15 | phase: T-SKILLS | req: REQ-TS1
   details: add DISTILLATION_TEMPLATE in prompt.py; after write_retrospective in
   loop.py _finish (and fleet equivalent), when [memory].distill_skills=true
   (default true), invoke adapter once with prompt built from this run's

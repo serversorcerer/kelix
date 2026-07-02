@@ -48,6 +48,9 @@ commands = []
 
 [git]
 isolation = "worktree"    # worktree | branch | none
+
+# [memory]
+# distill_skills = true     # post-retrospective skill distillation pass
 """
 
 PHASES_README_TEMPLATE = """\
