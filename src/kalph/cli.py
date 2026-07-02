@@ -86,6 +86,13 @@ def cmd_run(args) -> int:
     except (ConfigError, LoopError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
+    if args.pr and result.status in ("completed", "max_iterations"):
+        from .pr import open_pr
+
+        run_dir = cfg.kalph_dir / "runs" / result.run_id
+        pr_url = open_pr(cfg, result, run_dir)
+        if pr_url:
+            print(f"PR opened: {pr_url}")
     return 0 if result.status in ("completed", "max_iterations") else 1
 
 
@@ -138,6 +145,11 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--path", default=".")
     p.add_argument("--max-iterations", type=int, default=None)
     p.add_argument("--role", default="", help="role text to inject into the prompt")
+    p.add_argument(
+        "--pr",
+        action="store_true",
+        help="open a GitHub PR after a completed or max-iterations run",
+    )
     p.set_defaults(func=cmd_run)
 
     p = sub.add_parser("status", help="show run/fleet status from coordination files")

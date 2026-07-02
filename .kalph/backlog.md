@@ -23,7 +23,7 @@ tasks regardless of score. Only mark done after `pytest -q` and
   tasks are never selected. Update tests/test_backlog.py with cases for both levels.
   Keep backward compatibility: select_next(tasks) with one argument must still work.
 
-- [ ] KB6: PR flow module | priority: 85 | status: ready | by: owner | deps: KB1
+- [x] KB6: PR flow module | priority: 85 | status: done | by: owner | deps: KB1
   rationale: overnight mode must end in reviewable PRs, never direct pushes to main
   details: create src/kalph/pr.py with open_pr(cfg, result, run_dir) -> str|None that
   (1) refuses (returns None, logs via the returned message being None) if result.branch

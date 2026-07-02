@@ -33,6 +33,10 @@ Durable facts about this repo for future iterations.
   PYTHONPATH=src; that is sufficient. (Learned from run 20260702-002215.)
 - Prioritization rubric for backlog authoring and selection lives in
   `docs/prioritization.md` (owner-first, priority bands, decomposition/blocked rules).
+- PR flow lives in `src/kalph/pr.py` (`open_pr`, `build_pr_title`, `build_pr_body`).
+  `kalph run --pr` opens a GitHub PR after `completed` or `max_iterations` runs;
+  refuses main/master/empty branches, pushes with `git push -u origin <branch>`,
+  never `--force`. Returns None (log-and-skip) on any subprocess failure.
 
 ## Run 20260702-002215 (completed)
 4 iterations, 4 verified. Clean run.
