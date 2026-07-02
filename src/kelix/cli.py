@@ -283,6 +283,35 @@ def cmd_mcp(args) -> int:
     return 0
 
 
+def cmd_diagnose(args) -> int:
+    from .config import ConfigError
+    from .diagnose import DiagnoseError, DiagnoseRunner
+
+    root = Path(args.path).resolve()
+    try:
+        cfg = load_config(root)
+        result = DiagnoseRunner(cfg).prepare(
+            run_ids=args.run_id or None,
+            last_n=args.last,
+            diagnosis_file=args.diagnosis_file or "",
+        )
+    except (ConfigError, DiagnoseError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
+    from .art import say
+
+    print(
+        say(
+            f"diagnose: selected {len(result.run_ids)} run(s): "
+            f"{', '.join(result.run_ids)}",
+            "info",
+        )
+    )
+    print(say(f"diagnosis file: {result.diagnosis_path}", "info"))
+    return 0
+
+
 def cmd_sync(args) -> int:
     """Mirror tracker issues into the backlog. Non-fatal: tracker problems are
     logged and skipped, never fatal to the loop."""
@@ -367,6 +396,31 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("sync", help="mirror tracker issues into the backlog")
     p.add_argument("--path", default=".")
     p.set_defaults(func=cmd_sync)
+
+    p = sub.add_parser(
+        "diagnose",
+        help="review failed runs and write a diagnosis (owner-invoked)",
+    )
+    p.add_argument("--path", default=".")
+    p.add_argument(
+        "--run-id",
+        action="append",
+        default=[],
+        dest="run_id",
+        help="run id to include (repeatable; overrides --last)",
+    )
+    p.add_argument(
+        "--last",
+        type=int,
+        default=None,
+        help="most recent N runs with failures (default: loop.diagnose_default_runs)",
+    )
+    p.add_argument(
+        "--diagnosis-file",
+        default="",
+        help="output path (default: .kelix/memory/diagnosis-<timestamp>.md)",
+    )
+    p.set_defaults(func=cmd_diagnose)
 
     args = parser.parse_args(argv)
     return args.func(args)

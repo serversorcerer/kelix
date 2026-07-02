@@ -359,7 +359,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   document in CONFIG_TEMPLATE comment. tests/test_config.py: defaults and
   override round-trip.
 
-- [ ] ST8: kelix diagnose command skeleton | priority: 50 | status: ready | by: owner | deps: ST7 | phase: T-DIAGNOSE | req: REQ-TD1
+- [x] ST8: kelix diagnose command skeleton | priority: 50 | status: done | by: owner | deps: ST7 | phase: T-DIAGNOSE | req: REQ-TD1
   details: add src/kelix/diagnose.py and cmd_diagnose in cli.py. Flags: --run-id
   (repeatable), --last N, --diagnosis-file optional path default
   .kelix/memory/diagnosis-<timestamp>.md. Select runs: --run-id list, else last
