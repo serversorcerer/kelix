@@ -623,10 +623,6 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--from-spec", default="", help="seed backlog from .kiro/specs/<name>/tasks.md")
     p.set_defaults(func=cmd_init)
 
-    p = sub.add_parser("lint", help="check backlog tasks against the input contract")
-    p.add_argument("--path", default=".")
-    p.set_defaults(func=cmd_lint)
-
     p = sub.add_parser("plan", help="draft roadmap and backlog from a goal")
     p.add_argument("--path", default=".")
     p.add_argument("goal", nargs="?", default="", help="goal text")
@@ -654,18 +650,28 @@ def main(argv: list[str] | None = None) -> int:
     )
     p.set_defaults(func=cmd_run)
 
-    p = sub.add_parser("status", help="show run/fleet status from coordination files")
+    p = sub.add_parser(
+        "lint",
+        help="(secondary) check backlog tasks against the input contract",
+    )
+    p.add_argument("--path", default=".")
+    p.set_defaults(func=cmd_lint)
+
+    p = sub.add_parser(
+        "status",
+        help="(secondary) show run/fleet status from coordination files",
+    )
     p.add_argument("--path", default=".")
     p.set_defaults(func=cmd_status)
+
+    p = sub.add_parser("stop", help="(secondary) set the kill switch (.kelix/STOP)")
+    p.add_argument("--path", default=".")
+    p.set_defaults(func=cmd_stop)
 
     p = sub.add_parser("watch", help="stream a running loop's agent output live")
     p.add_argument("--path", default=".")
     p.add_argument("--run-id", default="", help="watch a specific run (default: newest active)")
     p.set_defaults(func=cmd_watch)
-
-    p = sub.add_parser("stop", help="set the kill switch (.kelix/STOP)")
-    p.add_argument("--path", default=".")
-    p.set_defaults(func=cmd_stop)
 
     p = sub.add_parser("fleet", help="run a coordinated fleet of loops")
     p.add_argument("--path", default=".")

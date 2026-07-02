@@ -141,32 +141,17 @@ Start with `retrospective.md`, then the diff on the run branch, then
 individual `iter-*.log` files for anything surprising. Every iteration logs a
 one-line `RATIONALE:` explaining the task it chose.
 
-## 8. Monitor and stop
+## Secondary operations
 
-```bash
-kelix watch
-```
+These commands stay available but are not on the init → plan → run happy path.
+Use them when you need to inspect or steer an active run.
 
-Streams the running agent's output live — its rationale, actions, and test
-runs as they happen. Follows the loop across iterations; `ctrl-c` detaches
-without touching the run. `--run-id` picks a specific run when several are
-active (fleet mode).
-
-```bash
-kelix status
-```
-
-Shows the current state assembled purely from coordination files and git:
-active runs (with a hint to `kelix watch` them), recent runs and their
-branches, any fleet task claims, mailbox notes, and whether the kill switch
-is set.
-
-```bash
-kelix stop
-```
-
-Writes `.kelix/STOP`. Active runs halt before their next iteration; new runs
-refuse to start. Remove the file to allow runs again.
+| Command | Purpose |
+|---------|---------|
+| `kelix lint` | Check backlog tasks against the input contract before promoting |
+| `kelix status` | Show active runs, claims, and kill-switch state from coordination files |
+| `kelix stop` | Write `.kelix/STOP` — active runs halt before the next iteration |
+| `kelix watch` | Stream a running agent's output live (`ctrl-c` detaches without stopping the run) |
 
 ## Where next
 

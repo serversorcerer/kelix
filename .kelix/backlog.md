@@ -823,7 +823,7 @@ Owner decisions: `.kelix/phases/V-CUT/CONTEXT.md`. All tasks below are
 
 ### Phase V-SIMPLE — Cut the surface
 
-- [ ] KV11: CLI audit against ledger | priority: 45 | status: ready | by: owner | deps: KV2, KV3, KV4 | phase: V-SIMPLE | req: REQ-VM1
+- [x] KV11: CLI audit against ledger | priority: 45 | status: done | by: owner | deps: KV2, KV3, KV4 | phase: V-SIMPLE | req: REQ-VM1
   details: audit src/kelix/cli.py subcommands against docs/value-ledger.md;
   remove any command whose module was SCRAP (sync, mcp if KV4 scrapped). Ensure
   init/plan/run are the documented happy path; lint, status, stop remain with
