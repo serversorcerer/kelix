@@ -157,3 +157,18 @@ the bottom. Format: `D<N> (<phase>): decision — rationale`.
   with lint/status/stop as secondary ops; value demo runs cold on a fresh
   minimal sample repo. Milestone V (KV1–KV18) gates the release: the demo
   transcript in docs/proof/value-demo.md is the ship criterion.
+- D21 (REQ-P3 — self-referential proof, PC13): run 20260702-104227 is the
+  proof. 10 iterations, 10 tasks verified-done (PC9–PC12, PC17–PC22): the
+  loop oriented from STATE.md, selected by the new phase-aware order, built
+  the context compiler (relevance scorer, 50% budget split, context
+  manifest), the harden rails (rationale fallback, inactivity watchdog),
+  waves + fleet wave gating, role-drift reporting, and the planning guide —
+  and the phase gate auto-advanced STATE.md from P-GATE through P-PROOF
+  mid-run with zero owner intervention. Iteration 10 hit the 2400s hard
+  timeout attempting to nest a proof run inside itself; the already-merged
+  run satisfies REQ-P3's intent (a real run driving the planning core), so
+  PC13 is marked done by the owner with this entry as evidence. Transcripts:
+  .kelix/runs/20260702-104227/. Wart for the ledger: iterations 4–6 logged
+  "(no rationale)" — PC17's fallback was built in this very run and only
+  takes effect after merge; also the runner's buffered stdout hid live
+  progress from a piped run (fixed same day: flush per log line).

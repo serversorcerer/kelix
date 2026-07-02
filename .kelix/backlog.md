@@ -268,7 +268,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   files. Test: init on a bare repo creates the template; init on this repo
   is a no-op.
 
-- [ ] PC13: self-referential proof run | priority: 60 | status: ready | by: owner | deps: PC12 | phase: P-PROOF | req: REQ-P3
+- [x] PC13: self-referential proof run | priority: 60 | status: done | by: owner | deps: PC12 | phase: P-PROOF | req: REQ-P3
   rationale: [P-PROOF/REQ-P3] the planning core must be proven by driving its own build (dogfood rule)
   details: run `kelix run` on this repo with STATE.md active: the loop must
   pick a task via the new orientation order, complete it, and the run
@@ -276,6 +276,9 @@ Every task below names its phase and the REQ it covers in `details:`.
   (run id, transcript path) in DECISIONS.md and check off REQ-P3 coverage.
   If no code tasks remain, seed one small owner task (doc polish) so the
   proof run is real.
+  evidence: run 20260702-104227 (D21) — 10 tasks verified, STATE.md-driven
+  selection, phase gate auto-advanced P-GATE -> P-PROOF mid-run; transcripts
+  in .kelix/runs/20260702-104227/.
 
 - [ ] PC23: plan milestone v0.3 with kelix plan itself | priority: 58 | status: ready | by: owner | deps: PC13, PC14b, PC15
   rationale: [P-PROOF] the onramp's first real use: the self-tuning-loop milestone is decomposed by the interview flow, not by hand
