@@ -54,3 +54,22 @@ the bottom. Format: `D<N> (<phase>): decision — rationale`.
   claim_task as unlink-then-O_EXCL, single winner guaranteed; 40/40 stress
   runs green. Recorded per the mission's honesty rule about which work was
   loop-run vs. hand-fixed.
+- D11 (P8): Dogfood target is a fresh sample repo (`tasklite`, a stdlib-only
+  task-tracker library) rather than a clone of an existing OSS project —
+  unattended runs against third-party code would exercise the same loop
+  mechanics while adding license/attribution noise to the evidence. The
+  backlog has 12 owner tasks spanning features, tests, CLI, and docs.
+- D12 (P8): Dogfood/fleet PR evidence is git-local: the sample repo has no
+  GitHub remote (creating one would publish throwaway code and burn tokens on
+  network flakes), so "mergeable PRs" is proven as run branches that merge
+  cleanly into main with green tests via `git merge` — the exact operation a
+  PR merge performs. The `--pr` path itself is covered by test_pr.py against
+  a stubbed `gh`.
+- D13 (P8, bootstrap intervention): In fleet session 2 the verifier's
+  cursor-agent process finished its work (R1 commit + mailbox review note
+  present on its branch) but never exited; after ~20 minutes the session
+  killed the process (SIGTERM) rather than wait out the 40-minute adapter
+  timeout that would have handled it automatically. The runner recorded the
+  iteration honestly as `agent exit 143` while keeping the verified commit —
+  exactly the intended failure accounting. No code change needed: the
+  timeout rail already covers this unattended.
