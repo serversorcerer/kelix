@@ -304,7 +304,13 @@ class Runner:
 
     # -- the loop ------------------------------------------------------------
 
-    def run(self, max_iterations: int | None = None, log=print) -> RunResult:
+    def run(self, max_iterations: int | None = None, log=None) -> RunResult:
+        if log is None:
+            # Line-buffered progress even when stdout is a pipe (backgrounded
+            # or tee'd runs): an unattended owner must see iterations land
+            # live, not on process exit.
+            def log(msg: str) -> None:
+                print(msg, flush=True)
         cfg = self.cfg
         if not is_repo(cfg.root):
             raise LoopError(f"{cfg.root} is not a git repository")
