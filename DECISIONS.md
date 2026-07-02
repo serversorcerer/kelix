@@ -203,3 +203,11 @@ the bottom. Format: `D<N> (<phase>): decision — rationale`.
   activity clock only ticked per full 4KB buffer). Built directly by the
   owner-side assistant for immediate use on the next runs; recorded here
   per the bootstrap-intervention rule.
+
+## D22 execution evidence (pending)
+
+- **ST19a seed run:** `20260702-133736` — mock adapter
+  (`.kelix/st19a-mock/`, `distill_skills=false`), `--max-iterations 3`,
+  `max_iterations` exit with 3 verified ledger rows in
+  `.kelix/memory/loop-metrics.json` (task_id ST20, retry_count 0–2).
+  Transcripts: `.kelix/runs/20260702-133736/`.

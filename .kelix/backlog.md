@@ -453,7 +453,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   task_id present). Update on each retrospective append. tests/test_metrics.py:
   fixture rows → with_rate > without_rate for injected skill.
 
-- [ ] ST19a: self-tuning proof — seed loop-metrics | priority: 44 | status: ready | by: owner | deps: ST14 | phase: T-PROPOSE | req: REQ-TP2
+- [x] ST19a: self-tuning proof — seed loop-metrics | priority: 44 | status: done | by: owner | deps: ST14 | phase: T-PROPOSE | req: REQ-TP2
   rationale: [ST19] ship gate step 1 — ledger rows from a real run
   details: run `PYTHONPATH=src python -m kelix run --max-iterations 3` on this
   repo (mock adapter per `.kelix/kelix.toml`); assert
