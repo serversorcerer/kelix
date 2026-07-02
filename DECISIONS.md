@@ -47,3 +47,10 @@ the bottom. Format: `D<N> (<phase>): decision — rationale`.
   run by Kalph itself."
 - D9 (P2): Verification commands for the Kalph repo itself: `pytest -q` and
   `ruff check src tests` — the same gate CI will enforce.
+- D10 (P5, bootstrap intervention): Kalph's run 20260702-003053 iteration for
+  KB7 produced claim code with a TOCTOU race (stale-steal via unconditional
+  os.replace could yield two winners; its own thread test caught it ~5% of
+  runs — exactly the backpressure working). The bootstrap session rewrote
+  claim_task as unlink-then-O_EXCL, single winner guaranteed; 40/40 stress
+  runs green. Recorded per the mission's honesty rule about which work was
+  loop-run vs. hand-fixed.

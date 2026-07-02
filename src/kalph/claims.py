@@ -65,10 +65,6 @@ def claim_task(
     path.parent.mkdir(parents=True, exist_ok=True)
     now = time.time()
 
-    existing = _read_claim(path)
-    if existing is not None and not _is_stale(existing, stale_after_s):
-        return existing.get("agent") == agent_id
-
     data = {
         "task": task_id,
         "agent": agent_id,
@@ -77,28 +73,32 @@ def claim_task(
         "heartbeat": now,
     }
 
-    if existing is None:
+    existing = _read_claim(path)
+    if existing is not None:
+        if not _is_stale(existing, stale_after_s):
+            return existing.get("agent") == agent_id
+        # Valid but stale: remove it, then race for exclusive re-create below.
+        # unlink + O_EXCL guarantees a single winner among concurrent stealers.
         try:
-            fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
-        except FileExistsError:
-            existing = _read_claim(path)
-            if existing is not None and not _is_stale(existing, stale_after_s):
-                return existing.get("agent") == agent_id
-        else:
-            try:
-                with os.fdopen(fd, "w", encoding="utf-8") as fh:
-                    json.dump(data, fh)
-                return True
-            except Exception:
-                path.unlink(missing_ok=True)
-                raise
+            os.unlink(path)
+        except FileNotFoundError:
+            pass
+    elif path.exists():
+        # File exists but is unreadable/partial: a concurrent claimer is mid-
+        # write. The task is taken; never overwrite (that was a two-winner bug).
+        return False
 
-    if existing is not None and not _is_stale(existing, stale_after_s):
-        return existing.get("agent") == agent_id
-
-    _write_claim_atomic(path, data)
-    final = _read_claim(path)
-    return final is not None and final.get("agent") == agent_id
+    try:
+        fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+    except FileExistsError:
+        return False
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            json.dump(data, fh)
+        return True
+    except Exception:
+        path.unlink(missing_ok=True)
+        raise
 
 
 def heartbeat(kalph_dir: Path | str, task_id: str, agent_id: str) -> bool:
