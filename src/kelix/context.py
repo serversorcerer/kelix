@@ -78,3 +78,43 @@ def select(
         chosen.append(text)
         used += extra
     return chosen
+
+
+def select_scored(
+    candidates: list[str],
+    query: str,
+    budget_chars: int,
+) -> list[tuple[str, float]]:
+    """Like :func:`select`, but each chosen item includes its relevance score."""
+    if not candidates:
+        return []
+    if budget_chars <= 0:
+        return []
+
+    if not query.strip():
+        chosen: list[tuple[str, float]] = []
+        used = 0
+        for text in reversed(candidates):
+            extra = len(text) + (1 if chosen else 0)
+            if used + extra > budget_chars and chosen:
+                break
+            chosen.append((text, 0.0))
+            used += extra
+        chosen.reverse()
+        return chosen
+
+    idf = _build_idf(candidates + [query])
+    ranked = sorted(
+        enumerate(candidates),
+        key=lambda item: (-score(item[1], query, idf), -item[0]),
+    )
+    chosen: list[tuple[str, float]] = []
+    used = 0
+    for _, text in ranked:
+        sc = score(text, query, idf)
+        extra = len(text) + (1 if chosen else 0)
+        if used + extra > budget_chars and chosen:
+            continue
+        chosen.append((text, sc))
+        used += extra
+    return chosen

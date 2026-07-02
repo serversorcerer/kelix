@@ -85,6 +85,7 @@ def episode_digest(
     cfg: Config,
     query: str = "",
     budget_chars: int | None = None,
+    manifest: list[dict] | None = None,
 ) -> str:
     """Compact what-worked/what-failed digest for prompt injection."""
     if not cfg.memory.enabled:
@@ -93,11 +94,36 @@ def episode_digest(
     if not episodes:
         return ""
     lines = [_format_episode_line(ep) for ep in episodes]
+    sources = [
+        f".kelix/memory/episodes.jsonl@{ep.get('ts', '?')}" for ep in episodes
+    ]
+    budget = budget_chars if budget_chars is not None else _default_budget(lines)
     if query.strip():
-        from .context import select
+        from .context import select_scored
 
-        budget = budget_chars if budget_chars is not None else _default_budget(lines)
-        return "\n".join(select(lines, query, budget))
+        selected = select_scored(lines, query, budget)
+        if manifest is not None:
+            line_sources = dict(zip(lines, sources, strict=True))
+            for text, sc in selected:
+                manifest.append(
+                    {
+                        "slot": "episodes",
+                        "source": line_sources.get(text, ".kelix/memory/episodes.jsonl"),
+                        "chars": len(text),
+                        "score": round(sc, 4),
+                    }
+                )
+        return "\n".join(text for text, _ in selected)
+    if manifest is not None:
+        for text, src in zip(lines, sources, strict=True):
+            manifest.append(
+                {
+                    "slot": "episodes",
+                    "source": src,
+                    "chars": len(text),
+                    "score": None,
+                }
+            )
     return "\n".join(lines)
 
 
@@ -109,11 +135,19 @@ def _project_sections(text: str) -> list[str]:
     return parts or [text.strip()]
 
 
+def _section_source(section: str) -> str:
+    first = section.split("\n", 1)[0].strip()
+    if first.startswith("## "):
+        return f".kelix/memory/project.md#{first[3:]}"
+    return ".kelix/memory/project.md"
+
+
 def project_memory_digest(
     cfg: Config,
     workdir: Path | None = None,
     query: str = "",
     budget_chars: int | None = None,
+    manifest: list[dict] | None = None,
 ) -> str:
     """Budgeted project-memory excerpt for prompt injection."""
     if not cfg.memory.enabled:
@@ -126,14 +160,46 @@ def project_memory_digest(
     if not text:
         return ""
     sections = _project_sections(text)
+    sources = [_section_source(sec) for sec in sections]
     budget = budget_chars if budget_chars is not None else _default_budget(sections)
     if query.strip():
-        from .context import select
+        from .context import select_scored
 
-        return "\n\n".join(select(sections, query, budget))
+        selected = select_scored(sections, query, budget)
+        if manifest is not None:
+            section_sources = dict(zip(sections, sources, strict=True))
+            for text_part, sc in selected:
+                manifest.append(
+                    {
+                        "slot": "project_memory",
+                        "source": section_sources.get(text_part, ".kelix/memory/project.md"),
+                        "chars": len(text_part),
+                        "score": round(sc, 4),
+                    }
+                )
+        return "\n\n".join(text for text, _ in selected)
     if len(text) <= budget:
+        if manifest is not None:
+            manifest.append(
+                {
+                    "slot": "project_memory",
+                    "source": ".kelix/memory/project.md",
+                    "chars": len(text),
+                    "score": None,
+                }
+            )
         return text
-    return text[-budget:]
+    excerpt = text[-budget:]
+    if manifest is not None:
+        manifest.append(
+            {
+                "slot": "project_memory",
+                "source": ".kelix/memory/project.md",
+                "chars": len(excerpt),
+                "score": None,
+            }
+        )
+    return excerpt
 
 
 # --- skills -------------------------------------------------------------------
@@ -181,6 +247,7 @@ def skills_digest(
     workdir: Path | None = None,
     query: str = "",
     budget_chars: int | None = None,
+    manifest: list[dict] | None = None,
 ) -> str:
     """Progressive loading, Kiro-style: names + descriptions + path. The agent
     reads the full skill file only when relevant, keeping the prompt cheap."""
@@ -192,11 +259,36 @@ def skills_digest(
     lines = [
         f"- {name}: {desc}\n  full steps: {path}" for name, desc, path in skills
     ]
+    rel_sources = [
+        f".kelix/skills/{path.parent.name}/SKILL.md" for _, _, path in skills
+    ]
+    budget = budget_chars if budget_chars is not None else _default_budget(lines)
     if query.strip():
-        from .context import select
+        from .context import select_scored
 
-        budget = budget_chars if budget_chars is not None else _default_budget(lines)
-        return "\n".join(select(lines, query, budget))
+        selected = select_scored(lines, query, budget)
+        if manifest is not None:
+            line_sources = dict(zip(lines, rel_sources, strict=True))
+            for text, sc in selected:
+                manifest.append(
+                    {
+                        "slot": "skills",
+                        "source": line_sources.get(text, ".kelix/skills"),
+                        "chars": len(text),
+                        "score": round(sc, 4),
+                    }
+                )
+        return "\n".join(text for text, _ in selected)
+    if manifest is not None:
+        for text, src in zip(lines, rel_sources, strict=True):
+            manifest.append(
+                {
+                    "slot": "skills",
+                    "source": src,
+                    "chars": len(text),
+                    "score": None,
+                }
+            )
     return "\n".join(lines)
 
 

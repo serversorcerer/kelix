@@ -115,6 +115,23 @@ class Runner:
             encoding="utf-8",
         )
 
+    def _write_context_manifest(
+        self,
+        run_dir: Path,
+        index: int,
+        manifest: list[dict],
+        relevance_query: str = "",
+    ) -> None:
+        payload = {
+            "iteration": index,
+            "relevance_query": relevance_query,
+            "items": manifest,
+        }
+        (run_dir / f"context-{index:03d}.json").write_text(
+            json.dumps(payload, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
     def _save_state(self, run_dir: Path, result: RunResult):
         payload = asdict(result)
         (run_dir / "run.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
@@ -244,11 +261,16 @@ class Runner:
         kelix_dir = workdir / ".kelix"
         state = ""
         phase_context = ""
+        state_source = ".kelix/STATE.md"
+        phase_source = ""
         run_state = load_state(kelix_dir)
         if run_state is not None:
             state = (kelix_dir / STATE_FILE).read_text(encoding="utf-8")
+            if run_state.phase:
+                phase_source = f".kelix/phases/{run_state.phase}/CONTEXT.md"
             phase_context = load_phase_context(kelix_dir, run_state.phase)
 
+        mailbox_source = ".kelix/fleet/mailbox"
         return {
             "state": state,
             "phase_context": phase_context,
@@ -258,6 +280,9 @@ class Runner:
                 self.cfg, workdir, current_task
             ),
             "workdir": workdir,
+            "state_source": state_source,
+            "phase_source": phase_source,
+            "mailbox_source": mailbox_source,
         }
 
     # -- the loop ------------------------------------------------------------
@@ -322,7 +347,13 @@ class Runner:
             context = self._gather_context(workdir, current_task)
             if role_extra:
                 context["role"] = (context["role"] or "") + "\n" + role_extra
-            prompt = assemble_prompt(template, cfg, **context)
+            prompt, manifest = assemble_prompt(template, cfg, **context)
+            self._write_context_manifest(
+                run_dir,
+                index,
+                manifest,
+                context.get("relevance_query", ""),
+            )
 
             try:
                 agent = adapter.run(prompt, workdir)

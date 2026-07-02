@@ -58,6 +58,11 @@ def test_transcripts_and_run_state_written(repo):
     result = Runner(cfg).run(log=lambda *_: None)
     run_dir = cfg.kelix_dir / "runs" / result.run_id
     assert (run_dir / "iter-001.log").exists()
+    assert (run_dir / "context-001.json").exists()
+    context = json.loads((run_dir / "context-001.json").read_text())
+    assert context["iteration"] == 1
+    assert isinstance(context["items"], list)
+    assert any(item["slot"] == "state" for item in context["items"])
     state = json.loads((run_dir / "run.json").read_text())
     assert state["status"] == "completed"
     assert (run_dir / "retrospective.md").exists()

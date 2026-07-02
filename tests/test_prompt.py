@@ -26,7 +26,7 @@ def test_repo_prompt_file_overrides_default(tmp_path):
 
 def test_slots_filled_with_placeholders_when_empty(tmp_path):
     cfg = load_config(tmp_path)
-    out = assemble_prompt(DEFAULT_TEMPLATE, cfg)
+    out, _manifest = assemble_prompt(DEFAULT_TEMPLATE, cfg)
     assert "{{" not in out
     assert "(no state file — flat-backlog mode)" in out
     assert "(no episodes yet)" in out
@@ -37,7 +37,7 @@ def test_slots_filled_with_placeholders_when_empty(tmp_path):
 
 def test_slots_filled_with_data(tmp_path):
     cfg = load_config(tmp_path)
-    out = assemble_prompt(
+    out, _manifest = assemble_prompt(
         DEFAULT_TEMPLATE, cfg, memory_digest="ep1 ok", skills="skill-a", role="Role: verifier."
     )
     assert "ep1 ok" in out
@@ -48,7 +48,7 @@ def test_slots_filled_with_data(tmp_path):
 def test_digest_budget_enforced(tmp_path):
     (tmp_path / "kelix.toml").write_text("[memory]\ndigest_max_chars = 50\n")
     cfg = load_config(tmp_path)
-    out = assemble_prompt(DEFAULT_TEMPLATE, cfg, memory_digest="x" * 500)
+    out, _manifest = assemble_prompt(DEFAULT_TEMPLATE, cfg, memory_digest="x" * 500)
     assert "truncated to 50 chars" in out
     # The raw 500-char blob must not appear.
     assert "x" * 51 not in out
@@ -76,7 +76,7 @@ def test_state_slot_filled_from_file(tmp_path):
         "# Kelix state\n\n- milestone: v0.2\n- phase: P-SPINE\n",
         encoding="utf-8",
     )
-    out = assemble_prompt(DEFAULT_TEMPLATE, cfg, state=(kelix / "STATE.md").read_text())
+    out, _manifest = assemble_prompt(DEFAULT_TEMPLATE, cfg, state=(kelix / "STATE.md").read_text())
     assert "milestone: v0.2" in out
     assert "P-SPINE" in out
     assert "(no state file" not in out
@@ -85,7 +85,7 @@ def test_state_slot_filled_from_file(tmp_path):
 def test_state_budget_enforced(tmp_path):
     (tmp_path / "kelix.toml").write_text("[memory]\nstate_max_chars = 40\n")
     cfg = load_config(tmp_path)
-    out = assemble_prompt(DEFAULT_TEMPLATE, cfg, state="s" * 500)
+    out, _manifest = assemble_prompt(DEFAULT_TEMPLATE, cfg, state="s" * 500)
     assert "truncated to 40 chars" in out
     assert "s" * 41 not in out
 
@@ -98,14 +98,14 @@ def test_phase_context_slot_before_episode_digest():
 
 def test_phase_context_absent_shows_fallback(tmp_path):
     cfg = load_config(tmp_path)
-    out = assemble_prompt(DEFAULT_TEMPLATE, cfg)
+    out, _manifest = assemble_prompt(DEFAULT_TEMPLATE, cfg)
     assert "(no phase decisions)" in out
 
 
 def test_phase_context_injected_with_banner(tmp_path):
     cfg = load_config(tmp_path)
     context = "## Decisions\n\nUse pytest for all tests.\n"
-    out = assemble_prompt(DEFAULT_TEMPLATE, cfg, phase_context=context)
+    out, _manifest = assemble_prompt(DEFAULT_TEMPLATE, cfg, phase_context=context)
     assert PHASE_CONTEXT_BANNER in out
     assert "Use pytest for all tests." in out
     assert "(no phase decisions)" not in out
@@ -114,7 +114,7 @@ def test_phase_context_injected_with_banner(tmp_path):
 def test_phase_context_budget_enforced(tmp_path):
     (tmp_path / "kelix.toml").write_text("[memory]\nphase_context_max_chars = 60\n")
     cfg = load_config(tmp_path)
-    out = assemble_prompt(DEFAULT_TEMPLATE, cfg, phase_context="x" * 500)
+    out, _manifest = assemble_prompt(DEFAULT_TEMPLATE, cfg, phase_context="x" * 500)
     assert "truncated to 60 chars" in out
     assert "x" * 61 not in out
 
@@ -212,7 +212,7 @@ mailbox_max_chars = 4000
     )
     cfg = load_config(tmp_path)
     state_text = "milestone: v0.2\nphase: P-CONTEXT\n"
-    out = assemble_prompt(DEFAULT_TEMPLATE, cfg, state=state_text)
+    out, _manifest = assemble_prompt(DEFAULT_TEMPLATE, cfg, state=state_text)
     assert state_text.strip() in out
     assert "truncated" not in out.split("<state>")[1].split("</state>")[0]
 
@@ -265,7 +265,7 @@ mailbox_max_chars = 1
     (ep_dir / "episodes.jsonl").write_text(
         "\n".join(json.dumps(ep) for ep in episodes) + "\n"
     )
-    out = assemble_prompt(
+    out, manifest = assemble_prompt(
         DEFAULT_TEMPLATE,
         cfg,
         relevance_query="backlog parser waves",
@@ -273,3 +273,72 @@ mailbox_max_chars = 1
     )
     assert "backlog parser wave computation" in out
     assert "readme unrelated marketing" not in out
+    assert any(
+        item["slot"] == "episodes"
+        and (item.get("score") or 0) > 0
+        and "2026-01-01" in item["source"]
+        for item in manifest
+    )
+
+
+def test_context_manifest_relevance_beats_recency(tmp_path):
+    """REQ-C4: old relevant gotcha beats recent noise; manifest records score."""
+    import json
+
+    (tmp_path / "kelix.toml").write_text(
+        """
+[memory]
+context_share = 1.0
+state_max_chars = 1
+phase_context_max_chars = 1
+digest_max_chars = 200
+project_max_chars = 69
+skills_max_chars = 69
+mailbox_max_chars = 1
+"""
+    )
+    cfg = load_config(tmp_path)
+    ep_dir = tmp_path / ".kelix" / "memory"
+    ep_dir.mkdir(parents=True)
+    episodes = [
+        {
+            "ts": "2026-01-01T00:00:00",
+            "rationale": (
+                "PC22 — GOTCHA never run pip install -e inside a run worktree"
+            ),
+            "verified": True,
+            "failure": "",
+        },
+        {
+            "ts": "2026-07-02T00:00:00",
+            "rationale": "KE1 — readme marketing fluff unrelated",
+            "verified": True,
+            "failure": "",
+        },
+        {
+            "ts": "2026-07-03T00:00:00",
+            "rationale": "KE2 — docs index more unrelated noise",
+            "verified": True,
+            "failure": "",
+        },
+    ]
+    (ep_dir / "episodes.jsonl").write_text(
+        "\n".join(json.dumps(ep) for ep in episodes) + "\n"
+    )
+    query = "pip install editable worktree venv gotcha"
+    out, manifest = assemble_prompt(
+        DEFAULT_TEMPLATE,
+        cfg,
+        relevance_query=query,
+        workdir=tmp_path,
+    )
+    assert "pip install -e" in out
+    assert "readme marketing fluff" not in out
+    scored = [
+        item
+        for item in manifest
+        if item["slot"] == "episodes" and item.get("score") is not None
+    ]
+    assert scored
+    assert any(item["score"] > 0 for item in scored)
+    assert any("2026-01-01" in item["source"] for item in scored)

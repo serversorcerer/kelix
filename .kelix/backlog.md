@@ -213,7 +213,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   Tests: share respected within tolerance, state slot never starved,
   query reaches the selector.
 
-- [ ] PC22: per-iteration context manifest | priority: 77 | status: ready | by: owner | deps: PC21 | phase: P-CONTEXT | req: REQ-C3, REQ-C4
+- [x] PC22: per-iteration context manifest | priority: 77 | status: done | by: owner | deps: PC21 | phase: P-CONTEXT | req: REQ-C3, REQ-C4
   rationale: [P-CONTEXT/REQ-C3+C4] context quality must be as auditable as decisions; prove relevance beats recency
   details: assemble_prompt returns (prompt, manifest) where manifest lists
   each injected item: slot, source path, chars, score. Runner writes

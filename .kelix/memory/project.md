@@ -136,7 +136,11 @@ Durable facts about this repo for future iterations.
   builds the query from the claimed/next ready task (title + details); loop
   `_gather_context` passes it so episode/skills/project digests use `select()`.
   Project memory is injected via `{{PROJECT_MEMORY}}` (`memory.project_memory_digest`).
-  Tests in `tests/test_prompt.py`.
+  `assemble_prompt` returns `(prompt, manifest)` where manifest lists each injected
+  item (slot, source path, chars, score). Runner writes
+  `.kelix/runs/<id>/context-<n>.json` (under RUNNER_BOOKKEEPING `.kelix/runs`).
+  Tests in `tests/test_prompt.py` (REQ-C4 relevance regression) and
+  `tests/test_loop.py` (manifest file written).
 - OWNER PRINCIPLE (communication): good input in, good output out — slop in,
   slop out. All owner-facing text this project produces (backlog tasks, PRD
   templates, docs, prompts, retrospectives) must be precise and legible to
