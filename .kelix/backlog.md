@@ -319,7 +319,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   on RunResult or Runner until retrospective. tests/test_loop.py: mock run with
   two attempts on same task id → second row retry_count==1.
 
-- [ ] ST3: backlog lint on kelix proposed edits | priority: 55 | status: ready | by: owner | deps: ST1, PC15 | phase: T-METRICS | req: REQ-TM5
+- [x] ST3: backlog lint on kelix proposed edits | priority: 55 | status: done | by: owner | deps: ST1, PC15 | phase: T-METRICS | req: REQ-TM5
   details: after each iteration, if .kelix/backlog.md is dirty vs pre-iteration
   snapshot: parse backlog, filter tasks with by=kelix and status=proposed that
   were added or whose details/rationale/deps changed, run lint_backlog on that

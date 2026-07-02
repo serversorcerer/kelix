@@ -424,3 +424,21 @@ def test_ledger_row_circuit_breaker_cause(repo):
     assert result.status == "circuit_breaker"
     assert len(result.ledger_rows) == 3
     assert all(row.circuit_breaker_cause == "consecutive_failures:3" for row in result.ledger_rows)
+
+
+def test_ledger_row_backlog_lint_on_kelix_proposed_edit(repo):
+    write_mock_script(
+        repo / "mockdir",
+        "001.sh",
+        """\
+echo "RATIONALE: T1 — add slop proposed task"
+printf '\\n- [ ] KX1: kelix slop | priority: 10 | status: proposed | by: kelix\\n' \\
+  >> .kelix/backlog.md
+echo work >> work.txt
+git add -A && git commit -q -m "T1: append kelix proposed slop"
+""",
+    )
+    cfg = _config(repo)
+    result = Runner(cfg).run(max_iterations=1, log=lambda *_: None)
+    assert len(result.ledger_rows) == 1
+    assert result.ledger_rows[0].backlog_lint.get("missing_details", 0) >= 1

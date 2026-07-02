@@ -185,6 +185,12 @@ Durable facts about this repo for future iterations.
   `circuit_breaker_cause=consecutive_failures:N`. `Runner(..., fleet_id="")`
   for solo runs (ST5 wires fleet). Rows held until ST4 retrospective rollup.
   Tests in `tests/test_loop.py`.
+- Backlog lint on agent edits (`lint.kelix_proposed_edits`, `lint_backlog_edits`,
+  `loop.Runner._backlog_lint_if_dirty`): when `.kelix/backlog.md` differs from
+  the pre-iteration snapshot, lint only kelix `proposed` tasks that were added
+  or had details/rationale/deps changed; aggregate `{rule_id: count}` onto the
+  iteration's `IterationLedgerRow.backlog_lint`. Tests in `tests/test_lint.py`
+  and `tests/test_loop.py`.
 - Planning guide lives in `docs/planning.md` (plan-first flow, roadmap→phase→task
   hierarchy, STATE.md schema, lint, phase gate, waves, flat-backlog quick path).
   Linked from README Documentation and `docs/index.md`. `kelix init` writes

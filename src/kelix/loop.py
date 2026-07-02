@@ -254,6 +254,33 @@ class Runner:
             task_id = current_task
         return task_id
 
+    def _backlog_snapshot(self, workdir: Path) -> tuple[str, list]:
+        from .backlog import parse_backlog
+
+        path = workdir / self.cfg.loop.plan_file
+        if not path.is_file():
+            return "", []
+        text = path.read_text(encoding="utf-8")
+        return text, parse_backlog(text)
+
+    def _backlog_lint_if_dirty(
+        self,
+        workdir: Path,
+        before_text: str,
+        before_tasks: list,
+    ) -> dict[str, int]:
+        from .backlog import parse_backlog
+        from .lint import lint_backlog_edits
+
+        path = workdir / self.cfg.loop.plan_file
+        if not path.is_file():
+            return {}
+        after_text = path.read_text(encoding="utf-8")
+        if after_text == before_text:
+            return {}
+        after_tasks = parse_backlog(after_text)
+        return lint_backlog_edits(before_tasks, after_tasks)
+
     def _record_ledger_row(
         self,
         result: RunResult,
@@ -261,6 +288,7 @@ class Runner:
         current_task: str,
         *,
         circuit_breaker_cause: str = "",
+        backlog_lint: dict[str, int] | None = None,
     ) -> None:
         task_id = self._ledger_task_id(rec, current_task)
         retry_count = sum(
@@ -278,6 +306,7 @@ class Runner:
                 circuit_breaker_cause=circuit_breaker_cause,
                 agent_id=self.agent_id,
                 fleet_id=self.fleet_id,
+                backlog_lint=backlog_lint or {},
             )
         )
 
@@ -402,6 +431,7 @@ class Runner:
             result.iterations.append(rec)
             started = time.monotonic()
             checkpoint(workdir, f"kelix: pre-iteration {index} checkpoint")
+            backlog_before_text, backlog_before_tasks = self._backlog_snapshot(workdir)
             sha_before = head_sha(workdir)
 
             context = self._gather_context(workdir, current_task)
@@ -421,7 +451,12 @@ class Runner:
                 rec.failure = f"adapter error: {exc}"
                 rec.duration_s = round(time.monotonic() - started, 1)
                 self._write_transcript(run_dir, index, prompt, rec.failure)
-                self._record_ledger_row(result, rec, current_task)
+                backlog_lint = self._backlog_lint_if_dirty(
+                    workdir, backlog_before_text, backlog_before_tasks
+                )
+                self._record_ledger_row(
+                    result, rec, current_task, backlog_lint=backlog_lint
+                )
                 consecutive_failures += 1
                 log(f"  iter {index}: {rec.failure}")
                 if consecutive_failures >= cfg.loop.circuit_breaker_threshold:
@@ -473,7 +508,10 @@ class Runner:
                 f"progress={rec.made_progress} verified={rec.verified} "
                 f"{'FAIL: ' + rec.failure if rec.failure else 'ok'}"
             )
-            self._record_ledger_row(result, rec, current_task)
+            backlog_lint = self._backlog_lint_if_dirty(
+                workdir, backlog_before_text, backlog_before_tasks
+            )
+            self._record_ledger_row(result, rec, current_task, backlog_lint=backlog_lint)
             self._save_state(run_dir, result)
 
             if rec.sentinel:

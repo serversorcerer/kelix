@@ -185,3 +185,37 @@ def test_validate_plan_includes_lint_rules(repo):
     findings = validate_plan(repo)
     rules = {f.rule for f in findings}
     assert "no_acceptance_signal" in rules or "unfalsifiable_wording" in rules
+
+
+def test_kelix_proposed_edits_detects_new_and_changed():
+    from kelix.lint import kelix_proposed_edits
+
+    before = [
+        _task(id="K1", by="kelix", status="proposed", notes={"details": "tests/test_x.py"}),
+        _task(id="K2", by="kelix", status="proposed", notes={"details": "unchanged"}),
+        _task(id="O1", by="owner", status="ready", notes={"details": "tests/test_y.py"}),
+    ]
+    after = [
+        _task(id="K1", by="kelix", status="proposed", notes={"details": "tests/test_x.py"}),
+        _task(
+            id="K2",
+            by="kelix",
+            status="proposed",
+            notes={"details": "changed acceptance in tests/test_z.py"},
+        ),
+        _task(id="K3", by="kelix", status="proposed", notes={"details": "tests/test_new.py"}),
+        _task(id="O1", by="owner", status="ready", notes={"details": "owner edit"}),
+    ]
+    edited_ids = {t.id for t in kelix_proposed_edits(before, after)}
+    assert edited_ids == {"K2", "K3"}
+
+
+def test_lint_backlog_edits_missing_details():
+    from kelix.lint import lint_backlog_edits
+
+    before = [_task(id="T1", by="owner", status="ready", notes={"details": "tests/test_a.py"})]
+    after = before + [
+        _task(id="KX1", by="kelix", status="proposed", notes={"rationale": "why not"}),
+    ]
+    counts = lint_backlog_edits(before, after)
+    assert counts.get("missing_details", 0) >= 1

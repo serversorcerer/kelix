@@ -193,6 +193,44 @@ def lint_backlog(tasks: list[Task], *, scope: str = "active") -> list[Finding]:
     return findings
 
 
+def _kelix_proposed_field_changed(before: Task, after: Task) -> bool:
+    if before.notes.get("details", "") != after.notes.get("details", ""):
+        return True
+    if before.notes.get("rationale", "") != after.notes.get("rationale", ""):
+        return True
+    return before.deps != after.deps
+
+
+def kelix_proposed_edits(before: list[Task], after: list[Task]) -> list[Task]:
+    """Kelix proposed tasks added or with details/rationale/deps changed."""
+    before_map = {task.id: task for task in before}
+    edited: list[Task] = []
+    for task in after:
+        if task.by != "kelix" or task.status != "proposed":
+            continue
+        prev = before_map.get(task.id)
+        if prev is None or _kelix_proposed_field_changed(prev, task):
+            edited.append(task)
+    return edited
+
+
+def aggregate_lint_rules(findings: list[Finding]) -> dict[str, int]:
+    """Count findings by rule id."""
+    counts: dict[str, int] = {}
+    for finding in findings:
+        counts[finding.rule] = counts.get(finding.rule, 0) + 1
+    return counts
+
+
+def lint_backlog_edits(before: list[Task], after: list[Task]) -> dict[str, int]:
+    """Lint kelix proposed backlog edits; return ``{rule_id: count}``."""
+    edited = kelix_proposed_edits(before, after)
+    if not edited:
+        return {}
+    findings = lint_backlog(edited, scope="active")
+    return aggregate_lint_rules(findings)
+
+
 def lint_repo(root: Path) -> list[Finding]:
     """Lint ``.kelix/backlog.md`` in a repository."""
     backlog_path = root / ".kelix" / "backlog.md"
