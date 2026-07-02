@@ -286,30 +286,29 @@ def cmd_mcp(args) -> int:
 def cmd_diagnose(args) -> int:
     from .config import ConfigError
     from .diagnose import DiagnoseError, DiagnoseRunner
+    from .loop import LoopError
 
     root = Path(args.path).resolve()
     try:
         cfg = load_config(root)
-        result = DiagnoseRunner(cfg).prepare(
+        result = DiagnoseRunner(cfg).run(
             run_ids=args.run_id or None,
             last_n=args.last,
             diagnosis_file=args.diagnosis_file or "",
         )
-    except (ConfigError, DiagnoseError) as exc:
+    except (ConfigError, DiagnoseError, LoopError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
     from .art import say
 
-    print(
-        say(
-            f"diagnose: selected {len(result.run_ids)} run(s): "
-            f"{', '.join(result.run_ids)}",
-            "info",
-        )
-    )
-    print(say(f"diagnosis file: {result.diagnosis_path}", "info"))
-    return 0
+    if result.status == "completed":
+        print(say(f"diagnosis written: {result.diagnosis_path}", "ok"))
+        return 0
+
+    for finding in result.findings:
+        print(f"error: {finding}", file=sys.stderr)
+    return 1 if result.status == "validation_failed" else 2
 
 
 def cmd_sync(args) -> int:

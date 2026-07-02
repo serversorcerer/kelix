@@ -2,17 +2,23 @@
 
 Owner-invoked only; never called from the loop runner (see T-DIAGNOSE CONTEXT).
 ST8: run selection and CLI skeleton. ST9: failed-transcript loader with budget.
-The adapter iteration (ST10) builds on this module.
+ST10: one adapter iteration writes the diagnosis markdown file.
 """
 
 from __future__ import annotations
 
+import json
+import shutil
 import time
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
+from .adapters import AdapterError, make_adapter
 from .config import Config
+from .gitutil import add_worktree, create_run_branch, is_repo
+from .loop import LoopError, _extract_rationale
 from .metrics import IterationLedgerRow, load_metrics, metrics_path
+from .prompt import DIAGNOSE_ROLE, assemble_diagnose_prompt
 
 
 class DiagnoseError(Exception):
@@ -155,11 +161,89 @@ class DiagnosePrepareResult:
     ledger_rows: list[IterationLedgerRow] = field(default_factory=list)
 
 
+@dataclass
+class DiagnoseIteration:
+    started_at: str
+    duration_s: float = 0.0
+    adapter_exit: int = -1
+    timed_out: bool = False
+    rationale: str = ""
+    validated: bool = False
+    failure: str = ""
+
+
+@dataclass
+class DiagnoseResult:
+    run_ids: list[str] = field(default_factory=list)
+    diagnosis_path: Path = Path()
+    status: str = "running"  # completed | validation_failed | error
+    iteration: DiagnoseIteration | None = None
+    findings: list[str] = field(default_factory=list)
+
+
+def diagnosis_rel_path(cfg: Config, path: Path) -> Path:
+    """Return *path* relative to ``cfg.root`` when possible."""
+    if path.is_absolute():
+        try:
+            return path.relative_to(cfg.root)
+        except ValueError:
+            return path
+    return path
+
+
+def validate_diagnosis(path: Path, run_ids: list[str]) -> list[str]:
+    """Return validation errors for a diagnosis markdown file."""
+    errors: list[str] = []
+    if not path.is_file():
+        errors.append(f"diagnosis file missing: {path}")
+        return errors
+    text = path.read_text(encoding="utf-8")
+    if "## Findings" not in text:
+        errors.append('missing "## Findings" section')
+    if run_ids and not any(run_id in text for run_id in run_ids):
+        errors.append("no run_id citation from scoped runs")
+    return errors
+
+
 class DiagnoseRunner:
-    """Prepare a diagnose invocation (adapter iteration lands in ST10)."""
+    """Run ``kelix diagnose``: prepare scope, one adapter iteration, validate."""
 
     def __init__(self, cfg: Config) -> None:
         self.cfg = cfg
+
+    def _prepare_workdir(self, run_id: str) -> tuple[Path, str]:
+        cfg = self.cfg
+        branch = f"{cfg.git.branch_prefix}diagnose-{run_id}"
+        if cfg.git.isolation == "none":
+            return cfg.root, ""
+        create_run_branch(cfg.root, branch)
+        if cfg.git.isolation == "branch":
+            from .gitutil import git
+
+            git(["checkout", branch], cfg.root)
+            return cfg.root, branch
+        workdir = cfg.kelix_dir / "worktrees" / run_id
+        add_worktree(cfg.root, workdir, branch)
+        return workdir, branch
+
+    def _write_transcript(self, run_dir: Path, prompt: str, output: str) -> None:
+        from .security import scrub
+
+        if self.cfg.security.scrub_transcripts:
+            output = scrub(output)
+        (run_dir / "iter-001.log").write_text(
+            f"=== PROMPT ===\n{prompt}\n\n=== AGENT OUTPUT ===\n{output}\n",
+            encoding="utf-8",
+        )
+
+    def _copy_diagnosis_to_root(self, workdir: Path, rel_path: Path, root_path: Path) -> None:
+        if workdir == self.cfg.root:
+            return
+        src = workdir / rel_path
+        if not src.is_file():
+            return
+        root_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, root_path)
 
     def prepare(
         self,
@@ -192,3 +276,98 @@ class DiagnoseRunner:
             diagnosis_path=path,
             ledger_rows=scoped_rows,
         )
+
+    def run(
+        self,
+        *,
+        run_ids: list[str] | None = None,
+        last_n: int | None = None,
+        diagnosis_file: str = "",
+        log=print,
+    ) -> DiagnoseResult:
+        cfg = self.cfg
+        if not is_repo(cfg.root):
+            raise LoopError(f"{cfg.root} is not a git repository")
+
+        prep = self.prepare(
+            run_ids=run_ids,
+            last_n=last_n,
+            diagnosis_file=diagnosis_file,
+        )
+        result = DiagnoseResult(run_ids=prep.run_ids, diagnosis_path=prep.diagnosis_path)
+
+        run_id = time.strftime("%Y%m%d-%H%M%S")
+        run_dir = cfg.kelix_dir / "runs" / f"diagnose-{run_id}"
+        run_dir.mkdir(parents=True, exist_ok=True)
+
+        workdir, branch = self._prepare_workdir(run_id)
+        rel_path = diagnosis_rel_path(cfg, prep.diagnosis_path)
+        prompt_path = rel_path.as_posix()
+        workdir_file = workdir / rel_path
+        root_file = prep.diagnosis_path
+
+        ledger_excerpt = json.dumps(
+            [asdict(row) for row in prep.ledger_rows],
+            indent=2,
+        )
+        transcripts = load_failed_transcripts(cfg, prep.run_ids, prep.ledger_rows)
+        prompt = assemble_diagnose_prompt(
+            cfg,
+            ledger_excerpt=ledger_excerpt,
+            transcripts=transcripts,
+            diagnosis_path=prompt_path,
+            role=DIAGNOSE_ROLE,
+        )
+
+        rec = DiagnoseIteration(started_at=time.strftime("%Y-%m-%dT%H:%M:%S"))
+        result.iteration = rec
+        started = time.monotonic()
+        adapter = make_adapter(cfg)
+
+        log(
+            f"kelix diagnose {run_id}: selected {len(prep.run_ids)} run(s) "
+            f"({', '.join(prep.run_ids)}); branch={branch or '(in place)'}"
+        )
+        log(f"  diagnosis file: {root_file}")
+
+        workdir_file.parent.mkdir(parents=True, exist_ok=True)
+
+        try:
+            agent = adapter.run(prompt, workdir)
+        except AdapterError as exc:
+            rec.failure = f"adapter error: {exc}"
+            rec.duration_s = round(time.monotonic() - started, 1)
+            self._write_transcript(run_dir, prompt, rec.failure)
+            result.status = "error"
+            result.findings = [rec.failure]
+            log(f"  diagnose: {rec.failure}")
+            return result
+
+        rec.adapter_exit = agent.exit_code
+        rec.timed_out = agent.timed_out
+        rec.rationale = _extract_rationale(agent.output)
+        rec.duration_s = round(time.monotonic() - started, 1)
+        self._write_transcript(run_dir, prompt, agent.output)
+
+        file_errors = validate_diagnosis(workdir_file, prep.run_ids)
+        rec.validated = not file_errors
+
+        errors: list[str] = []
+        if not agent.ok:
+            errors.append(
+                f"agent exit {agent.exit_code}"
+                + (" (timeout)" if agent.timed_out else "")
+            )
+        errors.extend(file_errors)
+
+        if errors:
+            rec.failure = "; ".join(errors)
+            result.status = "validation_failed" if file_errors else "error"
+            result.findings = errors
+            log(f"  diagnose: FAIL — {rec.failure}")
+            return result
+
+        self._copy_diagnosis_to_root(workdir, rel_path, root_file)
+        result.status = "completed"
+        log(f"  diagnose: rationale={rec.rationale or '-'} ok")
+        return result

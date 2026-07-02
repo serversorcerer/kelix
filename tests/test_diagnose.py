@@ -1,8 +1,11 @@
-"""Tests for ``kelix diagnose`` run selection (ST8 skeleton)."""
+"""Tests for ``kelix diagnose`` run selection and adapter iteration."""
 
+import subprocess
 from pathlib import Path
 
 import pytest
+
+from conftest import write_mock_script
 
 from kelix.config import load_config
 from kelix.diagnose import (
@@ -13,14 +16,55 @@ from kelix.diagnose import (
     load_failed_transcripts,
     select_diagnose_runs,
     transcript_path,
+    validate_diagnosis,
 )
 from kelix.metrics import IterationLedgerRow, save_metrics
+from kelix.prompt import DIAGNOSE_TEMPLATE, assemble_diagnose_prompt
 
 
 def _write_metrics(kelix: Path, rows: list[IterationLedgerRow]) -> None:
     from kelix.metrics import LoopMetrics
 
     save_metrics(kelix / "memory" / "loop-metrics.json", LoopMetrics(iterations=rows))
+
+
+def _config(repo: Path, mock_dir: str = "mockdir") -> object:
+    (repo / "kelix.toml").write_text(
+        f"""
+[agent]
+adapter = "mock"
+mock_dir = "{mock_dir}"
+
+[git]
+isolation = "none"
+"""
+    )
+    subprocess.run(["git", "add", "kelix.toml"], cwd=str(repo), check=True, capture_output=True)
+    subprocess.run(
+        ["git", "commit", "-q", "-m", "add kelix config"],
+        cwd=str(repo),
+        check=True,
+        capture_output=True,
+    )
+    return load_config(repo)
+
+
+DIAGNOSE_SCRIPT = """\
+mkdir -p .kelix/memory
+cat > .kelix/memory/diagnosis-test.md << 'EOF'
+# Kelix diagnosis
+
+## Findings
+
+Run **20260702-040000** / iteration **1** (task T2) failed verification.
+The `[memory].context_share` budget may starve episode injection for retry-heavy tasks.
+
+## Correlations
+
+- Prompt slot: episodes digest truncated before relevant gotcha
+- Policy: verify gate retries without fresh context
+EOF
+"""
 
 
 def _make_run_dirs(kelix: Path, run_ids: list[str]) -> None:
@@ -170,34 +214,140 @@ def test_default_diagnosis_path_under_memory(tmp_path: Path):
     assert path == tmp_path / ".kelix" / "memory" / "diagnosis-20260702-120000.md"
 
 
-def test_cmd_diagnose_prints_selection(tmp_path: Path, capsys):
+def test_cmd_diagnose_writes_diagnosis(repo, capsys):
     from kelix.cli import cmd_diagnose
 
-    kelix = tmp_path / ".kelix"
-    kelix.mkdir()
-    _make_run_dirs(kelix, ["20260702-040000"])
+    kelix = repo / ".kelix"
+    run_id = "20260702-040000"
+    _make_run_dirs(kelix, [run_id])
     _write_metrics(
         kelix,
         [
             IterationLedgerRow(
-                run_id="20260702-040000",
+                run_id=run_id,
+                iteration=1,
+                task_id="T2",
+                verified=False,
+                failure="fail",
+            ),
+        ],
+    )
+    write_mock_script(repo / "mockdir", "001.sh", DIAGNOSE_SCRIPT)
+    _config(repo)
+
+    selected_run = run_id
+
+    class Args:
+        path = str(repo)
+        run_id = [selected_run]
+        last = None
+        diagnosis_file = ".kelix/memory/diagnosis-test.md"
+
+    assert cmd_diagnose(Args()) == 0
+    out = capsys.readouterr().out
+    assert "diagnosis written" in out
+    diagnosis = repo / ".kelix" / "memory" / "diagnosis-test.md"
+    assert diagnosis.is_file()
+    text = diagnosis.read_text(encoding="utf-8")
+    assert "## Findings" in text
+    assert run_id in text
+
+
+def test_diagnose_runner_mock_adapter(repo):
+    kelix = repo / ".kelix"
+    run_id = "20260702-040000"
+    _make_run_dirs(kelix, [run_id])
+    _write_metrics(
+        kelix,
+        [
+            IterationLedgerRow(
+                run_id=run_id,
+                iteration=1,
+                task_id="T2",
+                verified=False,
+                failure="verification failed",
+            ),
+        ],
+    )
+    write_mock_script(repo / "mockdir", "001.sh", DIAGNOSE_SCRIPT)
+    cfg = _config(repo)
+
+    result = DiagnoseRunner(cfg).run(
+        run_ids=[run_id],
+        diagnosis_file=".kelix/memory/diagnosis-test.md",
+        log=lambda *_: None,
+    )
+    assert result.status == "completed"
+    assert result.iteration is not None
+    assert result.iteration.validated
+    diagnosis = repo / ".kelix" / "memory" / "diagnosis-test.md"
+    assert diagnosis.is_file()
+    assert run_id in diagnosis.read_text(encoding="utf-8")
+
+
+def test_validate_diagnosis_requires_findings_and_run_id(tmp_path):
+    path = tmp_path / "d.md"
+    path.write_text("# empty\n", encoding="utf-8")
+    assert "Findings" in validate_diagnosis(path, ["20260702-040000"])[0]
+
+    path.write_text("## Findings\n\nnothing cited\n", encoding="utf-8")
+    assert "run_id" in validate_diagnosis(path, ["20260702-040000"])[0]
+
+    path.write_text("## Findings\n\nRun 20260702-040000 failed.\n", encoding="utf-8")
+    assert validate_diagnosis(path, ["20260702-040000"]) == []
+
+
+def test_assemble_diagnose_prompt_substitutes_slots(tmp_path):
+    cfg = load_config(tmp_path)
+    out = assemble_diagnose_prompt(
+        cfg,
+        ledger_excerpt='[{"run_id": "r1"}]',
+        transcripts="transcript body",
+        diagnosis_path=".kelix/memory/diagnosis-test.md",
+    )
+    assert '[{"run_id": "r1"}]' in out
+    assert "transcript body" in out
+    assert ".kelix/memory/diagnosis-test.md" in out
+    assert "## Findings" in out
+    assert "{{" not in out
+
+
+def test_diagnose_template_is_static():
+    assert "{{LEDGER_EXCERPT}}" in DIAGNOSE_TEMPLATE
+    assert "{{TRANSCRIPTS}}" in DIAGNOSE_TEMPLATE
+    assert "{{DIAGNOSIS_PATH}}" in DIAGNOSE_TEMPLATE
+
+
+def test_cmd_diagnose_prints_selection(repo, capsys):
+    from kelix.cli import cmd_diagnose
+
+    kelix = repo / ".kelix"
+    run_id = "20260702-040000"
+    _make_run_dirs(kelix, [run_id])
+    _write_metrics(
+        kelix,
+        [
+            IterationLedgerRow(
+                run_id=run_id,
                 iteration=1,
                 verified=False,
                 failure="fail",
             ),
         ],
     )
+    write_mock_script(repo / "mockdir", "001.sh", DIAGNOSE_SCRIPT)
+    _config(repo)
 
     class Args:
-        path = str(tmp_path)
+        path = str(repo)
         run_id = []
         last = None
-        diagnosis_file = ""
+        diagnosis_file = ".kelix/memory/diagnosis-test.md"
 
     assert cmd_diagnose(Args()) == 0
     out = capsys.readouterr().out
-    assert "20260702-040000" in out
-    assert "diagnosis-" in out
+    assert run_id in (repo / ".kelix" / "memory" / "diagnosis-test.md").read_text()
+    assert "diagnosis written" in out
 
 
 def test_transcript_path_matches_loop_naming(tmp_path: Path):
