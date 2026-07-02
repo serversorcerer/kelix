@@ -274,7 +274,13 @@ def validate_plan(workdir: Path, base_sha: str = "") -> list[Finding]:
 
     roadmap = load_roadmap(kelix)
     if roadmap is not None:
-        covered = {task.req for task in tasks if task.req}
+        # A task may cover several REQs: `req: REQ-A1, REQ-A2`.
+        covered = {
+            part.strip()
+            for task in tasks
+            if task.req
+            for part in task.req.split(",")
+        }
         for req in roadmap.reqs:
             if req.id not in covered:
                 findings.append(

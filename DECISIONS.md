@@ -132,3 +132,17 @@ the bottom. Format: `D<N> (<phase>): decision — rationale`.
   wordmark + helix banner on init/run/help, themed status glyphs, honest
   fallbacks (NO_COLOR, KELIX_NO_ART, non-TTY -> plain text, banners never
   enter transcripts or parsed output).
+- D19 (v0.4 planning — first real `kelix plan` interview): milestone v0.4
+  "Kelix for everyone" was planned by `kelix plan --goal-file GOAL.md`, not
+  by hand. The interview emitted 10 questions; the owner answered all
+  (notable: ship all four agent presets with honest verified/unverified
+  labeling and community feedback; rename Kalph residue in proof docs with
+  a provenance note — overriding D18's leave-verbatim choice). The drafted
+  plan (phases P-REPOS/P-AGENT/P-AUDIT/P-COMPARE/P-GOLD, tasks KE1–KE32,
+  all proposed) failed its own validation gate, exposing two real defects:
+  (1) the draft reused REQ-C*/REQ-G* ids already taken by v0.2 phases —
+  fixed by renaming v0.4 ids to REQ-CM*/REQ-GD*; (2) legacy PC tasks carried
+  REQ tags only in rationale text, invisible to coverage — fixed by
+  backfilling `| phase: | req:` fields, with multi-REQ tasks now supported
+  via comma-separated `req:` in lint coverage. The gate catching its own
+  planner's slop is the system working as designed.

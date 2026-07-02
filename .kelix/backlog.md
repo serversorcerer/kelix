@@ -25,7 +25,7 @@ Every task below names its phase and the REQ it covers in `details:`.
 
 ### Phase P-SPINE (the state spine)
 
-- [x] PC1: state module — read/write .kelix/STATE.md | priority: 95 | status: done | by: owner
+- [x] PC1: state module — read/write .kelix/STATE.md | priority: 95 | status: done | by: owner | phase: P-SPINE | req: REQ-S1
   rationale: [P-SPINE/REQ-S1] a fresh loop must orient in O(1) from one small file
   details: create src/kelix/state.py with a State dataclass (milestone: str,
   phase: str, current_task: str, last_task: str, last_verified_commit: str,
@@ -36,7 +36,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   tests/test_state.py: write -> load equality, partial file tolerance, empty
   blockers.
 
-- [x] PC2: runner maintains STATE.md through the run | priority: 94 | status: done | by: owner | deps: PC1
+- [x] PC2: runner maintains STATE.md through the run | priority: 94 | status: done | by: owner | deps: PC1 | phase: P-SPINE | req: REQ-S2
   rationale: [P-SPINE/REQ-S2] the runner owns the spine so it is never stale or hallucinated
   details: in src/kelix/loop.py, Runner.run() writes STATE.md at run start
   (current_task from the pre_iteration hook or "selecting"), after each
@@ -49,7 +49,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   after a mock run, STATE.md exists on the run branch, counts match, and a
   no-diff run does not create bogus progress.
 
-- [x] PC3: STATE.md is the prompt's first data slot | priority: 93 | status: done | by: owner | deps: PC2
+- [x] PC3: STATE.md is the prompt's first data slot | priority: 93 | status: done | by: owner | deps: PC2 | phase: P-SPINE | req: REQ-S3
   rationale: [P-SPINE/REQ-S3] orientation must be the first thing a fresh agent reads
   details: in src/kelix/prompt.py add a {{STATE}} slot rendered before the
   episode digest, budgeted (default 1200 chars, truncate tail), filled from
@@ -60,7 +60,7 @@ Every task below names its phase and the REQ it covers in `details:`.
 
 ### Phase P-INTENT (top-down intent)
 
-- [x] PC4: roadmap parser | priority: 90 | status: done | by: owner | deps: PC1
+- [x] PC4: roadmap parser | priority: 90 | status: done | by: owner | deps: PC1 | phase: P-INTENT | req: REQ-I1
   rationale: [P-INTENT/REQ-I1] milestones/phases/REQs must be machine-readable to gate on
   details: create src/kelix/roadmap.py parsing .kelix/roadmap.md: Milestone
   (id, title), Phase (id, title, outcome line), Req (id, text, phase). H2
@@ -70,7 +70,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   sections. tests/test_roadmap.py: parse the real .kelix/roadmap.md fixture
   copy plus edge cases (no reqs, multiple milestones).
 
-- [x] PC5: backlog tasks carry phase and req fields | priority: 88 | status: done | by: owner | deps: PC4
+- [x] PC5: backlog tasks carry phase and req fields | priority: 88 | status: done | by: owner | deps: PC4 | phase: P-INTENT | req: REQ-I3
   rationale: [P-INTENT/REQ-I3] tasks must link upward so coverage is computable
   details: extend TASK_LINE in src/kelix/backlog.py with optional trailing
   "| phase: <id>" and "| req: <REQ-ID>" fields (any order after by:, both
@@ -82,7 +82,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   existing owner/status/priority key). tests/test_backlog.py: round-trip,
   legacy lines, phase-preference selection.
 
-- [x] PC6: per-phase CONTEXT.md decisions injected | priority: 86 | status: done | by: owner | deps: PC3, PC4
+- [x] PC6: per-phase CONTEXT.md decisions injected | priority: 86 | status: done | by: owner | deps: PC3, PC4 | phase: P-INTENT | req: REQ-I2
   rationale: [P-INTENT/REQ-I2] decisions made once should not be re-guessed by every iteration (GSD Discuss)
   details: when STATE.md names an active phase and
   .kelix/phases/<phase-id>/CONTEXT.md exists, inject it as a budgeted
@@ -94,7 +94,7 @@ Every task below names its phase and the REQ it covers in `details:`.
 
 ### Phase P-ONRAMP (the owner's planning onramp)
 
-- [x] PC14: kelix plan — goal to draft plan in one iteration | priority: 89 | status: done | by: owner | deps: PC4
+- [x] PC14: kelix plan — goal to draft plan in one iteration | priority: 89 | status: done | by: owner | deps: PC4 | phase: P-ONRAMP | req: REQ-O1
   rationale: [P-ONRAMP/REQ-O1] the most important thing a user needs is a plan; give them a command, not just a doc
   details: add cmd_plan to src/kelix/cli.py and src/kelix/plan.py. Input: a
   goal string (`kelix plan "build X"`) or --goal-file. Runs exactly one
@@ -108,7 +108,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   ready — review .kelix/roadmap.md and promote tasks to ready". Tests with
   the mock adapter: draft written, all tasks proposed, nothing else changed.
 
-- [x] PC14b: planning interviews the owner before drafting | priority: 88 | status: done | by: owner | deps: PC14
+- [x] PC14b: planning interviews the owner before drafting | priority: 88 | status: done | by: owner | deps: PC14 | phase: P-ONRAMP | req: REQ-O1b
   rationale: [P-ONRAMP/REQ-O1b] a planner that guesses produces plausible-but-wrong plans; ask, then draft (D16 directive 1)
   details: extend plan.py with a question step. The planning prompt's first
   phase instructs the agent to emit QUESTIONS as a fenced block: each item =
@@ -123,7 +123,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   adapter scripts: TTY path via monkeypatched isatty+input, file path
   round-trip (unanswered -> exit with file; answered -> draft produced).
 
-- [x] PC15: plan validation + kelix lint | priority: 87 | status: done | by: owner | deps: PC4
+- [x] PC15: plan validation + kelix lint | priority: 87 | status: done | by: owner | deps: PC4 | phase: P-ONRAMP | req: REQ-O2, REQ-O3
   rationale: [P-ONRAMP/REQ-O2+O3] a draft plan must be machine-checked against the input contract; slop is rejected with specifics
   details: add src/kelix/lint.py with lint_backlog(tasks) -> list[Finding]
   (finding: task_id, rule, message). Rules: missing details, details with no
@@ -135,7 +135,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   CLI: `kelix lint` prints findings, exit 1 if any (0 clean). Tests: each
   rule fires on a bad fixture and stays quiet on this repo's real backlog.
 
-- [x] PC16: init leads with the planning path | priority: 83 | status: done | by: owner | deps: PC14
+- [x] PC16: init leads with the planning path | priority: 83 | status: done | by: owner | deps: PC14 | phase: P-ONRAMP | req: REQ-O4
   rationale: [P-ONRAMP/REQ-O4] the first thing init should teach is how to get a plan
   details: cmd_init writes GOAL.md template (goal, non-goals, acceptance
   bullets — the PRD skeleton from docs/writing-for-the-loop.md) when absent;
@@ -146,7 +146,7 @@ Every task below names its phase and the REQ it covers in `details:`.
 
 ### Phase P-GATE (coverage-gated done)
 
-- [ ] PC7: phase gate — REQ coverage computation | priority: 82 | status: ready | by: owner | deps: PC5
+- [ ] PC7: phase gate — REQ coverage computation | priority: 82 | status: ready | by: owner | deps: PC5 | phase: P-GATE | req: REQ-G1
   rationale: [P-GATE/REQ-G1] a phase is done when what was decided is built and verified, not when errors stop
   details: in src/kelix/roadmap.py add coverage(roadmap, tasks, phase_id) ->
   list of (req_id, status) where status is covered (some task with req=REQ
@@ -154,7 +154,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   Pure function, no I/O. tests/test_roadmap.py: all three states, unknown
   REQ on a task reported as a warning entry.
 
-- [ ] PC8: runner enforces the gate at phase boundaries | priority: 80 | status: ready | by: owner | deps: PC7, PC2
+- [ ] PC8: runner enforces the gate at phase boundaries | priority: 80 | status: ready | by: owner | deps: PC7, PC2 | phase: P-GATE | req: REQ-G2
   rationale: [P-GATE/REQ-G2] the runner, not the agent, decides a phase is closed — same rule as verified-done
   details: at run end (and when all active-phase tasks are done mid-run),
   Runner computes coverage for the active phase: if fully covered, advance
@@ -164,7 +164,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   REQ. Never advance past an uncovered phase. Tests: covered -> advance,
   uncovered -> stay + retrospective section, no roadmap -> no-op.
 
-- [ ] PC9: kelix status renders the phase gate | priority: 78 | status: ready | by: owner | deps: PC7
+- [ ] PC9: kelix status renders the phase gate | priority: 78 | status: ready | by: owner | deps: PC7 | phase: P-GATE | req: REQ-G3
   rationale: [P-GATE/REQ-G3] the owner steers from a one-screen view assembled from files alone
   details: extend render_status in src/kelix/fleet.py: when a roadmap
   exists, print active milestone/phase from STATE.md and a coverage table
@@ -173,7 +173,7 @@ Every task below names its phase and the REQ it covers in `details:`.
 
 ### Phase P-WAVES (safe parallelism)
 
-- [ ] PC10: wave computation from deps | priority: 72 | status: ready | by: owner | deps: PC5
+- [ ] PC10: wave computation from deps | priority: 72 | status: ready | by: owner | deps: PC5 | phase: P-WAVES | req: REQ-W1
   rationale: [P-WAVES/REQ-W1] parallel agents must not collide on dependent concerns; waves are derivable, no new syntax
   details: in src/kelix/backlog.py add waves(tasks) -> list[list[Task]]:
   wave 0 = tasks with no undone deps, wave N = tasks whose deps are all in
@@ -181,7 +181,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   warning flag returned alongside. Pure function. tests/test_backlog.py:
   chain, diamond, cycle.
 
-- [ ] PC11: fleet claims respect the earliest incomplete wave | priority: 70 | status: ready | by: owner | deps: PC10
+- [ ] PC11: fleet claims respect the earliest incomplete wave | priority: 70 | status: ready | by: owner | deps: PC10 | phase: P-WAVES | req: REQ-W2, REQ-W3
   rationale: [P-WAVES/REQ-W2+W3] a fleet should finish wave N before starting wave N+1, like GSD execution waves
   details: in make_claim_hook (src/kelix/fleet.py), restrict candidate
   tasks to the earliest wave containing any non-done task before applying
@@ -191,7 +191,7 @@ Every task below names its phase and the REQ it covers in `details:`.
 
 ### Phase P-CONTEXT (the context compiler — 50% of the value, D16)
 
-- [ ] PC20: relevance scorer for memory and episodes | priority: 81 | status: ready | by: owner
+- [ ] PC20: relevance scorer for memory and episodes | priority: 81 | status: ready | by: owner | phase: P-CONTEXT | req: REQ-C2
   rationale: [P-CONTEXT/REQ-C2] a fresh agent should get the context THIS task needs, not whatever happened most recently
   details: add src/kelix/context.py with score(text, query) -> float using
   stdlib only: lowercase token overlap weighted by inverse frequency across
@@ -202,7 +202,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   behavior without a query is unchanged. tests/test_context.py: relevant-
   but-old beats recent-but-noise; empty query falls back to recency.
 
-- [ ] PC21: 50% context budget split + compiler in the prompt | priority: 79 | status: ready | by: owner | deps: PC20, PC3
+- [ ] PC21: 50% context budget split + compiler in the prompt | priority: 79 | status: ready | by: owner | deps: PC20, PC3 | phase: P-CONTEXT | req: REQ-C1
   rationale: [P-CONTEXT/REQ-C1] context share is a policy, not an accident; default half the prompt
   details: add [memory] context_share (float, default 0.5) to config.py.
   prompt.assemble_prompt computes the char budget for the data slots
@@ -213,7 +213,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   Tests: share respected within tolerance, state slot never starved,
   query reaches the selector.
 
-- [ ] PC22: per-iteration context manifest | priority: 77 | status: ready | by: owner | deps: PC21
+- [ ] PC22: per-iteration context manifest | priority: 77 | status: ready | by: owner | deps: PC21 | phase: P-CONTEXT | req: REQ-C3, REQ-C4
   rationale: [P-CONTEXT/REQ-C3+C4] context quality must be as auditable as decisions; prove relevance beats recency
   details: assemble_prompt returns (prompt, manifest) where manifest lists
   each injected item: slot, source path, chars, score. Runner writes
@@ -226,7 +226,7 @@ Every task below names its phase and the REQ it covers in `details:`.
 
 ### Phase P-HARDEN (lessons from the v0.1 proof runs)
 
-- [ ] PC17: rationale fallback from commit subject | priority: 76 | status: ready | by: owner
+- [ ] PC17: rationale fallback from commit subject | priority: 76 | status: ready | by: owner | phase: P-HARDEN | req: REQ-H1
   rationale: [P-HARDEN/REQ-H1] 4 proof-run iterations logged "(no rationale)" — legibility must not depend on the agent remembering a print
   details: in src/kelix/loop.py, when _extract_rationale finds nothing, set
   rec.rationale from the iteration's last commit subject (git log -1
@@ -236,7 +236,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   the retrospective. Tests: mock agent that commits without RATIONALE gets
   the commit subject; no-commit no-rationale iteration gets the flag.
 
-- [ ] PC18: output-inactivity watchdog in adapters | priority: 74 | status: ready | by: owner
+- [ ] PC18: output-inactivity watchdog in adapters | priority: 74 | status: ready | by: owner | phase: P-HARDEN | req: REQ-H2
   rationale: [P-HARDEN/REQ-H2] fleet session 2's agent sat idle ~20 min after finishing (D13); unattended means nobody is there to kill it
   details: in src/kelix/adapters.py, run the agent with Popen and a reader
   thread; if no stdout/stderr bytes arrive for
@@ -246,7 +246,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   prints then sleeps past the inactivity window is reaped and marked; a
   slow-but-chatty script survives.
 
-- [ ] PC19: role-match visibility in fleet retrospectives | priority: 68 | status: ready | by: owner | deps: PC5
+- [ ] PC19: role-match visibility in fleet retrospectives | priority: 68 | status: ready | by: owner | deps: PC5 | phase: P-HARDEN | req: REQ-H3
   rationale: [P-HARDEN/REQ-H3] session 1's verifier built a feature — allowed, but the owner should see role drift, not archaeology it
   details: tag tasks with an optional kind derived from phase/title
   heuristics (test/docs/feature/fix) in fleet.py; _write_fleet_retrospective
@@ -256,7 +256,7 @@ Every task below names its phase and the REQ it covers in `details:`.
 
 ### Phase P-PROOF (docs + self-referential proof)
 
-- [ ] PC12: docs/planning.md + init template | priority: 62 | status: ready | by: owner | deps: PC8, PC11
+- [ ] PC12: docs/planning.md + init template | priority: 62 | status: ready | by: owner | deps: PC8, PC11 | phase: P-PROOF | req: REQ-P1, REQ-P2
   rationale: [P-PROOF/REQ-P1+P2] the hierarchy is only real if a stranger can adopt it tonight
   details: write docs/planning.md — the plan-first flow (GOAL.md ->
   kelix plan -> review/promote -> kelix run), roadmap -> phase -> task
@@ -268,7 +268,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   files. Test: init on a bare repo creates the template; init on this repo
   is a no-op.
 
-- [ ] PC13: self-referential proof run | priority: 60 | status: ready | by: owner | deps: PC12
+- [ ] PC13: self-referential proof run | priority: 60 | status: ready | by: owner | deps: PC12 | phase: P-PROOF | req: REQ-P3
   rationale: [P-PROOF/REQ-P3] the planning core must be proven by driving its own build (dogfood rule)
   details: run `kelix run` on this repo with STATE.md active: the loop must
   pick a task via the new orientation order, complete it, and the run
@@ -452,7 +452,7 @@ All tasks below are `status: proposed` until the owner promotes them.
 
 ### Phase P-COMPARE — Honest comparison
 
-- [ ] KE27: docs/compare.md draft | priority: 66 | status: proposed | by: kelix | deps: KE16 | phase: P-COMPARE | req: REQ-C1
+- [ ] KE27: docs/compare.md draft | priority: 66 | status: proposed | by: kelix | deps: KE16 | phase: P-COMPARE | req: REQ-CM1
   details: create docs/compare.md comparing Kelix vs plain Ralph vs Claude Code
   alone vs Codex alone vs GSD-style orchestrators. Axes: state persistence,
   verified-done rate, unattended runtime, token cost per verified task,
@@ -461,14 +461,14 @@ All tasks below are `status: proposed` until the owner promotes them.
   single-iteration latency, IDE pairing affordances, adapter hang/timeout (D13).
   Acceptance: zero cells with bare numbers lacking source link or command.
 
-- [ ] KE28: compare.md site links | priority: 65 | status: proposed | by: kelix | deps: KE27 | phase: P-COMPARE | req: REQ-C2
+- [ ] KE28: compare.md site links | priority: 65 | status: proposed | by: kelix | deps: KE27 | phase: P-COMPARE | req: REQ-CM2
   details: link docs/compare.md from README.md (Why Kelix or new section) and
   docs/index.md Reference. Acceptance: `rg compare.md README.md docs/index.md`
   finds both links.
 
 ### Phase P-GOLD — First-contact spec gate
 
-- [ ] KE29: run spec-gate for ready tasks | priority: 64 | status: proposed | by: kelix | phase: P-GOLD | req: REQ-G1
+- [ ] KE29: run spec-gate for ready tasks | priority: 64 | status: proposed | by: kelix | phase: P-GOLD | req: REQ-GD1
   details: in src/kelix/loop.py Runner.run() before iteration 1: lint only
   tasks with status=ready via lint_backlog; on findings print actionable
   messages with inline good/bad task example (from lint.py or dedicated formatter);
@@ -476,19 +476,19 @@ All tasks below are `status: proposed` until the owner promotes them.
   tests/test_loop.py: vague ready task → exit 1 before adapter called; good
   task → proceeds.
 
-- [ ] KE30: run --force bypass | priority: 63 | status: proposed | by: kelix | deps: KE29 | phase: P-GOLD | req: REQ-G1
+- [ ] KE30: run --force bypass | priority: 63 | status: proposed | by: kelix | deps: KE29 | phase: P-GOLD | req: REQ-GD1
   details: add `--force` to kelix run argparse; skips spec gate only (document in
   --help and docs/quickstart.md); git safety unchanged. Test: vague backlog +
   --force reaches adapter. Acceptance: help text states spec-gate scope explicitly.
 
-- [ ] KE31: plan interview acceptance questions | priority: 62 | status: proposed | by: kelix | phase: P-GOLD | req: REQ-G2
+- [ ] KE31: plan interview acceptance questions | priority: 62 | status: proposed | by: kelix | phase: P-GOLD | req: REQ-GD2
   details: extend PLANNING_TEMPLATE / plan.py interview rubric so each emitted
   question block includes at least one acceptance-criteria probe per roadmap
   phase in the draft goal (reuse lint rules from docs/writing-for-the-loop.md).
   Test: mock adapter planning fixture goal with two phases → interview output
   contains ≥2 acceptance-themed questions.
 
-- [ ] KE32: GOAL template + lint tagline | priority: 61 | status: proposed | by: kelix | deps: KE24 | phase: P-GOLD | req: REQ-G3
+- [ ] KE32: GOAL template + lint tagline | priority: 61 | status: proposed | by: kelix | deps: KE24 | phase: P-GOLD | req: REQ-GD3
   details: update GOAL_TEMPLATE in cli.py to include one-line "Gold in, diamonds
   out." principle; update run spec-gate and kelix lint stderr banner to use
   canon tagline once (retire slop pairing from gate message). Test: init creates

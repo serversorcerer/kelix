@@ -277,21 +277,21 @@ Outcome: docs/compare.md compares Kelix vs plain Ralph, vs single-agent CLIs,
 vs long-lived orchestrators on measurable axes only; weakness rows are explicit;
 every number cites a receipt or reads "not measured — no receipt."
 
-- REQ-C1: docs/compare.md exists with cited rows for axes where proof exists;
+- REQ-CM1: docs/compare.md exists with cited rows for axes where proof exists;
   missing axes marked "not measured — no receipt"; at least two rows where
   Kelix loses (single-iteration latency, IDE pairing affordances, adapter
   hang/timeout wart per D13).
-- REQ-C2: compare.md linked from README and docs/index.md; zero uncited numbers.
+- REQ-CM2: compare.md linked from README and docs/index.md; zero uncited numbers.
 
 ### Phase P-GOLD — First-contact spec gate (gold in, diamonds out)
 
 Outcome: the loop refuses to burn tokens on slop at first contact; owner can
 always bypass with `--force` (spec gate only, never git safety).
 
-- REQ-G1: `kelix run` on a backlog whose `status: ready` tasks fail lint stops
+- REQ-GD1: `kelix run` on a backlog whose `status: ready` tasks fail lint stops
   before iteration 1 with actionable output (good/bad example inline); well-
   specified backlog proceeds; `--force` skips the spec gate only.
-- REQ-G2: `kelix plan` interview asks at least one acceptance-criteria question
+- REQ-GD2: `kelix plan` interview asks at least one acceptance-criteria question
   per phase; rubric reuses docs/writing-for-the-loop rules.
-- REQ-G3: GOAL.md template and lint gate messages carry the canon tagline once:
+- REQ-GD3: GOAL.md template and lint gate messages carry the canon tagline once:
   "Gold in, diamonds out." (good/slop demoted to body examples in writing-for-the-loop).
