@@ -728,7 +728,7 @@ Owner decisions: `.kelix/phases/V-CUT/CONTEXT.md`. All tasks below are
 
 ### Phase V-LEDGER — The value ledger
 
-- [ ] KV1: write docs/value-ledger.md | priority: 55 | status: ready | by: owner | deps: KE32 | phase: V-LEDGER | req: REQ-VL1, REQ-VL2, REQ-VL3
+- [x] KV1: write docs/value-ledger.md | priority: 55 | status: done | by: owner | deps: KE32 | phase: V-LEDGER | req: REQ-VL1, REQ-VL2, REQ-VL3
   details: create docs/value-ledger.md with one markdown table row per module
   listed in REQ-VL1 (loop, verify, plan+interview, lint, state/roadmap/backlog,
   memory, skills, fleet, claims, mcp_server, sync/, pr, kiro, security,
