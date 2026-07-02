@@ -775,7 +775,7 @@ Owner decisions: `.kelix/phases/V-CUT/CONTEXT.md`. All tasks below are
   src tests` zero matches and pytest -q pass; if not SCRAP, only value-ledger.md
   or task commit notes change.
 
-- [ ] KV5: execute skills SCRAP if ledger says SCRAP | priority: 51 | status: ready | by: owner | deps: KV1 | phase: V-LEDGER | req: REQ-VL3
+- [x] KV5: execute skills SCRAP if ledger says SCRAP | priority: 51 | status: done | by: owner | deps: KV1 | phase: V-LEDGER | req: REQ-VL3
   details: read docs/value-ledger.md skills row. If SCRAP: remove skill
   acquisition/distillation plumbing that never demonstrated learning (D17
   evidence: zero skills in ~20 v0.1 iterations) while preserving frozen
