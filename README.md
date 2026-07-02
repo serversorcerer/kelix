@@ -9,6 +9,16 @@
   ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝╚═╝  ╚═╝       ╰─╯   ╰─╯   ╰─╯   ╰─╯
 ```
 
+You can write a spec once, point any headless coding agent at it overnight,
+and return to verified commits — each gated by your repo's own test and lint
+commands, not agent promises.
+
+That is not hypothetical. The dogfood proof shipped a full stdlib task-tracker
+library unattended:
+**[12/12 tasks verified-done in 12 iterations, zero failures](docs/proof/final-report.md#d1--dogfood-run-docsproofdogfood-runlog-dogfood-retrospectivemd)**
+(see the [final build report](docs/proof/final-report.md)). Reproduce the
+verify gate with `pytest tests/test_verify.py -q`.
+
 **The loop that climbs.** Ralph runs in circles; Kelix comes back higher.
 
 Kelix runs any headless coding agent in a loop against a static prompt: every
@@ -17,11 +27,9 @@ history; the loop wins through repetition, not cleverness. Use **Claude Code**,
 **Codex CLI**, **Cursor**, **Gemini CLI**, or your own CLI adapter — Kelix
 keeps [Ralph's](https://ghuntley.com/ralph/) core and adds what plain Ralph
 lacks — **persistent memory**, **self-improvement from loop outcomes**,
-**legible prioritization**, and a file-coordinated **fleet mode**.
-
-Write a spec or a goal once. A fleet of loops decomposes it, prioritizes, cuts
-feature branches, builds, verifies, reviews each other's PRs, and leaves an
-auditable trail — running overnight, unattended.
+**legible prioritization**, and a file-coordinated **fleet mode** — so you can
+decompose a goal, prioritize, cut feature branches, build, verify, and leave
+an auditable trail unattended.
 
 > Status: alpha. Kelix was built by its own loop (see `DECISIONS.md` and
 > `PLAN.md`). It is honest about what it will and won't do unattended — see

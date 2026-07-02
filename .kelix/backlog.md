@@ -669,7 +669,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   lists verify commands run and verified-done count, not bare "done." Tests in
   tests/test_ci_integration.py or cli capture updated substrings.
 
-- [ ] KE26: README/index audacity pass | priority: 67 | status: ready | by: owner | deps: KE25,KE1,KE2 | phase: P-AUDIT | req: REQ-U4
+- [x] KE26: README/index audacity pass | priority: 67 | status: done | by: owner | deps: KE25,KE1,KE2 | phase: P-AUDIT | req: REQ-U4
   details: final voice pass on README.md and docs/index.md: audacity + evidence
   links after structural reposition (KE1/KE2). Each opens with capability claim
   + proof link. Acceptance: reviewer can trace opening claim to docs/proof or
