@@ -60,7 +60,7 @@ Every task below names its phase and the REQ it covers in `details:`.
 
 ### Phase P-INTENT (top-down intent)
 
-- [ ] PC4: roadmap parser | priority: 90 | status: ready | by: owner | deps: PC1
+- [x] PC4: roadmap parser | priority: 90 | status: done | by: owner | deps: PC1
   rationale: [P-INTENT/REQ-I1] milestones/phases/REQs must be machine-readable to gate on
   details: create src/kalph/roadmap.py parsing .kalph/roadmap.md: Milestone
   (id, title), Phase (id, title, outcome line), Req (id, text, phase). H2

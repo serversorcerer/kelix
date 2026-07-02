@@ -55,6 +55,12 @@ Durable facts about this repo for future iterations.
   `[memory].state_max_chars`, default 1200); `loop.py` `_gather_context` loads
   via `load_state()` and injects the file text, falling back to
   "(no state file — flat-backlog mode)" when absent.
+- Roadmap parser lives in `src/kalph/roadmap.py` (`Milestone`, `Phase`, `Req`,
+  `Roadmap`, `parse_roadmap`, `load_roadmap`, `reqs_for(phase_id)`). Format:
+  `## Milestone <id> — <title>`, `### Phase <id> — <title>`, optional
+  `Outcome:` line after phase header, `- REQ-X: text` bullets. Prose and
+  malformed lines are skipped. Tests in `tests/test_roadmap.py` including the
+  real `.kalph/roadmap.md` fixture.
 - OWNER PRINCIPLE (communication): good input in, good output out — slop in,
   slop out. All owner-facing text this project produces (backlog tasks, PRD
   templates, docs, prompts, retrospectives) must be precise and legible to
