@@ -982,7 +982,7 @@ Owner context: `.kelix/phases/DRIFT-FIX/CONTEXT.md`. Fleet config:
   quickstart happy-path section grep for `--pr|kelix sync|open PR` → zero;
   SECURITY.md accurate for post-KV3.
 
-- [ ] DR11: test_doc_drift regression gate | priority: 85 | status: ready | by: owner | deps: DR1,DR2,DR3,DR4,DR5,DR6,DR7,DR8,DR9,DR10 | phase: DRIFT-FIX | req: REQ-DR5
+- [x] DR11: test_doc_drift regression gate | priority: 85 | status: done | by: owner | deps: DR1,DR2,DR3,DR4,DR5,DR6,DR7,DR8,DR9,DR10 | phase: DRIFT-FIX | req: REQ-DR5
   details: create tests/test_doc_drift.py. Pure-Python read of user-facing
   paths (no ripgrep subprocess — CI may lack rg): README.md, docs/quickstart.md,
   docs/memory-and-skills.md, docs/fleet.md, docs/kiro.md,
