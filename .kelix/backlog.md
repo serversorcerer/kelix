@@ -453,14 +453,57 @@ All tasks below are `status: proposed` until the owner promotes them.
   task_id present). Update on each retrospective append. tests/test_metrics.py:
   fixture rows → with_rate > without_rate for injected skill.
 
-- [ ] ST19: v0.3 self-tuning cycle proof | priority: 39 | status: ready | by: owner | deps: ST14 | phase: T-PROPOSE | req: REQ-TP2, REQ-TP3
-  details: dogfood the ship gate on this repo: (1) kelix run ≥3 iterations
-  producing loop-metrics.json rows from real adapter or mock with verify; (2)
-  kelix diagnose on those runs → diagnosis file; (3) kelix propose with metric
-  evidence → owner merges or closes with reason recorded via ST14; (4) after
-  ≥3 post-merge runs or documented inconclusive, proposal_outcomes[] populated.
-  Record run ids and paths in DECISIONS.md as D22 evidence. ST15–ST18 may still
-  be open — not required for this task.
+- [ ] ST19a: self-tuning proof — seed loop-metrics | priority: 44 | status: ready | by: owner | deps: ST14 | phase: T-PROPOSE | req: REQ-TP2
+  rationale: [ST19] ship gate step 1 — ledger rows from a real run
+  details: run `PYTHONPATH=src python -m kelix run --max-iterations 3` on this
+  repo (mock adapter per `.kelix/kelix.toml`); assert
+  `.kelix/memory/loop-metrics.json` exists with ≥3 `iterations[]` rows whose
+  `run_id` matches the run; append the run id under a new
+  `## D22 execution evidence (pending)` section in DECISIONS.md. Acceptance:
+  `pytest -q` and `ruff check src tests` pass unchanged.
+
+- [ ] ST19b: self-tuning proof — diagnose on seed run | priority: 43 | status: ready | by: owner | deps: ST19a | phase: T-PROPOSE | req: REQ-TP2
+  rationale: [ST19] ship gate step 2 — diagnosis file from ledger + transcripts
+  details: run `kelix diagnose --run-id <ST19a run_id>` (or `--last 1` if no
+  failed rows); assert a `.kelix/memory/diagnosis-*.md` file exists containing
+  `## Findings` and a citation of the ST19a run id; record the diagnosis path
+  in DECISIONS.md pending section. Acceptance: `pytest -q` pass.
+
+- [ ] ST19c: self-tuning proof — propose tuning PR | priority: 42 | status: ready | by: owner | deps: ST19b | phase: T-PROPOSE | req: REQ-TP2
+  rationale: [ST19] ship gate step 3 — policy edit on allowlisted paths only
+  details: run `kelix propose --no-pr --diagnosis-file <ST19b path>`; assert
+  `validate_propose_diff` passes (no backlog/STATE edits), a
+  `.kelix/memory/proposal-*.json` sidecar is written, and stderr/stdout names
+  the proposal id; record proposal id and touched files in DECISIONS.md pending
+  section. Acceptance: `pytest -q` pass.
+
+- [ ] ST19d: self-tuning proof — record proposal outcome | priority: 41 | status: ready | by: owner | deps: ST19c | phase: T-PROPOSE | req: REQ-TP3
+  rationale: [ST19] ship gate step 4 — owner merge/close captured in metrics
+  details: record the ST19c proposal via `kelix propose --record-merge <sha>` or
+  `--record-close <reason>` (use the propose branch HEAD sha or a documented
+  close reason); assert `loop-metrics.json` `proposal_outcomes[]` has an entry
+  for the proposal id with prediction text preserved. Record merge sha or close
+  reason in DECISIONS.md pending section. Acceptance: `tests/test_metrics.py
+  -q` pass.
+
+- [ ] ST19e: self-tuning proof — post-merge metrics runs | priority: 40 | status: ready | by: owner | deps: ST19d | phase: T-PROPOSE | req: REQ-TP3
+  rationale: [ST19] ship gate step 5 — ledger rows after policy change
+  details: run `kelix run --max-iterations 3` on the post-merge tree; assert
+  ≥3 new iteration rows land in `loop-metrics.json` with run ids distinct from
+  ST19a; run `kelix metrics grade-proposal <ST19c id>` and assert outcome is
+  `improved`, `regressed`, or `inconclusive` (not missing); record grade +
+  run ids in DECISIONS.md pending section. If fewer than 3 post-merge runs exist,
+  document `inconclusive` explicitly — do not mark done without grade output.
+  Acceptance: `pytest -q` pass.
+
+- [ ] ST19: v0.3 self-tuning cycle proof | priority: 39 | status: ready | by: owner | deps: ST19e | phase: T-PROPOSE | req: REQ-TP2, REQ-TP3
+  rationale: [T-PROPOSE] close the v0.3 ship gate — consolidate D22 execution evidence
+  details: merge the pending `## D22 execution evidence` section in DECISIONS.md
+  into a single D22 proof entry (run ids, diagnosis path, proposal id, merge/close,
+  grade outcome, post-merge run ids) citing REQ-TP2 and REQ-TP3; remove the
+  pending header. Assert `loop-metrics.json` has iterations from ST19a and ST19e
+  plus a graded `proposal_outcomes[]` entry. Acceptance: `kelix lint` exit 0;
+  `pytest -q` pass.
 
 - [ ] ST20: skill distillation documentation | priority: 38 | status: ready | by: owner | deps: ST18 | phase: T-SKILLS | req: REQ-TS1, REQ-TS2, REQ-TS4
   details: extend docs/memory-and-skills.md with "Skill distillation" section:
