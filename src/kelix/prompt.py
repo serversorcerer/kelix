@@ -129,9 +129,10 @@ structured questions for the owner — do NOT draft a roadmap or backlog yet.
 
 1. Read the goal and scan the repo for context.
 2. Identify decision points the owner must choose — do not guess.
-3. Emit exactly one fenced block tagged QUESTIONS (format below). Each item
-   needs a decision title, the question text, 2-4 numbered options, and mark
-   exactly one option with "(recommended)".
+3. Emit exactly one fenced block tagged QUESTIONS (format below). Cap at 7
+   questions total. Each item needs a decision title, the question text, 2-4
+   numbered options (multiple-choice only — no open-ended essay prompts), and
+   mark exactly one option with "(recommended)".
 4. Include at least one **acceptance-criteria probe** per roadmap phase named
    in the goal (see rubric below). Reuse docs/writing-for-the-loop.md: ask how
    the owner will prove the phase shipped (tests, exit codes, file paths,

@@ -8,6 +8,7 @@ from conftest import write_mock_script
 from kelix.cli import cmd_plan
 from kelix.config import load_config
 from kelix.plan import (
+    MAX_INTERVIEW_QUESTIONS,
     PlanRunner,
     extract_goal_phases,
     is_acceptance_probe_question,
@@ -16,6 +17,7 @@ from kelix.plan import (
     planning_phase_slug,
     present_questions_tty,
     questions_answered,
+    validate_interview_format,
     validate_interview_questions,
     write_questions_file,
 )
@@ -132,6 +134,7 @@ def test_planning_interview_prompt_emits_questions_only(tmp_path):
     assert "Do NOT print PLAN COMPLETE" in out
     assert "acceptance-criteria probe" in out
     assert "acceptance probe" in out.lower()
+    assert "Cap at 7" in out or "at most 7" in out.lower()
     assert "{{" not in out
 
 
@@ -185,6 +188,139 @@ def test_validate_interview_questions_requires_probe_per_phase():
         "```"
     )
     assert not validate_interview_questions(goal, two_probes)
+
+
+def _mc_question(n: int, *, acceptance: bool = False) -> str:
+    title = f"P-A acceptance verify pytest Q{n}" if acceptance else f"Decision {n}"
+    body = "How will we verify with pytest?" if acceptance else f"What option for topic {n}?"
+    return (
+        f"Q{n}: {title}\n{body}\n"
+        f"1. option A (recommended)\n2. option B\n"
+    )
+
+
+def test_validate_interview_format_rejects_too_many_questions():
+    block = "```QUESTIONS\n" + "".join(_mc_question(i) for i in range(1, 9)) + "```"
+    questions = parse_questions_block(block)
+    assert len(questions) == 8
+    errors = validate_interview_format(questions)
+    assert any(str(MAX_INTERVIEW_QUESTIONS) in e for e in errors)
+
+
+def test_validate_interview_format_rejects_open_ended():
+    questions = parse_questions_block(
+        "```QUESTIONS\nQ1: Scope\nWhat should we build?\n```"
+    )
+    errors = validate_interview_format(questions)
+    assert any("2–4" in e or "2-4" in e for e in errors)
+
+
+def test_validate_interview_format_accepts_five_mc_questions():
+    block = (
+        "```QUESTIONS\n"
+        + _mc_question(1, acceptance=True)
+        + "".join(_mc_question(i) for i in range(2, 6))
+        + "```"
+    )
+    questions = parse_questions_block(block)
+    assert len(questions) == 5
+    assert not validate_interview_format(questions)
+
+
+EIGHT_QUESTION_INTERVIEW_SCRIPT = """\
+cat << 'EOF'
+```QUESTIONS
+Q1: Verify demo
+How will we verify with pytest?
+1. tests/test_demo.py (recommended)
+2. manual
+Q2: Decision 2
+Topic 2?
+1. A (recommended)
+2. B
+Q3: Decision 3
+Topic 3?
+1. A (recommended)
+2. B
+Q4: Decision 4
+Topic 4?
+1. A (recommended)
+2. B
+Q5: Decision 5
+Topic 5?
+1. A (recommended)
+2. B
+Q6: Decision 6
+Topic 6?
+1. A (recommended)
+2. B
+Q7: Decision 7
+Topic 7?
+1. A (recommended)
+2. B
+Q8: Decision 8
+Topic 8?
+1. A (recommended)
+2. B
+```
+EOF
+"""
+
+FIVE_MC_INTERVIEW_SCRIPT = """\
+cat << 'EOF'
+```QUESTIONS
+Q1: Verify demo
+How will we verify with pytest?
+1. tests/test_demo.py (recommended)
+2. manual
+Q2: Decision 2
+Topic 2?
+1. A (recommended)
+2. B
+Q3: Decision 3
+Topic 3?
+1. A (recommended)
+2. B
+Q4: Decision 4
+Topic 4?
+1. A (recommended)
+2. B
+Q5: Decision 5
+Topic 5?
+1. A (recommended)
+2. B
+```
+EOF
+"""
+
+
+def test_plan_interview_rejects_eight_questions(repo):
+    write_mock_script(repo / "mockdir", "001.sh", EIGHT_QUESTION_INTERVIEW_SCRIPT)
+    cfg = _config(repo)
+    result = PlanRunner(cfg).run(
+        goal="build a demo",
+        log=lambda *_: None,
+        is_tty=False,
+    )
+    assert result.status == "error"
+    assert result.diagnosis
+    assert str(MAX_INTERVIEW_QUESTIONS) in result.diagnosis
+
+
+def test_plan_interview_accepts_five_mc_questions(repo):
+    write_mock_script(repo / "mockdir", "001.sh", FIVE_MC_INTERVIEW_SCRIPT)
+    cfg = _config(repo)
+    result = PlanRunner(cfg).run(
+        goal="build a demo",
+        log=lambda *_: None,
+        is_tty=False,
+    )
+    assert result.status == "awaiting_answers"
+    questions = load_questions_md(
+        repo / ".kelix" / "phases" / planning_phase_slug("build a demo") / "QUESTIONS.md"
+    )
+    assert len(questions) == 5
+    assert all(2 <= len(q.options) <= 4 for q in questions)
 
 
 TWO_PHASE_GOAL = """\
@@ -320,6 +456,11 @@ def test_plan_file_interview_then_resume(repo):
     result2 = PlanRunner(cfg).run(goal="build a demo", log=lambda *_: None, is_tty=False)
     assert result2.status == "completed"
     assert (repo / ".kelix" / "roadmap.md").exists()
+    context_path = repo / ".kelix" / "phases" / planning_phase_slug("build a demo") / "CONTEXT.md"
+    context = context_path.read_text()
+    assert "Decisions from planning interview" in context
+    assert "Minimal API" in context
+    assert "pytest unit tests" in context
 
 
 def test_plan_happy_path_writes_draft(repo):

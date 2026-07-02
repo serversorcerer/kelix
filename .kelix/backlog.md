@@ -792,7 +792,7 @@ Owner decisions: `.kelix/phases/V-CUT/CONTEXT.md`. All tasks below are
   mock run with verify echo succeeds → stdout contains command name, exit 0,
   and at least one commit hash substring.
 
-- [ ] KV7: plan interview cap seven MC questions | priority: 49 | status: ready | by: owner | deps: KV1 | phase: V-SHARPEN | req: REQ-VS2
+- [x] KV7: plan interview cap seven MC questions | priority: 49 | status: done | by: owner | deps: KV1 | phase: V-SHARPEN | req: REQ-VS2
   details: in src/kelix/plan.py and PLANNING_TEMPLATE, enforce interview
   output ≤ 7 questions; reject/retry planning output with >7. Each question
   must be multiple-choice (2–4 options + recommendation) — no open-ended essay

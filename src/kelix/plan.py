@@ -33,6 +33,10 @@ OPTION_RE = re.compile(r"^(\d+)\.\s*(.+?)(?:\s*\(recommended\))?\s*$", re.IGNORE
 ANSWER_RE = re.compile(r"^answer:\s*(.*)$", re.MULTILINE | re.IGNORECASE)
 GOAL_PHASE_RE = re.compile(r"^### Phase (\S+)", re.MULTILINE)
 
+MAX_INTERVIEW_QUESTIONS = 7
+MIN_MC_OPTIONS = 2
+MAX_MC_OPTIONS = 4
+
 # Acceptance probe patterns aligned with lint.ACCEPTANCE_SIGNAL / writing-for-the-loop.
 ACCEPTANCE_PROBE_SIGNAL = re.compile(
     r"(?i)"
@@ -134,22 +138,50 @@ def acceptance_rubric_for_goal(goal: str) -> str:
     )
 
 
+def validate_interview_format(questions: list[PlanQuestion]) -> list[str]:
+    """Return validation errors when questions exceed cap or are not multiple-choice."""
+    errors: list[str] = []
+    if len(questions) > MAX_INTERVIEW_QUESTIONS:
+        errors.append(
+            f"interview has {len(questions)} questions; "
+            f"emit at most {MAX_INTERVIEW_QUESTIONS}"
+        )
+    for q in questions:
+        opt_count = len(q.options)
+        if opt_count < MIN_MC_OPTIONS or opt_count > MAX_MC_OPTIONS:
+            errors.append(
+                f"{q.qid} must have {MIN_MC_OPTIONS}–{MAX_MC_OPTIONS} "
+                f"numbered options (got {opt_count})"
+            )
+            continue
+        recommended = [o for o in q.options if o.recommended]
+        if len(recommended) != 1:
+            errors.append(
+                f"{q.qid} must mark exactly one option (recommended) "
+                f"(got {len(recommended)})"
+            )
+    return errors
+
+
 def validate_interview_questions(goal: str, questions: list[PlanQuestion]) -> list[str]:
-    """Return validation errors when acceptance probes are missing per phase."""
+    """Return validation errors for interview format and acceptance probes."""
+    errors = validate_interview_format(questions)
     phases = extract_goal_phases(goal)
     probes = [q for q in questions if is_acceptance_probe_question(q)]
     required = len(phases) if phases else 1
     if len(probes) >= required:
-        return []
+        return errors
     if phases:
-        return [
+        errors.append(
             f"interview missing acceptance probe(s): need ≥{required} for phases "
             f"{', '.join(phases)}, got {len(probes)}"
-        ]
-    return [
-        "interview missing acceptance probe: need at least one question about "
-        "testable verification (tests, exit codes, file paths, verify commands)"
-    ]
+        )
+    else:
+        errors.append(
+            "interview missing acceptance probe: need at least one question about "
+            "testable verification (tests, exit codes, file paths, verify commands)"
+        )
+    return errors
 
 
 def parse_questions_block(text: str) -> list[PlanQuestion]:
