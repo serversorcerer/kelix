@@ -141,3 +141,76 @@ def test_serialize_includes_notes_and_deps():
     assert "  rationale: because" in text
     assert "  diagnosis: n/a" in text
     assert "  details:" not in text
+
+
+def test_parse_phase_and_req_any_order():
+    text = """\
+- [ ] A: with phase first | priority: 10 | status: ready | by: owner | phase: P-SPINE | req: REQ-S1
+- [ ] B: with req first | priority: 20 | status: ready | by: owner | req: REQ-I1 | phase: P-INTENT
+- [ ] C: phase only | priority: 30 | status: ready | by: owner | phase: P-GATE
+"""
+    tasks = parse_backlog(text)
+    assert tasks[0].phase == "P-SPINE"
+    assert tasks[0].req == "REQ-S1"
+    assert tasks[1].phase == "P-INTENT"
+    assert tasks[1].req == "REQ-I1"
+    assert tasks[2].phase == "P-GATE"
+    assert tasks[2].req == ""
+
+
+def test_round_trip_with_phase_and_req():
+    tasks = [
+        Task(
+            "PC5",
+            "link tasks",
+            88,
+            "ready",
+            "owner",
+            deps=["PC4"],
+            phase="P-INTENT",
+            req="REQ-I3",
+        ),
+        Task("LEG", "legacy line", 50, "ready", "owner"),
+    ]
+    again = parse_backlog(serialize_backlog(tasks))
+    assert again == tasks
+
+
+def test_legacy_lines_unchanged():
+    tasks = parse_backlog(SAMPLE_BACKLOG)
+    kb1 = tasks[0]
+    assert kb1.phase == ""
+    assert kb1.req == ""
+    assert kb1.deps == []
+
+
+def test_select_next_prefers_active_phase():
+    tasks = [
+        Task("A", "other phase high", 99, "ready", "owner", phase="P-ONRAMP"),
+        Task("B", "active phase lower", 50, "ready", "owner", phase="P-INTENT"),
+        Task("C", "phaseless middle", 80, "ready", "owner"),
+    ]
+    assert select_next(tasks, active_phase="P-INTENT").id == "B"
+    assert select_next(tasks, active_phase="P-INTENT").id != "A"
+
+
+def test_select_next_active_phase_ordering():
+    tasks = [
+        Task("A", "other phase", 99, "ready", "owner", phase="P-ONRAMP"),
+        Task("B", "phaseless", 90, "ready", "owner"),
+        Task("C", "active low priority", 10, "ready", "owner", phase="P-INTENT"),
+        Task("D", "active high priority", 95, "ready", "owner", phase="P-INTENT"),
+    ]
+    picked = select_next(tasks, active_phase="P-INTENT")
+    assert picked.id == "D"
+
+    without_phase = select_next(tasks)
+    assert without_phase.id == "A"
+
+
+def test_select_next_active_phase_owner_still_wins():
+    tasks = [
+        Task("A", "kalph active phase", 99, "ready", "kalph", phase="P-INTENT"),
+        Task("B", "owner other phase", 10, "ready", "owner", phase="P-ONRAMP"),
+    ]
+    assert select_next(tasks, active_phase="P-INTENT").id == "B"

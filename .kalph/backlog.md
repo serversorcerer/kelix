@@ -70,7 +70,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   sections. tests/test_roadmap.py: parse the real .kalph/roadmap.md fixture
   copy plus edge cases (no reqs, multiple milestones).
 
-- [ ] PC5: backlog tasks carry phase and req fields | priority: 88 | status: ready | by: owner | deps: PC4
+- [x] PC5: backlog tasks carry phase and req fields | priority: 88 | status: done | by: owner | deps: PC4
   rationale: [P-INTENT/REQ-I3] tasks must link upward so coverage is computable
   details: extend TASK_LINE in src/kalph/backlog.py with optional trailing
   "| phase: <id>" and "| req: <REQ-ID>" fields (any order after by:, both

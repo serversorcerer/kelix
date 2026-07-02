@@ -61,6 +61,12 @@ Durable facts about this repo for future iterations.
   `Outcome:` line after phase header, `- REQ-X: text` bullets. Prose and
   malformed lines are skipped. Tests in `tests/test_roadmap.py` including the
   real `.kalph/roadmap.md` fixture.
+- Backlog tasks optionally carry `phase:` and `req:` pipe fields (any order
+  after `by:`, alongside optional `deps:`). `Task` has `phase: str = ""` and
+  `req: str = ""`; `serialize_backlog` emits them only when set. Legacy lines
+  without these fields parse identically. `select_next(..., active_phase="")`
+  when set prefers tasks in that phase, then phaseless, then other phases
+  (within owner/status/priority keys).
 - OWNER PRINCIPLE (communication): good input in, good output out — slop in,
   slop out. All owner-facing text this project produces (backlog tasks, PRD
   templates, docs, prompts, retrospectives) must be precise and legible to
