@@ -5,12 +5,12 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "kelix"
 version = "0.1.0"
-description = "Kelix: the Ralph loop, rebuilt for Kiro - a stateless autonomous agent loop with persistent memory, prioritization, and fleet mode"
+description = "Kelix: the loop that climbs — a stateless autonomous agent loop for any headless coding agent (Claude Code, Codex CLI, Cursor, Gemini CLI). Kiro is the deepest integration. Persistent memory, prioritization, and fleet mode."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
 authors = [{ name = "Kelix contributors" }]
-keywords = ["agent", "ralph", "kiro", "autonomous", "loop"]
+keywords = ["agent", "ralph", "autonomous", "loop", "claude", "codex", "cursor", "gemini", "kiro"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Environment :: Console",

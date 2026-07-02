@@ -6,6 +6,8 @@ which agent is behind it (see docs/research/prior-art.md).
 
 Adapters:
 - kiro: Kiro CLI headless mode (`kiro-cli chat --no-interactive`), the default.
+- claude | codex | cursor | gemini: named presets that resolve to `cmd` with
+  built-in command templates (see config.ADAPTER_PRESET_COMMANDS).
 - cmd:  arbitrary command template, e.g. any coding-agent CLI. Tokens
         {prompt_file} and {prompt} are substituted; with neither token, the
         prompt is piped to stdin (the classic `cat PROMPT.md | agent`).
@@ -23,7 +25,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
-from .config import Config
+from .config import ADAPTER_PRESET_COMMANDS, Config
 
 
 @dataclass
@@ -265,6 +267,7 @@ class MockAdapter:
 
 
 def make_adapter(cfg: Config):
-    return {"kiro": KiroAdapter, "cmd": CmdAdapter, "mock": MockAdapter}[
-        cfg.agent.adapter
-    ](cfg)
+    name = cfg.agent.adapter
+    if name in ADAPTER_PRESET_COMMANDS or name == "cmd":
+        return CmdAdapter(cfg)
+    return {"kiro": KiroAdapter, "mock": MockAdapter}[name](cfg)

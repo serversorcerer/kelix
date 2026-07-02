@@ -1,11 +1,13 @@
 """Kelix as an MCP server (stdio, JSON-RPC 2.0).
 
-Lets any MCP-capable agent (Kiro first) drive Kelix through tool calls: start a
-run, check status, inspect memory, stop. Deliberately dependency-free — a
-minimal, auditable implementation of the subset of MCP needed here
-(initialize, tools/list, tools/call) over newline-delimited JSON on stdio.
+For MCP-capable agents — Claude Code, Cursor, Gemini CLI, Codex, Kiro, and
+others — to drive Kelix through tool calls: start a run, check status, inspect
+memory, stop. Kiro is the reference integration (deepest tested); the protocol
+surface is agent-agnostic. Deliberately dependency-free — a minimal, auditable
+implementation of the subset of MCP needed here (initialize, tools/list,
+tools/call) over newline-delimited JSON on stdio.
 
-Register with Kiro CLI:
+Register with Kiro CLI (reference integration):
     kiro-cli mcp add --name kelix --command "kelix mcp" --scope workspace
 
 Tool schema is documented in docs/mcp.md and returned by tools/list.

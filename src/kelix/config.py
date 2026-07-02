@@ -13,10 +13,25 @@ from pathlib import Path
 
 CONFIG_LOCATIONS = (".kelix/kelix.toml", "kelix.toml")
 
+# Named presets resolve to CmdAdapter with these templates (REQ-A1).
+# Upstream doc URLs are cited in code comments for KE9–KE11 agent guides.
+ADAPTER_PRESET_COMMANDS: dict[str, str] = {
+    # Kelix-verified: docs/proof/final-report.md
+    "cursor": "cursor-agent --force -p {prompt}",
+    # https://code.claude.com/docs/en/headless
+    "claude": "claude --bare --permission-mode dontAsk -p {prompt}",
+    # https://developers.openai.com/codex/noninteractive
+    "codex": "codex exec -s workspace-write {prompt}",
+    # https://google-gemini.github.io/gemini-cli/docs/cli/headless.html
+    "gemini": "gemini -p {prompt} --yolo",
+}
+
+VALID_ADAPTERS = ("kiro", "cmd", "mock", *ADAPTER_PRESET_COMMANDS)
+
 
 @dataclass
 class AgentConfig:
-    adapter: str = "kiro"  # kiro | cmd | mock
+    adapter: str = "kiro"  # kiro | claude | codex | cursor | gemini | cmd | mock
     # For the `cmd` adapter: template tokens {prompt_file} and {prompt} are
     # substituted. For `kiro` this is ignored (built-in command line).
     command: str = ""
@@ -159,10 +174,13 @@ def load_config(root: Path | None = None) -> Config:
                 raise ConfigError(f"[{section}] must be a table")
             setattr(cfg, section, _build_section(cls, raw[section], section))
 
-    if cfg.agent.adapter not in ("kiro", "cmd", "mock"):
+    if cfg.agent.adapter not in VALID_ADAPTERS:
         raise ConfigError(f"unknown agent adapter {cfg.agent.adapter!r}")
     if cfg.agent.adapter == "cmd" and not cfg.agent.command:
         raise ConfigError("[agent].command is required when adapter = 'cmd'")
+    preset = ADAPTER_PRESET_COMMANDS.get(cfg.agent.adapter)
+    if preset and not cfg.agent.command:
+        cfg.agent.command = preset
     if cfg.git.isolation not in ("worktree", "branch", "none"):
         raise ConfigError(f"unknown git isolation {cfg.git.isolation!r}")
     if cfg.autonomy.level not in ("normal", "high"):

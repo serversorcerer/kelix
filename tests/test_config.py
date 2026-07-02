@@ -1,6 +1,7 @@
 import pytest
 
-from kelix.config import Config, ConfigError, load_config
+from kelix.adapters import CmdAdapter, make_adapter
+from kelix.config import ADAPTER_PRESET_COMMANDS, Config, ConfigError, load_config
 
 
 def test_defaults_when_no_file(tmp_path):
@@ -80,6 +81,29 @@ def test_context_share_out_of_range_rejected(tmp_path):
     (tmp_path / "kelix.toml").write_text("[memory]\ncontext_share = 1.5\n")
     with pytest.raises(ConfigError, match="context_share"):
         load_config(tmp_path)
+
+
+@pytest.mark.parametrize("preset", ADAPTER_PRESET_COMMANDS)
+def test_named_adapter_preset_loads(tmp_path, preset):
+    (tmp_path / "kelix.toml").write_text(f'[agent]\nadapter = "{preset}"\n')
+    cfg = load_config(tmp_path)
+    assert cfg.agent.adapter == preset
+    assert cfg.agent.command == ADAPTER_PRESET_COMMANDS[preset]
+
+
+@pytest.mark.parametrize("preset", ADAPTER_PRESET_COMMANDS)
+def test_named_adapter_preset_resolves_to_cmd(tmp_path, preset):
+    (tmp_path / "kelix.toml").write_text(f'[agent]\nadapter = "{preset}"\n')
+    cfg = load_config(tmp_path)
+    assert isinstance(make_adapter(cfg), CmdAdapter)
+
+
+def test_named_adapter_preset_command_override(tmp_path):
+    (tmp_path / "kelix.toml").write_text(
+        '[agent]\nadapter = "claude"\ncommand = "echo {prompt}"\n'
+    )
+    cfg = load_config(tmp_path)
+    assert cfg.agent.command == "echo {prompt}"
 
 
 def test_diagnose_config_overrides(tmp_path):

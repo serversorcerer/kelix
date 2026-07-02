@@ -291,3 +291,6 @@ Durable facts about this repo for future iterations.
 
 ## Run 20260702-124024 (max_iterations)
 10 iterations, 9 verified. Failures: agent exit 143 (timeout); verification failed.
+
+## Run 20260702-150734 (max_iterations)
+10 iterations, 10 verified. Clean run.

@@ -534,14 +534,14 @@ All tasks below are `status: proposed` until the owner promotes them.
   Acceptance: first H1-adjacent paragraph names ≥3 non-Kiro agents; docs/kiro.md
   link present.
 
-- [ ] KE3: pyproject + package metadata | priority: 90 | status: ready | by: owner | phase: P-REPOS | req: REQ-R2
+- [x] KE3: pyproject + package metadata | priority: 90 | status: done | by: owner | phase: P-REPOS | req: REQ-R2
   details: update pyproject.toml `[project].description` and `keywords` to
   agent-agnostic voice (loop for any coding agent; Kiro as flagship integration
   in description, not sole identity). Keep version unchanged. Acceptance:
   `rg -i 'rebuilt for kiro' pyproject.toml` returns no matches; `pip install -e .`
   metadata check via `python -c "import importlib.metadata as m; print(m.metadata('kelix')['Description'])"`.
 
-- [ ] KE4: CLI help + config template voice | priority: 89 | status: ready | by: owner | phase: P-REPOS | req: REQ-R2
+- [x] KE4: CLI help + config template voice | priority: 89 | status: done | by: owner | phase: P-REPOS | req: REQ-R2
   details: in src/kelix/cli.py update CONFIG_TEMPLATE adapter comment to list
   named presets (kiro | claude | codex | cursor | gemini | cmd | mock) and
   refresh argparse help strings / module docstrings that lead with Kiro-only
@@ -549,14 +549,14 @@ All tasks below are `status: proposed` until the owner promotes them.
   CONFIG_TEMPLATE comment lists presets (may precede KE5 implementation — comment
   documents intent).
 
-- [ ] KE5: MCP server description reposition | priority: 88 | status: ready | by: owner | phase: P-REPOS | req: REQ-R2
+- [x] KE5: MCP server description reposition | priority: 88 | status: done | by: owner | phase: P-REPOS | req: REQ-R2
   details: rewrite src/kelix/mcp_server.py module docstring and any tool
   descriptions that say "Kiro first" to "MCP-capable agents; Kiro is the
   reference integration" without removing Kiro registration example. Acceptance:
   module docstring names agent-agnostic use; `pytest tests/test_mcp_server.py -q`
   passes unchanged.
 
-- [ ] KE6: P-REPOS acceptance gate | priority: 87 | status: ready | by: owner | deps: KE1,KE2,KE3,KE4,KE5 | phase: P-REPOS | req: REQ-R3
+- [x] KE6: P-REPOS acceptance gate | priority: 87 | status: done | by: owner | deps: KE1,KE2,KE3,KE4,KE5 | phase: P-REPOS | req: REQ-R3
   details: add tests/test_reposition.py (or extend test_claims.py): assert
   `rg -i kiro README.md | head -1` line > 20; run full `pytest -q`; run
   docs/kiro.md example TOML blocks through load_config (smoke); no edits to
@@ -564,7 +564,7 @@ All tasks below are `status: proposed` until the owner promotes them.
 
 ### Phase P-AGENT — Named adapters + guides
 
-- [ ] KE7: named adapter presets in config | priority: 86 | status: ready | by: owner | phase: P-AGENT | req: REQ-A1
+- [x] KE7: named adapter presets in config | priority: 86 | status: done | by: owner | phase: P-AGENT | req: REQ-A1
   details: in src/kelix/config.py and adapters.py extend make_adapter/load validation
   so adapter names claude|codex|cursor|gemini resolve internally to CmdAdapter
   with preset command templates (stdlib only, no new subprocess machinery).
@@ -572,7 +572,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   unchanged. Acceptance: load_config accepts each preset name; unknown name
   still raises ConfigError; tests/test_config.py covers all four.
 
-- [ ] KE8: cursor agent guide (Kelix-verified) | priority: 85 | status: ready | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A2
+- [x] KE8: cursor agent guide (Kelix-verified) | priority: 85 | status: done | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A2
   details: create docs/agents/cursor.md with headings aligned to docs/kiro.md
   loop sections (# The headless adapter, ## Configure kelix.toml, install, auth,
   worked example init→plan→run, quirks, troubleshooting). Command template matches
@@ -581,20 +581,20 @@ All tasks below are `status: proposed` until the owner promotes them.
   TOML block in guide parses via load_config; heading list matches kiro.md
   loop sections (diff script or manual checklist in test).
 
-- [ ] KE9: claude agent guide (upstream-sourced) | priority: 84 | status: ready | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A2
+- [x] KE9: claude agent guide (upstream-sourced) | priority: 84 | status: done | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A2
   details: create docs/agents/claude.md — same heading parity as KE8; invocation
   from Claude Code CLI upstream docs; prominent **Not Kelix CI-tested — community
   corrections welcome** banner. Acceptance: TOML parses via load_config.
 
-- [ ] KE10: codex agent guide (upstream-sourced) | priority: 83 | status: ready | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A2
+- [x] KE10: codex agent guide (upstream-sourced) | priority: 83 | status: done | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A2
   details: create docs/agents/codex.md — same structure as KE9 for OpenAI Codex
   CLI; upstream-sourced banner. Acceptance: TOML parses via load_config.
 
-- [ ] KE11: gemini agent guide (upstream-sourced) | priority: 82 | status: ready | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A2
+- [x] KE11: gemini agent guide (upstream-sourced) | priority: 82 | status: done | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A2
   details: create docs/agents/gemini.md — same structure as KE9 for Gemini CLI;
   upstream-sourced banner. Acceptance: TOML parses via load_config.
 
-- [ ] KE12: init --agent wiring | priority: 81 | status: ready | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A3
+- [x] KE12: init --agent wiring | priority: 81 | status: done | by: owner | deps: KE7 | phase: P-AGENT | req: REQ-A3
   details: extend cmd_init: add `--agent <name>` argparse flag; when TTY and no
   flag, print numbered list (kiro, claude, codex, cursor, gemini, cmd, mock)
   and read choice; when non-TTY and no flag, exit 2 with error requiring
