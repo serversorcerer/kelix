@@ -9,15 +9,18 @@
   ╚═╝  ╚═╝╚══════╝╚══════╝╚═╝╚═╝  ╚═╝       ╰─╯   ╰─╯   ╰─╯   ╰─╯
 ```
 
-You can write a spec once, point any headless coding agent at it overnight,
-and return to verified commits — each gated by your repo's own test and lint
-commands, not agent promises.
+You write a well-specified goal, walk away, and come back to verified
+commits — each gated by your repo's own test and lint commands, not agent
+promises.
 
-That is not hypothetical. The dogfood proof shipped a full stdlib task-tracker
-library unattended:
-**[12/12 tasks verified-done in 12 iterations, zero failures](docs/proof/final-report.md#d1--dogfood-run-docsproofdogfood-runlog-dogfood-retrospectivemd)**
-(see the [final build report](docs/proof/final-report.md)). Reproduce the
-verify gate with `pytest tests/test_verify.py -q`.
+**Receipt:** [value demo cold run](docs/proof/value-demo.md) — goal in,
+verified commits out; reproduce with the doc's commands only.
+
+```bash
+kelix init
+kelix plan --goal-file GOAL.md   # review backlog, promote tasks to ready
+kelix run --max-iterations 25    # verified commits on a run branch
+```
 
 **The loop that climbs.** Ralph runs in circles; Kelix comes back higher.
 
@@ -35,7 +38,7 @@ an auditable trail unattended.
 > `PLAN.md`). It is honest about what it will and won't do unattended — see
 > [What Kelix will and will not do](#what-kelix-will-and-will-not-do-unattended).
 
-## 60-second quickstart
+## Install and configure
 
 ```bash
 pipx install kelix        # or: pip install kelix
@@ -43,27 +46,28 @@ pipx install kelix        # or: pip install kelix
 cd your-repo              # a git repo
 kelix init               # creates GOAL.md and .kelix/{backlog.md,memory,kelix.toml,...}
 
-# 1. Describe what you want built:
+# Describe what you want built, then plan and promote:
 $EDITOR GOAL.md
-
-# 2. Draft a roadmap + proposed backlog tasks in one iteration:
 kelix plan --goal-file GOAL.md
-
-# 3. Review, lint, and promote tasks you want the loop to run:
 kelix lint
 $EDITOR .kelix/backlog.md   # change status: proposed -> ready
 
-# 4. Tell it what "done" means — the verification gate:
+# Tell it what "done" means — the verification gate:
 $EDITOR .kelix/kelix.toml   # set [verify] commands = ["pytest -q", "ruff check ."]
 
-# 5. Run overnight — verified commits on a run branch:
+# Run overnight — verified commits on a run branch:
 kelix run --max-iterations 25
 
 # ...and if you want to see it think, from another terminal:
 kelix watch                 # live stream of the agent working; ctrl-c detaches
 ```
 
-Already have a backlog? Skip steps 1–3 and edit `.kelix/backlog.md` directly.
+Already have a backlog? Skip plan and edit `.kelix/backlog.md` directly.
+
+The dogfood proof shipped a full stdlib task-tracker library unattended:
+**[12/12 tasks verified-done in 12 iterations, zero failures](docs/proof/final-report.md#d1--dogfood-run-docsproofdogfood-runlog-dogfood-retrospectivemd)**
+(see the [final build report](docs/proof/final-report.md)). Reproduce the
+verify gate with `pytest tests/test_verify.py -q`.
 
 Each iteration: a fresh agent reads the backlog + git log, picks the one
 highest-priority task, implements it, and Kelix **re-runs your verify commands**

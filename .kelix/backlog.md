@@ -875,7 +875,7 @@ Owner decisions: `.kelix/phases/V-CUT/CONTEXT.md`. All tasks below are
   Embed reproduction commands at top of doc. Acceptance: another agent can
   reproduce by following only value-demo.md commands; doc links receipt paths.
 
-- [ ] KV17: README value sentence and demo link | priority: 39 | status: ready | by: owner | deps: KV16 | phase: V-PROOF | req: REQ-VP3
+- [x] KV17: README value sentence and demo link | priority: 39 | status: done | by: owner | deps: KV16 | phase: V-PROOF | req: REQ-VP3
   details: rewrite README.md first screen (before install details): lead with
   value sentence ("you write a well-specified goal, walk away, and come back to
   verified commits"), link to docs/proof/value-demo.md as the receipt, then
