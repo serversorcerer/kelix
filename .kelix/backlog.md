@@ -947,7 +947,7 @@ Owner context: `.kelix/phases/DRIFT-FIX/CONTEXT.md`. Fleet config:
   prompt.py contains no standalone "PRs" in security rules; tests/test_prompt.py
   or test_injection_drill still pass.
 
-- [ ] DR7: gitutil and fleet verifier role strings | priority: 89 | status: ready | by: owner | phase: DRIFT-FIX | req: REQ-DR3
+- [x] DR7: gitutil and fleet verifier role strings | priority: 89 | status: done | by: owner | phase: DRIFT-FIX | req: REQ-DR3
   details: src/kelix/gitutil.py assert_not_protected message (~line 113): replace
   "opens PRs" with "uses kelix/* run branches". src/kelix/fleet.py DEFAULT_ROLES
   verifier prompt (~line 42): replace "branches or PRs" and `gh pr list` optional

@@ -39,8 +39,8 @@ BUILTIN_ROLES: dict[str, str] = {
     ),
     "verifier": (
         "Role: verifier. Prefer tasks that write or strengthen tests. Also: "
-        "each iteration, look at open kelix/* branches or PRs (`git branch -a`, "
-        "`gh pr list` if available); if you find problems in another agent's "
+        "each iteration, look at open kelix/* run branches (`git branch -a`); "
+        "if you find problems in another agent's "
         "work, leave a review note as a new file in .kelix/fleet/mailbox/ "
         "named <timestamp>-verifier.md describing the issue and the branch. "
         "When branches conflict, rebase and flag in the mailbox — never "
