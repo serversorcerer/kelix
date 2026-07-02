@@ -39,6 +39,8 @@ adapter = "kiro"          # kiro | cmd | mock
 [loop]
 max_iterations = 25
 circuit_breaker_threshold = 3
+# diagnose_transcript_chars = 50000   # kelix diagnose transcript budget
+# diagnose_default_runs = 3             # kelix diagnose --last N default
 
 [verify]
 # Commands that define "done". All must exit 0.

@@ -1,10 +1,10 @@
 # Kelix state
 
 - milestone: v0.3 — The Self-Tuning Loop
-- phase: T-METRICS
+- phase: T-DIAGNOSE
 - current_task: selecting
-- last_task: ST5
-- last_verified_commit: bc1e6f0
-- done: 33
+- last_task: ST7
+- last_verified_commit: 6edd6b3
+- done: 34
 - total: 101
 - blockers:

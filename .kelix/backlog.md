@@ -353,7 +353,7 @@ All tasks below are `status: proposed` until the owner promotes them.
 
 ### Phase T-DIAGNOSE — periodic self-review
 
-- [ ] ST7: diagnose config keys | priority: 51 | status: ready | by: owner | deps: ST4 | phase: T-DIAGNOSE | req: REQ-TD2
+- [x] ST7: diagnose config keys | priority: 51 | status: done | by: owner | deps: ST4 | phase: T-DIAGNOSE | req: REQ-TD2
   details: extend LoopConfig in config.py with diagnose_transcript_chars: int =
   50000 and diagnose_default_runs: int = 3; parse from [loop] in kelix.toml;
   document in CONFIG_TEMPLATE comment. tests/test_config.py: defaults and
