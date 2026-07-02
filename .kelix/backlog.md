@@ -713,7 +713,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   Test: mock adapter planning fixture goal with two phases → interview output
   contains ≥2 acceptance-themed questions.
 
-- [ ] KE32: GOAL template + lint tagline | priority: 61 | status: ready | by: owner | deps: KE24 | phase: P-GOLD | req: REQ-GD3
+- [x] KE32: GOAL template + lint tagline | priority: 61 | status: done | by: owner | deps: KE24 | phase: P-GOLD | req: REQ-GD3
   details: update GOAL_TEMPLATE in cli.py to include one-line "Gold in, diamonds
   out." principle; update run spec-gate and kelix lint stderr banner to use
   canon tagline once (retire slop pairing from gate message). Test: init creates

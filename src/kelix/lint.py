@@ -14,6 +14,8 @@ PLAN_ARTIFACTS = (
     ".kelix/backlog.md",
 )
 
+INPUT_QUALITY_TAGLINE = "Gold in, diamonds out."
+
 ACCEPTANCE_SIGNAL = re.compile(
     r"(?i)"
     r"(?:\btests?\b|\bassert\b|\bexit(?:s|[- ]code)?\b|\bround[- ]trip\b"
@@ -86,6 +88,7 @@ def format_spec_gate_findings(findings: list[Finding]) -> list[str]:
     """Actionable spec-gate output with one good/bad example per rule."""
     lines = [
         "spec gate: status: ready tasks must pass kelix lint before kelix run",
+        INPUT_QUALITY_TAGLINE,
         "",
     ]
     seen_rules: set[str] = set()

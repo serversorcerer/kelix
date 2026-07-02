@@ -582,6 +582,7 @@ def test_spec_gate_blocks_vague_ready_task(repo, capsys):
     assert len(result.iterations) == 0
     err = capsys.readouterr().err
     assert "spec gate:" in err
+    assert err.count("Gold in, diamonds out.") == 1
     assert "T1:" in err
     assert "bad:" in err
     assert "good:" in err
