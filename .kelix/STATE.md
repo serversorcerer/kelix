@@ -4,7 +4,7 @@
 - phase: P-GOLD
 - current_task: selecting
 - last_task: KE29
-- last_verified_commit: pending
+- last_verified_commit: bd64f6d
 - done: 85
 - total: 106
 - blockers:
