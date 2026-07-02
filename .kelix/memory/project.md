@@ -273,6 +273,13 @@ Durable facts about this repo for future iterations.
   agentskills.io frontmatter via `_parse_skill`); transcript at
   `.kelix/runs/<id>/distill/distill.log`. Skipped when `fleet_id` set — fleet
   calls `run_fleet_distillation` once after `_write_fleet_retrospective`.
+- GOTCHA: ship-gate / worktree CLI invocations — there is no `kelix.__main__`;
+  use `$KELIX_VENV/kelix` (or `kelix.cli:main`) with `PYTHONPATH=src`, not
+  `python -m kelix`. Proof-step mock adapters (e.g. `.kelix/st19b-mock/`) live
+  under gitignored `.kelix/*`; temporarily set `[agent] adapter=mock` and
+  `[git] isolation=none` in `.kelix/kelix.toml`, run the subcommand, restore.
+  Diagnosis output under `.kelix/memory/diagnosis-*.md` is also gitignored —
+  path is recorded in DECISIONS.md; file persists in the run worktree for ST19c.
 
 ## Run 20260702-120914 (max_iterations)
 10 iterations, 9 verified. Failures: agent exit 143 (timeout); verification failed.
