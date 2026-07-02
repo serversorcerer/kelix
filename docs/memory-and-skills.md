@@ -179,6 +179,8 @@ Per-iteration rows still carry `fleet_id` and distinct `agent_id` values; the su
 
 - **`proposal_outcomes[]`** — populated when the owner merges or closes a tuning PR (`kelix propose` / ST14). Each entry records `proposal_id`, `merge_sha` or `close_reason`, the agent's `prediction`, optional `merged_at_run_id` (last pre-merge run for windowing), and a post-merge `grade` (`improved`, `regressed`, or `inconclusive`). Record with `kelix propose --record-merge <sha>` (or `--record-close`); re-grade with `kelix metrics grade-proposal --proposal-id <id>`. Grade compares verified rate and retry/breaker counts in the last five runs before merge vs the next five after; inconclusive when fewer than three post-merge runs exist.
 
+- **`skill_efficacy{}`** — recomputed on every retrospective append from all `iterations[]` rows. Maps each skill basename (any name ever present in `skills_injected`) to `{with_rate, without_rate, matched_tasks}`: verified rate on rows where the skill was in the context manifest's skills slot vs rows where it was not (only rows with a non-empty `task_id` and a scored `verified` field count). See [Skill distillation](#skill-distillation) for how injection is recorded.
+
 Implementation: `src/kelix/metrics.py` (`load_metrics`, `save_metrics`, `append_run_metrics`). Rows accumulate on `RunResult.ledger_rows` during the run and merge into `loop-metrics.json` immediately after `write_retrospective` in `loop.py` (fleet equivalent in `fleet.py`).
 
 ## Retrospectives
@@ -213,3 +215,52 @@ learnings are distilled to files that future iterations load, and because
 skills are committed, humans review them in PRs like any other change. Skills
 use the same format Kiro reads, so curated ones can be copied into
 `.kiro/skills/` for interactive sessions to benefit too.
+
+## Skill distillation
+
+Agent self-acquisition during iterations (above) rarely produced skills in
+early proof runs — the runner now owns a **distillation pass** after each run's
+retrospective when `[memory].distill_skills = true` (default; requires
+`memory.enabled = true`).
+
+### When it runs
+
+Immediately after `write_retrospective` in `loop.py` (solo) or after all fleet
+agents finish in `fleet.py`, the runner invokes the configured adapter **once**
+with a fixed prompt (`DISTILLATION_TEMPLATE` in `prompt.py`) built from:
+
+- iteration transcripts under `.kelix/runs/<run-id>/iter-*.log` (fleet: all
+  agents concatenated);
+- per-iteration outcomes from the run (`rationale -> verified | ok | FAIL`).
+
+Distillation failures are logged and never change run status — the same rule as
+metrics rollup.
+
+### What the agent may write
+
+Only paths under `.kelix/skills/_proposed/<kebab-name>/SKILL.md`. The runner
+validates the git diff against that allowlist, requires agentskills.io YAML
+frontmatter (`name:`, `description:`), caps at **three** candidates per run
+(extras dropped with a warning), and checkpoints valid candidates on the run
+branch. Transcripts land in `.kelix/runs/<run-id>/distill/distill.log`.
+
+Candidates under `_proposed/` are **excluded** from the skills digest (see
+[The three layers](#3-skills---kelixskillsnameskillmd)) until the owner
+**promotes** them: move the folder to `.kelix/skills/<name>/` and commit.
+Promotion is manual — no auto-merge into the injected set.
+
+### Efficacy measurement
+
+Each iteration's context manifest (`.kelix/runs/<run-id>/context-<n>.json`)
+records which skills entered the prompt's skills slot. The runner copies those
+basenames into `IterationLedgerRow.skills_injected` on the ledger row.
+
+On every retrospective append, `append_run_metrics` recomputes
+`skill_efficacy` in `loop-metrics.json`: for each skill name, compare
+`verified_rate` on iterations where the skill was injected vs iterations where
+it was not (matched rows only — non-empty `task_id`, scored `verified`). Use
+this rollup to decide whether a promoted skill is worth keeping; it is
+diagnostic data, not an automatic promotion gate.
+
+Disable the pass with `distill_skills = false` in `.kelix/kelix.toml` when you
+want runs to finish without an extra adapter invocation.

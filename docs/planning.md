@@ -189,8 +189,10 @@ started with the init template and never promoted it.
 | `kelix lint` | Machine-check backlog and roadmap before promoting |
 | `kelix run` | One verified task per iteration |
 | `kelix status` | Milestone, phase, REQ coverage, fleet claims, waves |
+| `kelix diagnose` | *(secondary)* Review failed runs; write `.kelix/memory/diagnosis-*.md` |
+| `kelix propose` | *(secondary)* Tuning PR from metrics + diagnosis; owner records merge/grade |
 
 Further reading: [quickstart.md](quickstart.md) (install and verify gate),
 [prioritization.md](prioritization.md) (selection order and priority bands),
 [fleet.md](fleet.md) (parallel agents and claims),
-[memory-and-skills.md](memory-and-skills.md) (context compiler and manifests).
+[memory-and-skills.md](memory-and-skills.md) (context compiler, distillation, manifests).

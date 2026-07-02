@@ -505,7 +505,7 @@ All tasks below are `status: proposed` until the owner promotes them.
   plus a graded `proposal_outcomes[]` entry. Acceptance: `kelix lint` exit 0;
   `pytest -q` pass.
 
-- [ ] ST20: skill distillation documentation | priority: 38 | status: ready | by: owner | deps: ST18 | phase: T-SKILLS | req: REQ-TS1, REQ-TS2, REQ-TS4
+- [x] ST20: skill distillation documentation | priority: 38 | status: done | by: owner | deps: ST18 | phase: T-SKILLS | req: REQ-TS1, REQ-TS2, REQ-TS4
   details: extend docs/memory-and-skills.md with "Skill distillation" section:
   runner-owned pass after retrospective, _proposed/ promotion flow, efficacy
   fields in loop-metrics.json. Link from docs/planning.md quick reference table
