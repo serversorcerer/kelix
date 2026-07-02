@@ -246,7 +246,7 @@ Every task below names its phase and the REQ it covers in `details:`.
   prints then sleeps past the inactivity window is reaped and marked; a
   slow-but-chatty script survives.
 
-- [ ] PC19: role-match visibility in fleet retrospectives | priority: 68 | status: ready | by: owner | deps: PC5 | phase: P-HARDEN | req: REQ-H3
+- [x] PC19: role-match visibility in fleet retrospectives | priority: 68 | status: done | by: owner | deps: PC5 | phase: P-HARDEN | req: REQ-H3
   rationale: [P-HARDEN/REQ-H3] session 1's verifier built a feature — allowed, but the owner should see role drift, not archaeology it
   details: tag tasks with an optional kind derived from phase/title
   heuristics (test/docs/feature/fix) in fleet.py; _write_fleet_retrospective

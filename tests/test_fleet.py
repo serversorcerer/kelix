@@ -6,15 +6,21 @@ import re
 import pytest
 from conftest import make_repo, write_mock_script
 
+from kelix.backlog import Task
 from kelix.claims import list_claims
 from kelix.config import load_config
 from kelix.fleet import (
+    FleetAgent,
     FleetError,
+    FleetSpec,
+    _write_fleet_retrospective,
+    infer_task_kind,
     load_fleet_spec,
     make_claim_hook,
     render_status,
     run_fleet,
 )
+from kelix.loop import IterationRecord, RunResult
 
 FLEET_TOML = """\
 [fleet]
@@ -270,3 +276,67 @@ def test_render_status_phase_gate_coverage(tmp_path):
     assert "REQ-G3     in-progress  T3" in out
     assert "Blockers:" in out
     assert "REQ-G3" in out.split("Blockers:")[1]
+
+
+def test_infer_task_kind_heuristics():
+    base = dict(priority=50, status="ready", by="owner")
+    assert infer_task_kind(Task("T1", "add unit tests for module", **base)) == "test"
+    assert infer_task_kind(Task("T2", "write planning documentation", **base)) == "docs"
+    assert infer_task_kind(Task("T3", "fix broken build", **base)) == "fix"
+    assert infer_task_kind(Task("T4", "add priority field to backlog", **base)) == "feature"
+
+
+def test_fleet_retrospective_reports_role_drift(tmp_path):
+    repo = make_repo(tmp_path / "repo")
+    backlog = """\
+# Backlog
+
+- [ ] T1: add unit tests for module | priority: 90 | status: ready | by: owner
+- [ ] T2: write planning documentation | priority: 80 | status: ready | by: owner
+"""
+    (repo / ".kelix" / "backlog.md").write_text(backlog)
+    (repo / "kelix.toml").write_text("[agent]\nadapter = \"mock\"\n")
+    cfg = load_config(repo)
+
+    spec = FleetSpec(
+        agents=[
+            FleetAgent(id="verifier-1", role="verifier"),
+            FleetAgent(id="scribe-1", role="scribe"),
+        ]
+    )
+    results = {
+        "verifier-1": RunResult(
+            run_id="run-v",
+            status="completed",
+            branch="kelix/run-v",
+            iterations=[
+                IterationRecord(
+                    index=1,
+                    started_at="2026-07-02T00:00:00",
+                    rationale="T2 — scribe task claimed by verifier",
+                    verified=True,
+                ),
+            ],
+        ),
+        "scribe-1": RunResult(
+            run_id="run-s",
+            status="completed",
+            branch="kelix/run-s",
+            iterations=[
+                IterationRecord(
+                    index=1,
+                    started_at="2026-07-02T00:00:00",
+                    rationale="T1 — test task claimed by scribe",
+                    verified=True,
+                ),
+            ],
+        ),
+    }
+    _write_fleet_retrospective(cfg, spec, results, {})
+
+    retros = list((cfg.kelix_dir / "runs").glob("fleet-*.md"))
+    assert retros
+    body = retros[0].read_text()
+    assert "role-match: no (verifier vs docs)" in body
+    assert "role-match: no (scribe vs test)" in body
+    assert "role drift: 1/1 iterations" in body

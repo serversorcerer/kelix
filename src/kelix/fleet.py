@@ -9,6 +9,7 @@ Everything `kelix status` shows is derived from these files plus git.
 
 from __future__ import annotations
 
+import re
 import threading
 import time
 import tomllib
@@ -19,7 +20,13 @@ from .backlog import Task, parse_backlog, select_next, waves
 from .claims import claim_task, list_claims, mark_claim_done
 from .config import Config
 from .gitutil import git
-from .loop import Runner, RunResult
+from .loop import (
+    FROM_COMMIT_RATIONALE_PREFIX,
+    TASK_FROM_RATIONALE_RE,
+    IterationRecord,
+    Runner,
+    RunResult,
+)
 from .roadmap import coverage, load_roadmap
 from .state import load_state
 
@@ -57,6 +64,25 @@ FLEET_ROLE_COMMON = (
     "<timestamp>-<your-role>.md. If you write a new skill, also copy it to "
     ".kelix/fleet/skills/<name>/SKILL.md so other agents see it immediately."
 )
+
+_TASK_KIND_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
+    ("test", re.compile(r"\btests?\b", re.I)),
+    (
+        "docs",
+        re.compile(
+            r"\b(docs?|documentation|changelog|readme|retrospective|planning)\b",
+            re.I,
+        ),
+    ),
+    ("fix", re.compile(r"\b(fix|broken|blocker|flake|failing)\b", re.I)),
+]
+
+ROLE_PREFERRED_KINDS: dict[str, frozenset[str]] = {
+    "builder": frozenset({"feature"}),
+    "verifier": frozenset({"test"}),
+    "fixer": frozenset({"fix"}),
+    "scribe": frozenset({"docs"}),
+}
 
 
 @dataclass
@@ -218,6 +244,59 @@ def run_fleet(cfg: Config, config_file: str, max_iterations: int | None = None) 
     return 1 if failed else 0
 
 
+def infer_task_kind(task: Task) -> str:
+    """Heuristic task kind from title and phase (test/docs/fix/feature)."""
+    text = f"{task.title} {task.phase}".strip()
+    for kind, pattern in _TASK_KIND_PATTERNS:
+        if pattern.search(text):
+            return kind
+    return "feature"
+
+
+def _task_id_from_rationale(rationale: str) -> str:
+    if not rationale:
+        return ""
+    text = rationale.strip()
+    if text.startswith(FROM_COMMIT_RATIONALE_PREFIX):
+        text = text[len(FROM_COMMIT_RATIONALE_PREFIX) :].strip()
+    match = TASK_FROM_RATIONALE_RE.match(text)
+    return match.group(1).rstrip("—") if match else ""
+
+
+def _role_match_label(role: str, task: Task | None) -> str:
+    if task is None:
+        return ""
+    kind = infer_task_kind(task)
+    preferred = ROLE_PREFERRED_KINDS.get(role)
+    if preferred is None:
+        return f"; role-match: n/a ({role} vs {kind})"
+    matched = kind in preferred
+    verdict = "yes" if matched else "no"
+    return f"; role-match: {verdict} ({role} vs {kind})"
+
+
+def _count_role_drift(
+    role: str, iterations: list[IterationRecord], tasks_by_id: dict[str, Task]
+) -> tuple[int, int]:
+    """Return (drift_count, scored_iterations) for a built-in role."""
+    preferred = ROLE_PREFERRED_KINDS.get(role)
+    if preferred is None:
+        return 0, 0
+    drift = 0
+    scored = 0
+    for rec in iterations:
+        task_id = _task_id_from_rationale(rec.rationale)
+        if not task_id:
+            continue
+        task = tasks_by_id.get(task_id)
+        if task is None:
+            continue
+        scored += 1
+        if infer_task_kind(task) not in preferred:
+            drift += 1
+    return drift, scored
+
+
 def _write_fleet_retrospective(
     cfg: Config,
     spec: FleetSpec,
@@ -227,6 +306,14 @@ def _write_fleet_retrospective(
     out_dir = cfg.kelix_dir / "runs"
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / f"fleet-{time.strftime('%Y%m%d-%H%M%S')}.md"
+    backlog_path = cfg.root / cfg.loop.plan_file
+    tasks_by_id: dict[str, Task] = {}
+    if backlog_path.is_file():
+        tasks_by_id = {
+            task.id: task
+            for task in parse_backlog(backlog_path.read_text(encoding="utf-8"))
+        }
+
     lines = ["# Fleet retrospective", ""]
     for agent in spec.agents:
         lines.append(f"## {agent.id} ({agent.role})")
@@ -240,7 +327,16 @@ def _write_fleet_retrospective(
             outcome = f"FAIL ({rec.failure})" if rec.failure else (
                 "verified" if rec.verified else "ok"
             )
-            lines.append(f"  - iter {rec.index}: {rec.rationale or '(none)'} -> {outcome}")
+            task_id = _task_id_from_rationale(rec.rationale)
+            task = tasks_by_id.get(task_id) if task_id else None
+            role_match = _role_match_label(agent.role, task)
+            lines.append(
+                f"  - iter {rec.index}: {rec.rationale or '(none)'} -> {outcome}"
+                f"{role_match}"
+            )
+        drift, scored = _count_role_drift(agent.role, r.iterations, tasks_by_id)
+        if scored:
+            lines.append(f"- role drift: {drift}/{scored} iterations")
         lines.append("")
     lines.append("## Task claims at end of fleet run")
     for claim in list_claims(cfg.kelix_dir):

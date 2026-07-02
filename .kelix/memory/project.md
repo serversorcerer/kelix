@@ -166,6 +166,12 @@ Durable facts about this repo for future iterations.
   claim wave N+1 work while wave N is unfinished (even if wave N is claimed but
   not done). `render_status` prints a "Pending tasks (waves):" section with
   each non-done task's wave index. Tests in `tests/test_fleet.py`.
+- Fleet role-match reporting (`fleet.infer_task_kind`, `_write_fleet_retrospective`):
+  task kind is inferred from title/phase heuristics (test/docs/fix/feature);
+  built-in roles map to preferred kinds (builder→feature, verifier→test,
+  fixer→fix, scribe→docs). Fleet retrospectives append per-iteration
+  `role-match: yes/no (role vs kind)` and a per-agent `role drift: N/M`
+  line. Selection unchanged — reporting only. Tests in `tests/test_fleet.py`.
 - OWNER PRINCIPLE (communication): good input in, good output out — slop in,
   slop out. All owner-facing text this project produces (backlog tasks, PRD
   templates, docs, prompts, retrospectives) must be precise and legible to
