@@ -73,5 +73,5 @@ itself. Record the switchover in DECISIONS.md.
 
 - [ ] D1: Dogfood: sample project, 10+ task backlog, --max-iterations 25 unattended; >=3 mergeable PRs, coherent memory, accurate retrospective
 - [ ] D2: Fleet proof: 3-agent fleet (builder, verifier, scribe); zero claim collisions; verifier reviewed a builder PR
-- [ ] D3: Injection drill: poisoned fixture treated as data (proof from logs)
+- [x] D3: Injection drill: poisoned fixture treated as data (evidence: test_injection_drill.py — sanitizer flags, policy blocks push-to-main/curl|sh, prompt declares data, e2e run leaves main untouched + files SEC1)
 - [ ] D4: Final report
