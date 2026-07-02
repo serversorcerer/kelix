@@ -1,0 +1,28 @@
+# Example fleet configuration. Copy to .kalph/fleet.toml and run `kalph fleet`.
+# Each agent is an independent Kalph loop in its own worktree/branch. They
+# coordinate ONLY through files under .kalph/fleet/ (claims, mailbox, shared
+# skills) — no message bus, no RPC.
+
+[fleet]
+max_iterations = 15
+stale_claim_s = 900        # a claim with no heartbeat for this long is reclaimable
+
+[[agents]]
+id = "builder-1"
+role = "builder"           # features/implementation
+
+[[agents]]
+id = "builder-2"
+role = "builder"
+
+[[agents]]
+id = "verifier-1"
+role = "verifier"          # strengthens tests, reviews other agents' branches
+
+[[agents]]
+id = "scribe-1"
+role = "scribe"            # docs, changelog, retrospectives
+
+# Roles are data, not code. Define your own by giving it a prompt:
+# [roles.security-auditor]
+# prompt = "Role: security auditor. Prefer tasks tagged security; scan diffs for secrets and injection."

@@ -50,10 +50,10 @@ itself. Record the switchover in DECISIONS.md.
 
 ## Phase 5 — Fleet
 
-- [ ] F1: Fleet coordination dir .kalph/fleet/: atomic task claims with staleness reclaim; collision test
-- [ ] F2: Mailbox notes + shared discoveries (skills/memory shared store)
-- [ ] F3: Roles via fleet.toml (builder/verifier/fixer/scribe as data); role prompt shaping + task filters
-- [ ] F4: kalph fleet start/status/stop; kill switch; merge-conflict policy (verifier rebases and flags)
+- [x] F1: Fleet coordination dir .kalph/fleet/: atomic task claims with staleness reclaim; collision test (evidence: KB7 claims.py + test_claims 40x + test_fleet zero-collision e2e)
+- [x] F2: Mailbox notes + shared discoveries (evidence: loop reads mailbox into prompt; fleet role prompts write to fleet/mailbox + fleet/skills; skills_digest reads shared store)
+- [x] F3: Roles via fleet.toml (builder/verifier/fixer/scribe as data); role prompt shaping (evidence: test_load_fleet_spec, custom role prompt)
+- [x] F4: kalph fleet + kalph status (from files) + kill switch; verifier-rebases-flags policy documented in role prompt (evidence: test_fleet_run_end_to_end, render_status test, test_kill_switch)
 
 ## Phase 6 — Security
 

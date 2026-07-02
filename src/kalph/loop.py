@@ -65,10 +65,20 @@ def _extract_rationale(output: str) -> str:
 
 
 class Runner:
-    def __init__(self, cfg: Config, role: str = "", agent_id: str = "solo"):
+    def __init__(
+        self,
+        cfg: Config,
+        role: str = "",
+        agent_id: str = "solo",
+        pre_iteration=None,
+    ):
         self.cfg = cfg
         self.role = role
         self.agent_id = agent_id
+        # Optional hook(workdir, index) -> str | None. Returns extra role text
+        # for this iteration (fleet mode uses it to pin a claimed task), or
+        # None to signal there is no eligible work left for this agent.
+        self.pre_iteration = pre_iteration
 
     # -- setup ---------------------------------------------------------------
 
@@ -142,6 +152,8 @@ class Runner:
             )
 
         run_id = time.strftime("%Y%m%d-%H%M%S")
+        if self.agent_id != "solo":
+            run_id = f"{run_id}-{self.agent_id}"
         cap = max_iterations or cfg.loop.max_iterations
         run_dir = cfg.kalph_dir / "runs" / run_id
         run_dir.mkdir(parents=True, exist_ok=True)
@@ -160,6 +172,14 @@ class Runner:
                 result.diagnosis = "kill switch (.kalph/STOP) present"
                 break
 
+            role_extra = ""
+            if self.pre_iteration is not None:
+                role_extra = self.pre_iteration(workdir, index)
+                if role_extra is None:
+                    result.status = "completed"
+                    result.diagnosis = "no eligible tasks left for this agent"
+                    break
+
             rec = IterationRecord(
                 index=index, started_at=time.strftime("%Y-%m-%dT%H:%M:%S")
             )
@@ -169,6 +189,8 @@ class Runner:
             sha_before = head_sha(workdir)
 
             context = self._gather_context(workdir)
+            if role_extra:
+                context["role"] = (context["role"] or "") + "\n" + role_extra
             prompt = assemble_prompt(template, cfg, **context)
 
             try:

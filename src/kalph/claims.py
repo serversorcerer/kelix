@@ -122,6 +122,20 @@ def release_claim(kalph_dir: Path | str, task_id: str, agent_id: str) -> bool:
     return True
 
 
+def mark_claim_done(kalph_dir: Path | str, task_id: str, agent_id: str) -> bool:
+    """Flag an owned claim as done (fleet-wide completion signal that
+    survives branch divergence). Idempotent; returns False if not owned."""
+    path = _claim_path(Path(kalph_dir), task_id)
+    claim = _read_claim(path)
+    if claim is None or claim.get("agent") != agent_id:
+        return False
+    if not claim.get("done"):
+        claim["done"] = True
+        claim["heartbeat"] = time.time()
+        _write_claim_atomic(path, claim)
+    return True
+
+
 def is_claimed(
     kalph_dir: Path | str,
     task_id: str,
