@@ -172,6 +172,36 @@ Durable facts about this repo for future iterations.
   fixer→fix, scribe→docs). Fleet retrospectives append per-iteration
   `role-match: yes/no (role vs kind)` and a per-agent `role drift: N/M`
   line. Selection unchanged — reporting only. Tests in `tests/test_fleet.py`.
+- Loop metrics schema (`src/kelix/metrics.py`): `LoopMetrics` with
+  `iterations[]`, `fleet_summaries[]`, `proposal_outcomes[]`; each
+  `IterationLedgerRow` carries run_id, iteration, task_id, verified,
+  retry_count, duration_s, failure, circuit_breaker_cause, agent_id,
+  fleet_id, backlog_lint, skills_injected, tokens always null. `load_metrics` /
+  `save_metrics` tolerate missing/corrupt JSON. Tests in `tests/test_metrics.py`.
+- Per-iteration ledger capture (`loop.Runner`): after each iteration appends an
+  `IterationLedgerRow` to `RunResult.ledger_rows`; task_id from
+  `_task_from_rationale` or current_task; retry_count = prior rows in this run
+  with the same task_id; on circuit breaker, last N rows get
+  `circuit_breaker_cause=consecutive_failures:N`. `Runner(..., fleet_id="")`
+  for solo runs (ST5 wires fleet). Rows held until ST4 retrospective rollup.
+  Tests in `tests/test_loop.py`.
+- Backlog lint on agent edits (`lint.kelix_proposed_edits`, `lint_backlog_edits`,
+  `loop.Runner._backlog_lint_if_dirty`): when `.kelix/backlog.md` differs from
+  the pre-iteration snapshot, lint only kelix `proposed` tasks that were added
+  or had details/rationale/deps changed; aggregate `{rule_id: count}` onto the
+  iteration's `IterationLedgerRow.backlog_lint`. Tests in `tests/test_lint.py`
+  and `tests/test_loop.py`.
+- Metrics rollup at retrospective (`metrics.append_run_metrics`, `metrics_path`):
+  after `write_retrospective` in `loop.Runner._finish`, merge `RunResult.ledger_rows`
+  into `.kelix/memory/loop-metrics.json` (append, never clobber prior runs).
+  Optional `fleet_summary` arg reserved for ST5. File is in `RUNNER_BOOKKEEPING`
+  alongside episodes.jsonl. Tests in `tests/test_loop.py` and `tests/test_metrics.py`.
+- Fleet metrics aggregation (`fleet.fleet_id_from_config`, `compute_fleet_summary`,
+  `run_fleet`): `fleet_id` is the fleet config path stem (e.g. `.kelix/fleet.toml`
+  → `fleet`); passed into each agent's `Runner`. Per-agent iteration rows still
+  rollup in `Runner._finish`; at fleet completion `run_fleet` appends one
+  `FleetSummaryRow` (run_ids, verified_rate, iteration_count, breaker_trips) via
+  `append_run_metrics(cfg, [], fleet_summary=...)`. Tests in `tests/test_fleet.py`.
 - Planning guide lives in `docs/planning.md` (plan-first flow, roadmap→phase→task
   hierarchy, STATE.md schema, lint, phase gate, waves, flat-backlog quick path).
   Linked from README Documentation and `docs/index.md`. `kelix init` writes
@@ -210,3 +240,11 @@ Durable facts about this repo for future iterations.
 
 ## Run 20260702-104227 (max_iterations)
 10 iterations, 10 verified. Failures: agent exit 124 (timeout).
+- `kelix diagnose` transcript loader (`diagnose.load_failed_transcripts`) reads
+  loop runner files at `.kelix/runs/<run_id>/iter-<n>.log` (not
+  `transcript-<n>.txt`); sections are headed by run/iteration/task; char budget
+  from `[loop].diagnose_transcript_chars` with `[... truncated to N chars]`
+  marker when exceeded; missing files skipped.
+
+## Run 20260702-120914 (max_iterations)
+10 iterations, 9 verified. Failures: agent exit 143 (timeout); verification failed.

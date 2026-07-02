@@ -36,6 +36,9 @@ class LoopConfig:
     circuit_breaker_threshold: int = 3
     plan_file: str = ".kelix/backlog.md"
     prompt_file: str = ".kelix/prompts/iteration.md"
+    # kelix diagnose: max chars of failed transcripts to inject; default run count.
+    diagnose_transcript_chars: int = 50000
+    diagnose_default_runs: int = 3
 
 
 @dataclass

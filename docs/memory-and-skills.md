@@ -115,6 +115,70 @@ path, char count, and relevance score (when query-driven). Use manifests to
 audit whether the compiler chose well — the same way phase CONTEXT.md makes
 decisions auditable.
 
+## Outcome ledger
+
+Kelix keeps **two** gitignored files under `.kelix/memory/` for iteration
+outcomes (only `project.md` is committed):
+
+| File | Role |
+|------|------|
+| **`episodes.jsonl`** | Raw append-only stream — one JSON object per iteration, written as each iteration finishes. Human-readable digest input; corrupt lines are skipped. |
+| **`loop-metrics.json`** | Runner-maintained rollup — structured ledger merged at **retrospective** time (`append_run_metrics` in `metrics.py`). Used by `kelix diagnose` and `kelix propose` for self-tuning. |
+
+Do not drop either stream: episodes feed the prompt's recent-history digest;
+loop-metrics is the queryable, machine-checked ledger across runs.
+
+### `loop-metrics.json` schema
+
+Top-level object (`schema_version: 1`):
+
+- **`iterations[]`** — one `IterationLedgerRow` per iteration (solo or fleet):
+
+```json
+{
+  "run_id": "20260702-120914",
+  "iteration": 3,
+  "task_id": "ST5",
+  "verified": true,
+  "retry_count": 0,
+  "duration_s": 142.1,
+  "failure": "",
+  "circuit_breaker_cause": "",
+  "agent_id": "builder-1",
+  "fleet_id": "fleet",
+  "backlog_lint": {"missing-details": 1},
+  "skills_injected": ["regenerate-api-fixtures"],
+  "tokens": null
+}
+```
+
+| Field | Meaning |
+|-------|---------|
+| `retry_count` | Prior rows in the same run with the same `task_id` (0 on first attempt). |
+| `circuit_breaker_cause` | Set when the run trips the breaker (e.g. `consecutive_failures:3`). |
+| `agent_id` / `fleet_id` | Empty for solo runs; fleet agents share a `fleet_id` (config stem, e.g. `fleet`). |
+| **`backlog_lint`** | When the agent dirties `.kelix/backlog.md`, the runner lints only **kelix** `status: proposed` tasks that were added or changed; value is `{rule_id: count}` (e.g. `missing-details`, `no-acceptance-signal`). Owner tasks are not linted onto the ledger. |
+| `skills_injected` | Basenames of skills present in the context manifest's skills slot (populated in T-SKILLS). |
+| **`tokens`** | Always `null` in v0.3. Reserved for a future optional adapter hook: a callable receiving `AgentResult` may return per-provider counts; the runner does not invoke any adapter in this milestone. |
+
+- **`fleet_summaries[]`** — appended once when a fleet run completes (not per agent retrospective):
+
+```json
+{
+  "fleet_id": "fleet",
+  "run_ids": ["20260702-120914-a", "20260702-120914-b"],
+  "verified_rate": 0.75,
+  "iteration_count": 8,
+  "breaker_trips": 0
+}
+```
+
+Per-iteration rows still carry `fleet_id` and distinct `agent_id` values; the summary row aggregates the whole fleet window.
+
+- **`proposal_outcomes[]`** — populated when the owner merges or closes a tuning PR (`kelix propose` / ST14). Each entry records `proposal_id`, `merge_sha` or `close_reason`, the agent's `prediction`, and a post-merge `grade` (`improved`, `regressed`, or `inconclusive`).
+
+Implementation: `src/kelix/metrics.py` (`load_metrics`, `save_metrics`, `append_run_metrics`). Rows accumulate on `RunResult.ledger_rows` during the run and merge into `loop-metrics.json` immediately after `write_retrospective` in `loop.py` (fleet equivalent in `fleet.py`).
+
 ## Retrospectives
 
 Every run ends with `retrospective.md` in `.kelix/runs/<run-id>/`: status,

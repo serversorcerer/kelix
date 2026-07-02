@@ -8,6 +8,8 @@ def test_defaults_when_no_file(tmp_path):
     assert cfg.agent.adapter == "kiro"
     assert cfg.loop.max_iterations == 25
     assert cfg.loop.circuit_breaker_threshold == 3
+    assert cfg.loop.diagnose_transcript_chars == 50000
+    assert cfg.loop.diagnose_default_runs == 3
     assert cfg.git.isolation == "worktree"
     assert cfg.autonomy.level == "normal"
     assert cfg.security.scrub_transcripts is True
@@ -77,3 +79,14 @@ def test_context_share_out_of_range_rejected(tmp_path):
     (tmp_path / "kelix.toml").write_text("[memory]\ncontext_share = 1.5\n")
     with pytest.raises(ConfigError, match="context_share"):
         load_config(tmp_path)
+
+
+def test_diagnose_config_overrides(tmp_path):
+    (tmp_path / "kelix.toml").write_text(
+        "[loop]\n"
+        "diagnose_transcript_chars = 12000\n"
+        "diagnose_default_runs = 5\n"
+    )
+    cfg = load_config(tmp_path)
+    assert cfg.loop.diagnose_transcript_chars == 12000
+    assert cfg.loop.diagnose_default_runs == 5

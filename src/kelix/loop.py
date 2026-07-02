@@ -26,6 +26,7 @@ from .gitutil import (
     is_repo,
     last_commit_subject,
 )
+from .metrics import IterationLedgerRow
 from .prompt import assemble_prompt, load_template, relevance_query_for_task
 from .state import State, load_state, write_state
 
@@ -57,6 +58,7 @@ class RunResult:
     branch: str = ""
     workdir: str = ""
     iterations: list[IterationRecord] = field(default_factory=list)
+    ledger_rows: list[IterationLedgerRow] = field(default_factory=list)
     diagnosis: str = ""
 
 
@@ -87,11 +89,13 @@ class Runner:
         cfg: Config,
         role: str = "",
         agent_id: str = "solo",
+        fleet_id: str = "",
         pre_iteration=None,
     ):
         self.cfg = cfg
         self.role = role
         self.agent_id = agent_id
+        self.fleet_id = fleet_id
         # Optional hook(workdir, index) -> str | None. Returns extra role text
         # for this iteration (fleet mode uses it to pin a claimed task), or
         # None to signal there is no eligible work left for this agent.
@@ -244,6 +248,68 @@ class Runner:
         match = TASK_FROM_RATIONALE_RE.match(text)
         return match.group(1).rstrip("—") if match else ""
 
+    def _ledger_task_id(self, rec: IterationRecord, current_task: str) -> str:
+        task_id = self._task_from_rationale(rec.rationale)
+        if not task_id and current_task != "selecting":
+            task_id = current_task
+        return task_id
+
+    def _backlog_snapshot(self, workdir: Path) -> tuple[str, list]:
+        from .backlog import parse_backlog
+
+        path = workdir / self.cfg.loop.plan_file
+        if not path.is_file():
+            return "", []
+        text = path.read_text(encoding="utf-8")
+        return text, parse_backlog(text)
+
+    def _backlog_lint_if_dirty(
+        self,
+        workdir: Path,
+        before_text: str,
+        before_tasks: list,
+    ) -> dict[str, int]:
+        from .backlog import parse_backlog
+        from .lint import lint_backlog_edits
+
+        path = workdir / self.cfg.loop.plan_file
+        if not path.is_file():
+            return {}
+        after_text = path.read_text(encoding="utf-8")
+        if after_text == before_text:
+            return {}
+        after_tasks = parse_backlog(after_text)
+        return lint_backlog_edits(before_tasks, after_tasks)
+
+    def _record_ledger_row(
+        self,
+        result: RunResult,
+        rec: IterationRecord,
+        current_task: str,
+        *,
+        circuit_breaker_cause: str = "",
+        backlog_lint: dict[str, int] | None = None,
+    ) -> None:
+        task_id = self._ledger_task_id(rec, current_task)
+        retry_count = sum(
+            1 for row in result.ledger_rows if row.task_id and row.task_id == task_id
+        )
+        result.ledger_rows.append(
+            IterationLedgerRow(
+                run_id=result.run_id,
+                iteration=rec.index,
+                task_id=task_id,
+                verified=rec.verified,
+                retry_count=retry_count,
+                duration_s=rec.duration_s,
+                failure=rec.failure,
+                circuit_breaker_cause=circuit_breaker_cause,
+                agent_id=self.agent_id,
+                fleet_id=self.fleet_id,
+                backlog_lint=backlog_lint or {},
+            )
+        )
+
     def _update_run_state_after_iteration(
         self,
         current_task: str,
@@ -365,6 +431,7 @@ class Runner:
             result.iterations.append(rec)
             started = time.monotonic()
             checkpoint(workdir, f"kelix: pre-iteration {index} checkpoint")
+            backlog_before_text, backlog_before_tasks = self._backlog_snapshot(workdir)
             sha_before = head_sha(workdir)
 
             context = self._gather_context(workdir, current_task)
@@ -384,6 +451,12 @@ class Runner:
                 rec.failure = f"adapter error: {exc}"
                 rec.duration_s = round(time.monotonic() - started, 1)
                 self._write_transcript(run_dir, index, prompt, rec.failure)
+                backlog_lint = self._backlog_lint_if_dirty(
+                    workdir, backlog_before_text, backlog_before_tasks
+                )
+                self._record_ledger_row(
+                    result, rec, current_task, backlog_lint=backlog_lint
+                )
                 consecutive_failures += 1
                 log(f"  iter {index}: {rec.failure}")
                 if consecutive_failures >= cfg.loop.circuit_breaker_threshold:
@@ -435,6 +508,10 @@ class Runner:
                 f"progress={rec.made_progress} verified={rec.verified} "
                 f"{'FAIL: ' + rec.failure if rec.failure else 'ok'}"
             )
+            backlog_lint = self._backlog_lint_if_dirty(
+                workdir, backlog_before_text, backlog_before_tasks
+            )
+            self._record_ledger_row(result, rec, current_task, backlog_lint=backlog_lint)
             self._save_state(run_dir, result)
 
             if rec.sentinel:
@@ -459,6 +536,9 @@ class Runner:
 
     def _trip_breaker(self, result: RunResult, run_dir: Path, failures: int):
         result.status = "circuit_breaker"
+        cause = f"consecutive_failures:{failures}"
+        for row in result.ledger_rows[-failures:]:
+            row.circuit_breaker_cause = cause
         recent = [r for r in result.iterations if r.failure][-failures:]
         lines = [
             "# Kelix circuit breaker diagnosis",
@@ -504,6 +584,13 @@ class Runner:
             )
         except Exception as exc:  # retrospective must never mask run status
             log(f"  (retrospective failed: {exc})")
+        if result.ledger_rows:
+            try:
+                from .metrics import append_run_metrics
+
+                append_run_metrics(self.cfg, result.ledger_rows)
+            except Exception as exc:  # metrics rollup must never mask run status
+                log(f"  (metrics rollup failed: {exc})")
         log(
             f"kelix run {result.run_id} finished: {result.status} "
             f"({len(result.iterations)} iterations)"

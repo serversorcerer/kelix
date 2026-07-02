@@ -39,6 +39,8 @@ adapter = "kiro"          # kiro | cmd | mock
 [loop]
 max_iterations = 25
 circuit_breaker_threshold = 3
+# diagnose_transcript_chars = 50000   # kelix diagnose transcript budget
+# diagnose_default_runs = 3             # kelix diagnose --last N default
 
 [verify]
 # Commands that define "done". All must exit 0.
@@ -281,6 +283,34 @@ def cmd_mcp(args) -> int:
     return 0
 
 
+def cmd_diagnose(args) -> int:
+    from .config import ConfigError
+    from .diagnose import DiagnoseError, DiagnoseRunner
+    from .loop import LoopError
+
+    root = Path(args.path).resolve()
+    try:
+        cfg = load_config(root)
+        result = DiagnoseRunner(cfg).run(
+            run_ids=args.run_id or None,
+            last_n=args.last,
+            diagnosis_file=args.diagnosis_file or "",
+        )
+    except (ConfigError, DiagnoseError, LoopError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+
+    from .art import say
+
+    if result.status == "completed":
+        print(say(f"diagnosis written: {result.diagnosis_path}", "ok"))
+        return 0
+
+    for finding in result.findings:
+        print(f"error: {finding}", file=sys.stderr)
+    return 1 if result.status == "validation_failed" else 2
+
+
 def cmd_sync(args) -> int:
     """Mirror tracker issues into the backlog. Non-fatal: tracker problems are
     logged and skipped, never fatal to the loop."""
@@ -365,6 +395,31 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("sync", help="mirror tracker issues into the backlog")
     p.add_argument("--path", default=".")
     p.set_defaults(func=cmd_sync)
+
+    p = sub.add_parser(
+        "diagnose",
+        help="review failed runs and write a diagnosis (owner-invoked)",
+    )
+    p.add_argument("--path", default=".")
+    p.add_argument(
+        "--run-id",
+        action="append",
+        default=[],
+        dest="run_id",
+        help="run id to include (repeatable; overrides --last)",
+    )
+    p.add_argument(
+        "--last",
+        type=int,
+        default=None,
+        help="most recent N runs with failures (default: loop.diagnose_default_runs)",
+    )
+    p.add_argument(
+        "--diagnosis-file",
+        default="",
+        help="output path (default: .kelix/memory/diagnosis-<timestamp>.md)",
+    )
+    p.set_defaults(func=cmd_diagnose)
 
     args = parser.parse_args(argv)
     return args.func(args)
