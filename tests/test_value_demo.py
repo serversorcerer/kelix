@@ -17,6 +17,9 @@ README_BANNED_PATTERNS = (
     "kelix sync",
 )
 
+QUICKSTART = ROOT / "docs" / "quickstart.md"
+SECURITY = ROOT / "docs" / "SECURITY.md"
+
 
 def test_value_demo_directory_exists():
     assert SAMPLE.is_dir()
@@ -58,3 +61,28 @@ def test_readme_no_stale_pr_or_sync_claims():
     text = README.read_text(encoding="utf-8").lower()
     for pattern in README_BANNED_PATTERNS:
         assert pattern not in text, f"README.md contains banned pattern: {pattern!r}"
+
+
+def _quickstart_happy_path_text() -> str:
+    lines = QUICKSTART.read_text(encoding="utf-8").splitlines()
+    happy: list[str] = []
+    for line in lines:
+        if line.startswith("## Operations"):
+            break
+        happy.append(line)
+    return "\n".join(happy).lower()
+
+
+def test_quickstart_happy_path_no_stale_pr_or_sync_claims():
+    """DR10: quickstart steps 1–6 must not promise --pr, kelix sync, or open PRs."""
+    text = _quickstart_happy_path_text()
+    for pattern in README_BANNED_PATTERNS:
+        assert pattern not in text, f"quickstart happy path contains banned pattern: {pattern!r}"
+
+
+def test_security_no_stale_pr_automation_claims():
+    """DR10: SECURITY summary must match post-KV3 (no --pr, sync, or PR automation)."""
+    text = SECURITY.read_text(encoding="utf-8").lower()
+    for pattern in README_BANNED_PATTERNS:
+        assert pattern not in text, f"SECURITY.md contains banned pattern: {pattern!r}"
+    assert "pr automation" not in text

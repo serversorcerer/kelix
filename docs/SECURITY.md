@@ -26,7 +26,7 @@ integrity of protected branches (main/master).
    confused iteration could exfiltrate secrets, install malware
    (`curl | sh`), force-push, or publish a package.
 3. **Secret leakage into artifacts.** Tokens could end up in transcripts,
-   memory files, commits, or PR bodies that later become public.
+   memory files, commits, or run retrospectives that later become public.
 4. **Runaway cost.** A stuck loop burning tokens indefinitely.
 
 ## Mitigations (in code, not just docs)
@@ -105,8 +105,9 @@ Kelix works on `kelix/*` branches in isolated worktrees and never pushes to
 ### Network egress
 
 `kelix.toml` documents an egress posture per run; the recommended unattended
-configuration runs the agent in a sandbox with restricted egress. Kelix itself
-makes no outbound calls except optional `gh` for PR automation.
+configuration runs the agent in a sandbox with restricted egress. The Kelix
+runner itself makes no outbound network calls — verified work lands on
+`kelix/run-*` branches for you to review and merge locally.
 
 ## Reporting a vulnerability
 

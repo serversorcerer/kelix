@@ -974,7 +974,7 @@ Owner context: `.kelix/phases/DRIFT-FIX/CONTEXT.md`. Fleet config:
 
 ### Phase DRIFT-FIX — Sizzle + gate
 
-- [ ] DR10: quickstart and SECURITY cross-check | priority: 86 | status: ready | by: owner | deps: DR1,DR3,DR4 | phase: DRIFT-FIX | req: REQ-DR4
+- [x] DR10: quickstart and SECURITY cross-check | priority: 86 | status: done | by: owner | deps: DR1,DR3,DR4 | phase: DRIFT-FIX | req: REQ-DR4
   details: read docs/quickstart.md happy-path section (steps 1–6 only) and
   docs/SECURITY.md user-facing summary — ensure no --pr, kelix sync, or "Kelix
   opens PRs" claims. SECURITY may keep "merge its own PRs" under Will-not if
