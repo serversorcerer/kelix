@@ -1016,7 +1016,7 @@ in docs/publishing.md). All tasks `status: ready`.
   sync `version` with src/kelix/__init__.py __version__. Acceptance:
   `python -m build && twine check dist/*` exit 0; no setuptools license warnings.
 
-- [ ] PUB2: publish.yml and CI package job | priority: 94 | status: ready | by: owner | deps: PUB1 | phase: PYPUBLISH | req: REQ-PB1
+- [x] PUB2: publish.yml and CI package job | priority: 94 | status: done | by: owner | deps: PUB1 | phase: PYPUBLISH | req: REQ-PB1
   details: add `.github/workflows/publish.yml`: trigger on push tags `v*`,
   permissions id-token write, environment pypi, steps build/twine check/
   pypa/gh-action-pypi-publish@release/v1; smoke `pip install dist/*.whl && kelix --help`.
