@@ -120,6 +120,8 @@ From a git repository root:
 
 ```bash
 pipx install kelix
+# until the first PyPI release lands:
+# pipx install git+https://github.com/serversorcerer/kelix.git
 cd your-repo
 
 kelix init

@@ -1,7 +1,9 @@
 # Contributing to Kelix
 
-Thanks for your interest in Kelix — the Ralph loop, rebuilt for Kiro. This
-guide covers everything you need to get a change from idea to merged PR.
+Thanks for your interest in Kelix — the loop that climbs. Kelix runs headless
+coding agents (Claude Code, Codex, Cursor, Gemini, Kiro, or your own CLI) in
+a verified-done Ralph loop. This guide covers getting a change from idea to
+review on `main`.
 
 ## Development setup
 
@@ -9,13 +11,26 @@ Kelix's core is **Python 3.11+, stdlib-only**. The only development
 dependencies are `pytest` and `ruff`. No API keys are needed: tests run
 against a mock agent adapter.
 
+**Install the CLI** (to dogfood Kelix on other repos):
+
+```bash
+pipx install kelix
+# until the first PyPI release lands:
+# pipx install git+https://github.com/serversorcerer/kelix.git
+```
+
+**Hack on Kelix itself** — clone and editable install in a venv:
+
 ```bash
 git clone https://github.com/serversorcerer/kelix.git
 cd kelix
 python -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
 ```
+
+See [docs/publishing.md](docs/publishing.md) for maintainer release steps (PyPI
+trusted publishing, version bumps, tag pushes).
 
 ## Running tests and lint
 

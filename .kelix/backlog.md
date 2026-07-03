@@ -1052,7 +1052,7 @@ in docs/publishing.md). All tasks `status: ready`.
   test_value_demo quickstart happy-path banned phrase tests pass; index links
   publishing.md.
 
-- [ ] PUB6: CONTRIBUTING and agent guide install sections | priority: 90 | status: ready | by: owner | deps: PUB5 | phase: PYPUBLISH | req: REQ-PB3
+- [x] PUB6: CONTRIBUTING and agent guide install sections | priority: 90 | status: done | by: owner | deps: PUB5 | phase: PYPUBLISH | req: REQ-PB3
   details: update CONTRIBUTING.md opening and dev setup for PyPI/git install paths;
   update install one-liner in docs/agents/cursor.md, claude.md, codex.md, gemini.md
   to `pipx install kelix` with github fallback; keep agent-specific flags. Acceptance:
