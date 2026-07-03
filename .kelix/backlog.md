@@ -1058,7 +1058,7 @@ in docs/publishing.md). All tasks `status: ready`.
   to `pipx install kelix` with github fallback; keep agent-specific flags. Acceptance:
   `rg 'pip install kelix' docs/agents` shows pipx not bare pip as primary.
 
-- [ ] PUB7: site metadata sync | priority: 89 | status: ready | by: owner | deps: PUB4 | phase: PYPUBLISH | req: REQ-PB3
+- [x] PUB7: site metadata sync | priority: 89 | status: done | by: owner | deps: PUB4 | phase: PYPUBLISH | req: REQ-PB3
   details: docs/_config.yml description matches pyproject description (no em-dash).
   Acceptance: description identical to pyproject.toml project.description.
 

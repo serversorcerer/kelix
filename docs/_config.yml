@@ -1,3 +1,3 @@
 theme: jekyll-theme-cayman
 title: Kelix
-description: The Ralph loop, rebuilt for Kiro — a stateless autonomous coding-agent loop with memory, verified-done, and fleet mode.
+description: "Kelix: the loop that climbs. A stateless autonomous agent loop for any headless coding agent (Claude Code, Codex CLI, Cursor, Gemini CLI). Kiro is the deepest integration. Persistent memory, prioritization, and fleet mode."
