@@ -1024,7 +1024,7 @@ in docs/publishing.md). All tasks `status: ready`.
   `python -m build && twine check dist/*` exit 0; CI package job runs `kelix --help`
   exit 0; publish.yml comments document trusted publishing setup.
 
-- [ ] PUB3: docs/publishing.md maintainer runbook | priority: 93 | status: ready | by: owner | deps: PUB2 | phase: PYPUBLISH | req: REQ-PB2
+- [x] PUB3: docs/publishing.md maintainer runbook | priority: 93 | status: done | by: owner | deps: PUB2 | phase: PYPUBLISH | req: REQ-PB2
   details: create docs/publishing.md: PyPI trusted publisher fields (owner, repo,
   workflow publish.yml, environment pypi), GitHub environment creation, optional
   TestPyPI upload commands, release steps (bump version, tag vX.Y.Z, push tag,

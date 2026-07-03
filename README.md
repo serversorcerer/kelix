@@ -206,6 +206,9 @@ diagnosis and surfaces it for you).
 See [CONTRIBUTING.md](CONTRIBUTING.md). Kelix is stdlib-only at its core; tests
 use a mock agent so no API keys are needed to develop.
 
+**Maintainers:** PyPI trusted publishing, tagging, and release verification are
+documented in [docs/publishing.md](docs/publishing.md).
+
 ## License
 
 [Apache-2.0](LICENSE).
