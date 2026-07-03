@@ -1070,7 +1070,7 @@ in docs/publishing.md). All tasks `status: ready`.
   subprocess in tmp cwd or import metadata from pyproject; at least 3 tests.
   Acceptance: pytest tests/test_packaging.py -q pass.
 
-- [ ] PUB9: DECISIONS D26 PyPI packaging | priority: 87 | status: ready | by: owner | deps: PUB3,PUB8 | phase: PYPUBLISH | req: REQ-PB2
+- [x] PUB9: DECISIONS D26 PyPI packaging | priority: 87 | status: done | by: owner | deps: PUB3,PUB8 | phase: PYPUBLISH | req: REQ-PB2
   details: add DECISIONS.md D26: PyPI packaging adopted (PyPA tutorial), publish
   workflow on tag, trusted publishing preferred, owner tag push for v0.1.0;
   cite docs/publishing.md. Acceptance: D26 paragraph present.

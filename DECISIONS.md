@@ -235,3 +235,15 @@ the bottom. Format: `D<N> (<phase>): decision — rationale`.
   `tests/test_doc_drift.py`, `tests/test_value_demo.py`). Regression gate:
   `pytest tests/test_doc_drift.py -q` green; full suite + `ruff check src tests`
   + `kelix lint` exit 0. Backlog 118/118; phase DRIFT-FIX complete.
+- D26 (PYPUBLISH, REQ-PB2): PyPI packaging adopted per the
+  [PyPA packaging tutorial](https://packaging.python.org/en/latest/tutorials/packaging-projects/):
+  PEP 621 metadata in `pyproject.toml` (Apache-2.0, `license-files`, project
+  URLs), CI `package` job in `.github/workflows/ci.yml`, and tag-triggered
+  `.github/workflows/publish.yml` (build, `twine check`, wheel smoke
+  `kelix --help`, upload via `pypa/gh-action-pypi-publish@release/v1`).
+  **Trusted publishing** is the preferred upload path (PyPI trusted publisher
+  → owner `serversorcerer`, repo `kelix`, workflow `publish.yml`, environment
+  `pypi`); no long-lived PyPI token in repo secrets. Owner-only steps remain:
+  one-time PyPI/GitHub environment UI, version bump, and `git tag v0.1.0 &&
+  git push origin v0.1.0` for the first public release — Kelix documents but
+  does not push tags. Maintainer runbook: `docs/publishing.md`.
