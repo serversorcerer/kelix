@@ -1009,7 +1009,7 @@ in docs/publishing.md). All tasks `status: ready`.
 
 ### Phase PYPUBLISH — Packaging
 
-- [ ] PUB1: pyproject.toml PyPI metadata | priority: 95 | status: ready | by: owner | phase: PYPUBLISH | req: REQ-PB1
+- [x] PUB1: pyproject.toml PyPI metadata | priority: 95 | status: done | by: owner | phase: PYPUBLISH | req: REQ-PB1
   details: modernize pyproject.toml per PyPA guide: `license = "Apache-2.0"`,
   `license-files = ["LICENSE"]`, remove deprecated license table/classifier;
   add project.urls Repository and Issues; description matches GitHub (no em-dash);
